@@ -1,0 +1,3 @@
+/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeFiles/minifb.dir
+/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeFiles/ALL_BUILD.dir
+/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeFiles/ZERO_CHECK.dir

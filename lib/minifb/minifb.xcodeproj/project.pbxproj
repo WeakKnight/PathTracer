@@ -1,0 +1,691 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		BBD61F0B08464E29A4864266 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = ACB3346092A049599062FD12 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				46320380C29F46E78B24C3E5 /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		EDA11C12889A4734A274613E /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 3CA81A06B9264E899CEA5908 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				24DEE6B85C024DAD958DCC8C /* CMake Rules */,
+			);
+			dependencies = (
+				D9BEAE70453A4D0F853317EC /* PBXTargetDependency */,
+				82585C70415B4D8791BA63BF /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		1AAAA32FB1EE4C56BEE04AEC /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.c */ = {isa = PBXBuildFile; fileRef = 64558759D44B4A78A62D0C6E /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.c */; };
+		365AF5DEAB314A618C5B2D39 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB_enums.h */ = {isa = PBXBuildFile; fileRef = A4195AC46F184F2A9D779577 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB_enums.h */; };
+		3687756CFD5445E1B130D9E5 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.m */ = {isa = PBXBuildFile; fileRef = 8839E4BED60C45BEB8F325ED /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.m */; };
+		3C4B51C6EF554BCD94BF2F4D /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/MacMiniFB.m */ = {isa = PBXBuildFile; fileRef = 6C35146C681C42B098412A1A /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/MacMiniFB.m */; };
+		40396C4159AB476598A4EB74 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.h */ = {isa = PBXBuildFile; fileRef = 6D8875D4ED2F4DA184D9A0D5 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.h */; };
+		42B74B2F960F49868C08099A /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.m */ = {isa = PBXBuildFile; fileRef = 6023741C3CBA4457A858E883 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.m */; };
+		65D484F0720F4DF18E78C45D /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_common.c */ = {isa = PBXBuildFile; fileRef = F514F4F7DE5B46BFA959D383 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_common.c */; };
+		6D0E8450C732430F86C5C561 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_cpp.cpp */ = {isa = PBXBuildFile; fileRef = 40F3FE34162042F78362C469 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_cpp.cpp */; };
+		83A2632080C9422DA0AD50CB /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB_cpp.h */ = {isa = PBXBuildFile; fileRef = 49932BB14ABC47A99A22DF69 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB_cpp.h */; };
+		ABC8EC5977364583A220B92C /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/WindowData_OSX.h */ = {isa = PBXBuildFile; fileRef = 982BF3CAC4824F37BBB21338 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/WindowData_OSX.h */; };
+		D32142BA9A50442B8F86C839 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB.h */ = {isa = PBXBuildFile; fileRef = 3C8B8633FE384735A8C4B501 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB.h */; };
+		DD081AC63E98446D823AB303 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/WindowData.h */ = {isa = PBXBuildFile; fileRef = B5FE0A967B5D4B1C9F2C0106 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/WindowData.h */; };
+		E3948AA1855E4EBD9615A5E8 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.h */ = {isa = PBXBuildFile; fileRef = 5701F87E1D784180AB75FBF7 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.h */; };
+		F3DB3EC3D52C4153AAE978EE /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.h */ = {isa = PBXBuildFile; fileRef = 47E0EB6D0E9F49E7B3C702E3 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.h */; };
+		F9ABEC784CAC4DF795939641 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 534738CA49E147B9810C2B43 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeLists.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		17504487C521489287CFCC31 /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+		325D69BD9B6F4C6B8BA48B69 /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		4C4C2648E5A94CFD893C4643 /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		FF2238597E2E4FC4A54CF044 /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		37140F6438FD48B8AC6E7B3B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A47EED0F931A4FDD9B0B7FA9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BBD61F0B08464E29A4864266;
+			remoteInfo = ZERO_CHECK;
+		};
+		D7056B21B85E44E88E78FC3A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A47EED0F931A4FDD9B0B7FA9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BBD61F0B08464E29A4864266;
+			remoteInfo = ZERO_CHECK;
+		};
+		F0D9230B626D43499024DD9C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A47EED0F931A4FDD9B0B7FA9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B735F06FD6A8456B83966390;
+			remoteInfo = minifb;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0B78AFEBB1314A38BF1F4CEB /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		3C8B8633FE384735A8C4B501 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = MiniFB.h; path = include/MiniFB.h; sourceTree = SOURCE_ROOT; };
+		40F3FE34162042F78362C469 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_cpp.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = MiniFB_cpp.cpp; path = src/MiniFB_cpp.cpp; sourceTree = SOURCE_ROOT; };
+		47E0EB6D0E9F49E7B3C702E3 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = OSXWindow.h; path = src/macosx/OSXWindow.h; sourceTree = SOURCE_ROOT; };
+		49932BB14ABC47A99A22DF69 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB_cpp.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = MiniFB_cpp.h; path = include/MiniFB_cpp.h; sourceTree = SOURCE_ROOT; };
+		534738CA49E147B9810C2B43 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		5701F87E1D784180AB75FBF7 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = OSXWindowFrameView.h; path = src/macosx/OSXWindowFrameView.h; sourceTree = SOURCE_ROOT; };
+		6023741C3CBA4457A858E883 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.objc; fileEncoding = 4; name = OSXWindowFrameView.m; path = src/macosx/OSXWindowFrameView.m; sourceTree = SOURCE_ROOT; };
+		64558759D44B4A78A62D0C6E /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = MiniFB_internal.c; path = src/MiniFB_internal.c; sourceTree = SOURCE_ROOT; };
+		6C35146C681C42B098412A1A /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/MacMiniFB.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.objc; fileEncoding = 4; name = MacMiniFB.m; path = src/macosx/MacMiniFB.m; sourceTree = SOURCE_ROOT; };
+		6D8875D4ED2F4DA184D9A0D5 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = MiniFB_internal.h; path = src/MiniFB_internal.h; sourceTree = SOURCE_ROOT; };
+		8839E4BED60C45BEB8F325ED /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.objc; fileEncoding = 4; name = OSXWindow.m; path = src/macosx/OSXWindow.m; sourceTree = SOURCE_ROOT; };
+		982BF3CAC4824F37BBB21338 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/WindowData_OSX.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = WindowData_OSX.h; path = src/macosx/WindowData_OSX.h; sourceTree = SOURCE_ROOT; };
+		A4195AC46F184F2A9D779577 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB_enums.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = MiniFB_enums.h; path = include/MiniFB_enums.h; sourceTree = SOURCE_ROOT; };
+		B5FE0A967B5D4B1C9F2C0106 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/WindowData.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = WindowData.h; path = src/WindowData.h; sourceTree = SOURCE_ROOT; };
+		F514F4F7DE5B46BFA959D383 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_common.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = MiniFB_common.c; path = src/MiniFB_common.c; sourceTree = SOURCE_ROOT; };
+		F7067B2C04714B23AFCA8B0E /* minifb */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libminifb.a; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		009D44CD3304407CB2E3ED74 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				CC37693DCC2B48C396D0B016 /* CMake Rules */,
+				0B78AFEBB1314A38BF1F4CEB /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		39ABB4E989C14E11ABEE8BE5 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				F514F4F7DE5B46BFA959D383 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_common.c */,
+				40F3FE34162042F78362C469 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_cpp.cpp */,
+				64558759D44B4A78A62D0C6E /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.c */,
+				6C35146C681C42B098412A1A /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/MacMiniFB.m */,
+				8839E4BED60C45BEB8F325ED /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.m */,
+				6023741C3CBA4457A858E883 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.m */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		994894E2442D466BA391EE66 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F7067B2C04714B23AFCA8B0E /* minifb */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B3D0F7D3BFB54FE0A67C9B57 = {
+			isa = PBXGroup;
+			children = (
+				E9ADB22C9D614AB9AB47A799 /* minifb */,
+				009D44CD3304407CB2E3ED74 /* ALL_BUILD */,
+				994894E2442D466BA391EE66 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CC37693DCC2B48C396D0B016 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		E9ADB22C9D614AB9AB47A799 /* minifb */ = {
+			isa = PBXGroup;
+			children = (
+				F1CC5D88403F4C1982AB19B0 /* Header Files */,
+				39ABB4E989C14E11ABEE8BE5 /* Source Files */,
+				534738CA49E147B9810C2B43 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeLists.txt */,
+			);
+			name = minifb;
+			sourceTree = "<group>";
+		};
+		F1CC5D88403F4C1982AB19B0 /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				3C8B8633FE384735A8C4B501 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB.h */,
+				49932BB14ABC47A99A22DF69 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB_cpp.h */,
+				A4195AC46F184F2A9D779577 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include/MiniFB_enums.h */,
+				6D8875D4ED2F4DA184D9A0D5 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.h */,
+				B5FE0A967B5D4B1C9F2C0106 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/WindowData.h */,
+				47E0EB6D0E9F49E7B3C702E3 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.h */,
+				5701F87E1D784180AB75FBF7 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.h */,
+				982BF3CAC4824F37BBB21338 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/WindowData_OSX.h */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B735F06FD6A8456B83966390 /* minifb */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 88E266D675AC49DF8DCB3D37 /* Build configuration list for PBXNativeTarget "minifb" */;
+			buildPhases = (
+				34F377A8C9FD442B8F7D8113 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A79B8B9450404829B398F6E2 /* PBXTargetDependency */,
+			);
+			name = minifb;
+			productName = minifb;
+			productReference = F7067B2C04714B23AFCA8B0E /* minifb */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A47EED0F931A4FDD9B0B7FA9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1020;
+			};
+			buildConfigurationList = 34E9DBD5D9354A789E415B78 /* Build configuration list for PBXProject "minifb" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				4C4C2648E5A94CFD893C4643 /* Debug */,
+				325D69BD9B6F4C6B8BA48B69 /* Release */,
+				17504487C521489287CFCC31 /* MinSizeRel */,
+				FF2238597E2E4FC4A54CF044 /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = B3D0F7D3BFB54FE0A67C9B57;
+			projectDirPath = .;
+			projectRoot = "";
+			targets = (
+				EDA11C12889A4734A274613E /* ALL_BUILD */,
+				BBD61F0B08464E29A4864266 /* ZERO_CHECK */,
+				B735F06FD6A8456B83966390 /* minifb */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		24DEE6B85C024DAD958DCC8C /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/litianyu/Documents/Projects/MyTracer/lib/minifb -f /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		46320380C29F46E78B24C3E5 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/litianyu/Documents/Projects/MyTracer/lib/minifb -f /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		9CF4554FE4ED45648C606AA6 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		FBBAC3CDD714497CB165AE0A = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		34F377A8C9FD442B8F7D8113 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65D484F0720F4DF18E78C45D /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_common.c */,
+				6D0E8450C732430F86C5C561 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_cpp.cpp */,
+				1AAAA32FB1EE4C56BEE04AEC /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/MiniFB_internal.c */,
+				3C4B51C6EF554BCD94BF2F4D /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/MacMiniFB.m */,
+				3687756CFD5445E1B130D9E5 /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindow.m */,
+				42B74B2F960F49868C08099A /* /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src/macosx/OSXWindowFrameView.m */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		82585C70415B4D8791BA63BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BBD61F0B08464E29A4864266 /* ZERO_CHECK */;
+			targetProxy = 37140F6438FD48B8AC6E7B3B /* PBXContainerItemProxy */;
+		};
+		A79B8B9450404829B398F6E2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BBD61F0B08464E29A4864266 /* ZERO_CHECK */;
+			targetProxy = D7056B21B85E44E88E78FC3A /* PBXContainerItemProxy */;
+		};
+		D9BEAE70453A4D0F853317EC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B735F06FD6A8456B83966390 /* minifb */;
+			targetProxy = F0D9230B626D43499024DD9C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		05B83A0E2FEC4A82BC79037C /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		33A7FB466AB84DE3B41009F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",USE_METAL_API);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include,/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = "   -Wall -Wextra -pedantic -Wno-switch -Wno-unused-function     -DNDEBUG  ";
+				OTHER_CPLUSPLUSFLAGS = "   -Wall -Wextra -pedantic -Wno-switch -Wno-unused-function -std=c++11     -DNDEBUG  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = minifb;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		3BE987C7B77243DAB9EE8109 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk;
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/build;
+			};
+			name = Release;
+		};
+		43198D46296A4AE4A7E2ED36 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		4571787960D14C6FB66B346E /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		60777900A95041198F99C2AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",USE_METAL_API);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include,/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = "   -Wall -Wextra -pedantic -Wno-switch -Wno-unused-function     ";
+				OTHER_CPLUSPLUSFLAGS = "   -Wall -Wextra -pedantic -Wno-switch -Wno-unused-function -std=c++11     ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = minifb;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		7A8BB54C055A484B9417566C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		7F8B1B98727B42FE84072DF9 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk;
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/build;
+			};
+			name = RelWithDebInfo;
+		};
+		800960F5D1B24CA9B9C87636 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk;
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/build;
+			};
+			name = Debug;
+		};
+		A5ADB5BD25E94035B7F8B43A /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",USE_METAL_API);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include,/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = "   -Wall -Wextra -pedantic -Wno-switch -Wno-unused-function        -DNDEBUG  ";
+				OTHER_CPLUSPLUSFLAGS = "   -Wall -Wextra -pedantic -Wno-switch -Wno-unused-function -std=c++11        -DNDEBUG  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = minifb;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		BDDFE1306F0848B69E62CD8F /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",USE_METAL_API);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/include,/Users/litianyu/Documents/Projects/MyTracer/lib/minifb/src);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = "   -Wall -Wextra -pedantic -Wno-switch -Wno-unused-function     -DNDEBUG  ";
+				OTHER_CPLUSPLUSFLAGS = "   -Wall -Wextra -pedantic -Wno-switch -Wno-unused-function -std=c++11     -DNDEBUG  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = minifb;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		C12AA327F1BA49F49A5182C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		CE31C5237A4248BAB1CCC07C /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk;
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb/build;
+			};
+			name = MinSizeRel;
+		};
+		EB4367B76AB6457A91993672 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		F91DA7C389F743AE93FC8703 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		F9932E48801B4C6E82B0BE8C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = /Users/litianyu/Documents/Projects/MyTracer/lib/minifb;
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		34E9DBD5D9354A789E415B78 /* Build configuration list for PBXProject "minifb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				800960F5D1B24CA9B9C87636 /* Debug */,
+				3BE987C7B77243DAB9EE8109 /* Release */,
+				CE31C5237A4248BAB1CCC07C /* MinSizeRel */,
+				7F8B1B98727B42FE84072DF9 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		3CA81A06B9264E899CEA5908 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C12AA327F1BA49F49A5182C7 /* Debug */,
+				F91DA7C389F743AE93FC8703 /* Release */,
+				05B83A0E2FEC4A82BC79037C /* MinSizeRel */,
+				43198D46296A4AE4A7E2ED36 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		88E266D675AC49DF8DCB3D37 /* Build configuration list for PBXNativeTarget "minifb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60777900A95041198F99C2AF /* Debug */,
+				33A7FB466AB84DE3B41009F3 /* Release */,
+				BDDFE1306F0848B69E62CD8F /* MinSizeRel */,
+				A5ADB5BD25E94035B7F8B43A /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		ACB3346092A049599062FD12 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A8BB54C055A484B9417566C /* Debug */,
+				F9932E48801B4C6E82B0BE8C /* Release */,
+				4571787960D14C6FB66B346E /* MinSizeRel */,
+				EB4367B76AB6457A91993672 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A47EED0F931A4FDD9B0B7FA9 /* Project object */;
+}
