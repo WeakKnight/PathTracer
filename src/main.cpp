@@ -11,7 +11,7 @@ int main(int, char**)
     spdlog::set_pattern("[thread %t] %v");
     spdlog::set_level(spdlog::level::debug);
 
-    auto app = std::make_shared<RayTracing::Application>();
+    auto app = std::make_shared<Application>();
     app->Run();
 
 //     glfwSetErrorCallback(glfw_error_callback);

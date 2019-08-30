@@ -19,22 +19,34 @@ include_directories(include/
                     thirdparty/glfw/include/
                     thirdparty/glad/include/
                     thirdparty/spdlog/include/
-                    thirdparty/imgui/)
+                    thirdparty/imgui/
+                    thirdparty/tinyxml/include/
+                    thirdparty/lodepng/include/
+                    thirdparty/cybase/include/)
 
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(thirdparty/glfw)
 
+add_subdirectory(thirdparty/glad)
+
 add_subdirectory(thirdparty/spdlog)
+
+add_subdirectory(thirdparty/tinyxml)
+
+add_subdirectory(thirdparty/lodepng)
+
+add_subdirectory(thirdparty/imgui)
 
 file(GLOB HEADERS include/*.h)
 file(GLOB SOURCES src/*.cpp)
-file(GLOB GLAD_SOURCES thirdparty/glad/src/glad.c)
-file(GLOB IMGUI_SOURCES thirdparty/imgui/*.cpp)
 
-add_executable(RayTracer ${SOURCES} ${HEADERS} ${GLAD_SOURCES} ${IMGUI_SOURCES})
-target_link_libraries(RayTracer spdlog glfw  ${GLFW_LIBRARIES} ${GLAD_LIBRARIES})
+# file(GLOB IMGUI_SOURCES thirdparty/imgui/*.cpp)
+# file(GLOB TINYXML_SOURCES thirdparty/tinyxml/*.cpp)
+
+add_executable(RayTracer ${SOURCES} ${HEADERS})
+target_link_libraries(RayTracer lodepng spdlog glfw glad imgui ${GLFW_LIBRARIES} tinyxml)
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 # set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 # include(CPack)

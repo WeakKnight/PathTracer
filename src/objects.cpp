@@ -1,9 +1,7 @@
 #include "objects.h"
 #include <vector>
 
-namespace RayTracing {
 extern Camera camera;
-
 
 bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 { 
@@ -101,9 +99,7 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
     }
 }
 
-void Sphere::ViewportDisplay() const
+void Sphere::ViewportDisplay(const Material *mtl) const
 {
-
 }
     
-}

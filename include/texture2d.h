@@ -2,9 +2,6 @@
 
 #include "glad/glad.h"
 
-namespace RayTracing
-{
-
 class Texture2D
 {
     public:
@@ -23,4 +20,4 @@ class Texture2D
     unsigned char* Data;
 };
 
-}
+
