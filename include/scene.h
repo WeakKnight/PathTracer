@@ -37,8 +37,6 @@ using namespace cy;
  
 //-------------------------------------------------------------------------------
 
-namespace RayTracing{
-
 class Ray
 {
 public:
@@ -168,14 +166,12 @@ private:
 };
  
 //-------------------------------------------------------------------------------
-
-class TraceContext;
-
+    
 // Base class for all object types
 class Object
 {
 public:
-    virtual bool IntersectRay( Ray const &ray, HitInfo &hInfo, TraceContext* context, int hitSide=HIT_FRONT ) const=0;
+    virtual bool IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const=0;
     virtual void ViewportDisplay() const {} // used for OpenGL display
 };
  
@@ -329,7 +325,6 @@ private:
         return error == 0;
     }
 };
-}
 //-------------------------------------------------------------------------------
  
 #endif

@@ -7,14 +7,6 @@ class Node;
 
 namespace RayTracing
 {
-    class TraceContext
-    {
-        public :
-        std::vector<Node*> transformStack;
-    };
-    
-    cyVec3f localToWorld(cyVec3f p, TraceContext* context);
-    
     class Texture2D;
     
     class RayTracer

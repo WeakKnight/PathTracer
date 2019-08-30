@@ -16,62 +16,35 @@
 
 namespace RayTracing
 {
-Node rootNode;
-Camera camera;
-RenderImage renderImage;
-Sphere theSphere;
+    Node rootNode;
+    Camera camera;
+    RenderImage renderImage;
+    Sphere theSphere;
 
-float imgPlaneHeight;
-float imgPlaneWidth;
+    float imgPlaneHeight;
+    float imgPlaneWidth;
 
-// pixel's world space size
-float texelWdith;
-float texelHeight;
+    // pixel's world space size
+    float texelWdith;
+    float texelHeight;
 
-cyVec3f cameraUp;
-cyVec3f cameraFront;
-cyVec3f cameraRight;
+    cyVec3f cameraUp;
+    cyVec3f cameraFront;
+    cyVec3f cameraRight;
 
-Color24 *myZImg = nullptr;
-
-
-    Ray WorldToLocal(Ray r, TraceContext* context)
-    {
-        Ray result = r;
-        for(size_t i = 0; i < context->transformStack.size(); i++)
-        {
-            Node* currentNode = context->transformStack[i];
-            result = currentNode->ToNodeCoords(result);
-        }
-        return result;
-    }
+    Color24 *myZImg = nullptr;
     
-    cyVec3f localToWorld(cyVec3f p, TraceContext* context)
+    bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
     {
-        cyVec3f result = p;
-        for(int i = context->transformStack.size() - 1; i >=0; i--)
-        {
-            Node* currentNode = context->transformStack[i];
-            result = currentNode->TransformFrom(result);
-        }
-        return result;
-    }
-    
-    bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node, TraceContext* context)
-    {
-        context->transformStack.push_back(node);
-        
         bool result = false;
         
-        
-        
-        Ray rayInNodeSpace = WorldToLocal(ray, context);
+        Ray rayInNodeSpace = node->ToNodeCoords(ray); //WorldToLocal(ray, context);
         
         HitInfo currentHitInfo;
         
         auto obj = node->GetNodeObj();
         
-        if(obj != nullptr && obj->IntersectRay(rayInNodeSpace, currentHitInfo, context, HIT_FRONT))
+        if(obj != nullptr && obj->IntersectRay(rayInNodeSpace, currentHitInfo, HIT_FRONT))
         {
             result = true;
             if(currentHitInfo.z < hitInfo.z)
@@ -86,7 +59,7 @@ Color24 *myZImg = nullptr;
         {
             HitInfo currentHitInfo;
             Node* child = node->GetChild(index);
-            if(TraceNode(currentHitInfo, ray, child, context))
+            if(TraceNode(currentHitInfo, rayInNodeSpace, child))
             {
                 result = true;
                 
@@ -99,7 +72,6 @@ Color24 *myZImg = nullptr;
             }
         }
         
-        context->transformStack.pop_back();
         return result;
     }
     
@@ -114,7 +86,7 @@ Color24 *myZImg = nullptr;
         cameraFront
         - camera.pos;
         
-        result.dir.Normalize();
+        result.Normalize();
         
         return result;
     }
@@ -156,8 +128,6 @@ Color24 *myZImg = nullptr;
         for(std::size_t i = 0; i < cores; i++)
         {
             threads.push_back(std::async([=](){
-                auto traceContext = new TraceContext();
-                
                 for(std::size_t index = i; index < size; index+= cores)
                 {
                     int y = index / renderImage.GetWidth();
@@ -165,7 +135,7 @@ Color24 *myZImg = nullptr;
                     
                     HitInfo hitInfo;
                     Ray cameraRay = GenCameraRay(x, y);
-                    bool sthTraced = TraceNode(hitInfo, cameraRay, &rootNode, traceContext);
+                    bool sthTraced = TraceNode(hitInfo, cameraRay, &rootNode);
                     if(sthTraced)
                     {
                         RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::White());
@@ -185,8 +155,6 @@ Color24 *myZImg = nullptr;
                         spdlog::debug("time is {}", finish - now);
                     }
                 }
-                
-                delete traceContext;
     //            for(int i = 0; i < renderImage.GetWidth(); i++)
     //            {
     //                for(int j = 0; j < renderImage.GetHeight(); j++)
