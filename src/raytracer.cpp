@@ -138,6 +138,11 @@ void RayTracer::Run()
                 int y = index / renderImage.GetWidth();
                 int x = index - y * renderImage.GetWidth();
                 
+//                if(x == 399 && y == 299)
+//                {
+//                    int a = 1;
+//                }
+                
                 HitInfo hitInfo;
                 Ray cameraRay = GenCameraRay(x, y);
                 bool sthTraced = TraceNode(hitInfo, cameraRay, &rootNode);
