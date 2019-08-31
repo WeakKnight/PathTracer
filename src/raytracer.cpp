@@ -52,6 +52,8 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
         if(currentHitInfo.z < hitInfo.z)
         {
             hitInfo.z = currentHitInfo.z;
+            hitInfo.p = currentHitInfo.p;
+            hitInfo.N = currentHitInfo.N;
             hitInfo.node = node;
             hitInfo.front = currentHitInfo.front;
         }
@@ -68,6 +70,8 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
             if(currentHitInfo.z < hitInfo.z)
             {
                 hitInfo.z = currentHitInfo.z;
+                hitInfo.p = currentHitInfo.p;
+                hitInfo.N = currentHitInfo.N;
                 hitInfo.node = currentHitInfo.node;
                 hitInfo.front = currentHitInfo.front;
             }
@@ -140,9 +144,10 @@ void RayTracer::Run()
                 
                 if(sthTraced)
                 {
+                    hitInfo.node->FromNodeCoords(hitInfo);
                     Color shadingResult = hitInfo.node->GetMaterial()->Shade(cameraRay, hitInfo, lights);
-                    RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r, shadingResult.g, shadingResult.b));
-                    RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::White());
+                    RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r * 255.0f, shadingResult.g * 255.0f, shadingResult.b * 255.0f));
+//                    RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::White());
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
                 }
                 else
@@ -151,8 +156,9 @@ void RayTracer::Run()
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
                 }
                 
+                renderImage.IncrementNumRenderPixel(1);
                 // done
-                if(index == size - 1)
+                if(renderImage.IsRenderDone())
                 {
                     renderImage.ComputeZBufferImage();
                     float finish = glfwGetTime();

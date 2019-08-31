@@ -36,9 +36,9 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
                     if(dist < hInfo.z)
                     {
                         hInfo.z = dist;
-                        hInfo.N = intersectPoint;
-                        hInfo.N.Normalize();
-                        hInfo.p = intersectPoint;
+                        hInfo.N = intersectPoint; // obj space
+//                        hInfo.N.Normalize();
+                        hInfo.p = intersectPoint; // obj space
                         // behind the image plane and only one root, it is in the tangent plane, must be front
                         hInfo.front = true;
                     }
@@ -73,7 +73,7 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
                         {
                             hInfo.z = dist2;
                             hInfo.N = intersectPoint2;
-                            hInfo.N.Normalize();
+//                            hInfo.N.Normalize();
                             hInfo.p = intersectPoint2;
                             hInfo.front = false;
                         }
@@ -94,7 +94,7 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
                     {
                         hInfo.z = dist1;
                         hInfo.N = intersectPoint1;
-                        hInfo.N.Normalize();
+//                        hInfo.N.Normalize();
                         hInfo.p = intersectPoint1;
                         hInfo.front = true;
                     }
