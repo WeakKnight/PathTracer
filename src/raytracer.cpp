@@ -40,6 +40,7 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
     bool result = false;
     
     Ray rayInNodeSpace = node->ToNodeCoords(ray); //WorldToLocal(ray, context);
+    // ray = node->ToNodeCoords(ray); //WorldToLocal(ray, context);
     
     HitInfo currentHitInfo;
     
@@ -98,7 +99,7 @@ void RayTracer::Init()
     zbufferTexture = std::make_shared<Texture2D>();
     
     // scene load, ini global variables
-    LoadScene("assets/project1.xml");
+    LoadScene("assets/project2.xml");
     
     // make sure camera dir normalized
     camera.dir.Normalize();
@@ -137,8 +138,11 @@ void RayTracer::Run()
                 HitInfo hitInfo;
                 Ray cameraRay = GenCameraRay(x, y);
                 bool sthTraced = TraceNode(hitInfo, cameraRay, &rootNode);
+                
                 if(sthTraced)
                 {
+//                    Color shadingResult = hitInfo.node->GetMaterial()->Shade(cameraRay, hitInfo, lights);
+//                    RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r, shadingResult.g, shadingResult.b));
                     RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::White());
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
                 }

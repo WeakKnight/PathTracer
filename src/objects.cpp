@@ -22,7 +22,8 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
         if(delta == 0)
         {
             float dist = -1.0f * b / (2.0f * a);
-
+            Vec3f intersectPoint = ray.p + ray.dir * dist;
+            
             // if hit in front of the eye, it should be transparent, just like lights go through
             if(dist < 0.0f)
             {
@@ -35,6 +36,9 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
                     if(dist < hInfo.z)
                     {
                         hInfo.z = dist;
+                        hInfo.N = intersectPoint;
+                        hInfo.N.Normalize();
+                        hInfo.p = intersectPoint;
                         // behind the image plane and only one root, it is in the tangent plane, must be front
                         hInfo.front = true;
                     }
@@ -51,7 +55,10 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
         {
             float dist1 = (-1.0f * b - sqrtf(delta))/(2.0f * a);
             float dist2 = (-1.0f * b + sqrtf(delta))/(2.0f * a);
-
+            
+            Vec3f intersectPoint1 = ray.p + ray.dir * dist1;
+            Vec3f intersectPoint2 = ray.p + ray.dir * dist2;
+            
             if(dist1 < 0.0f)
             {
                 if(dist2 < 0.0f)
@@ -65,6 +72,9 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
                         if(dist2 < hInfo.z)
                         {
                             hInfo.z = dist2;
+                            hInfo.N = intersectPoint2;
+                            hInfo.N.Normalize();
+                            hInfo.p = intersectPoint2;
                             hInfo.front = false;
                         }
 
@@ -83,6 +93,9 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
                     if(dist1 < hInfo.z)
                     {
                         hInfo.z = dist1;
+                        hInfo.N = intersectPoint1;
+                        hInfo.N.Normalize();
+                        hInfo.p = intersectPoint1;
                         hInfo.front = true;
                     }
 
