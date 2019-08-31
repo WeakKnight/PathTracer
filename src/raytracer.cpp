@@ -85,8 +85,7 @@ Ray GenCameraRay(int x, int y)
     result.dir =
     cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + 0.5f * texelWdith) +
     cameraUp * (imgPlaneHeight * 0.5f - y * texelHeight - 0.5f * texelHeight) +
-    cameraFront
-    - camera.pos;
+    cameraFront;
     
     result.Normalize();
     
@@ -141,8 +140,8 @@ void RayTracer::Run()
                 
                 if(sthTraced)
                 {
-//                    Color shadingResult = hitInfo.node->GetMaterial()->Shade(cameraRay, hitInfo, lights);
-//                    RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r, shadingResult.g, shadingResult.b));
+                    Color shadingResult = hitInfo.node->GetMaterial()->Shade(cameraRay, hitInfo, lights);
+                    RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r, shadingResult.g, shadingResult.b));
                     RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::White());
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
                 }
