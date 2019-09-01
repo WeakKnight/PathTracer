@@ -362,6 +362,7 @@ public:
     }
  
     bool SaveImage (char const *filename) const { return SavePNG(filename,&img[0].r,3); }
+    bool SaveImage (char const *filename, uint8_t* data) const { return SavePNG(filename, data, 3); }
     bool SaveZImage(char const *filename) const { return SavePNG(filename,zbufferImg,1); }
  
 private:

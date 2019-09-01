@@ -255,7 +255,30 @@ void LoadMaterial(TiXmlElement *element)
                     printf("   glossiness %f\n",f);
                 }
             }
-        } else {
+        }
+        else if ( COMPARE(type,"phong") ) {
+            printf(" - Phong\n");
+            MtlBlinn *m = new MtlBlinn();
+            mtl = m;
+            for ( TiXmlElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
+                Color c(1,1,1);
+                float f=1;
+                if ( COMPARE( child->Value(), "diffuse" ) ) {
+                    ReadColor( child, c );
+                    m->SetDiffuse(c);
+                    printf("   diffuse %f %f %f\n",c.r,c.g,c.b);
+                } else if ( COMPARE( child->Value(), "specular" ) ) {
+                    ReadColor( child, c );
+                    m->SetSpecular(c);
+                    printf("   specular %f %f %f\n",c.r,c.g,c.b);
+                } else if ( COMPARE( child->Value(), "glossiness" ) ) {
+                    ReadFloat( child, f );
+                    m->SetGlossiness(f);
+                    printf("   glossiness %f\n",f);
+                }
+            }
+        }
+        else {
             printf(" - UNKNOWN\n");
         }
     }

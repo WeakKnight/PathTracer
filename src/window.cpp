@@ -91,6 +91,11 @@ Window::~Window()
     glfwTerminate();
 }
 
+int xInputMin;
+int xInputMax;
+int yInputMin;
+int yInputMax;
+
 void Window::StartUpdate()
 {
     RayTracer rayTracer;
@@ -99,6 +104,7 @@ void Window::StartUpdate()
     
     auto renderTexture = rayTracer.GetRenderTexture();
     auto zbufferTexture = rayTracer.GetZBufferTexture();
+    auto timeTexture = rayTracer.GetTimeTexture();
     
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
@@ -120,17 +126,30 @@ void Window::StartUpdate()
         {
             ImGui::Begin("Toolbox");
             ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
+            ImGui::SetWindowSize(ImVec2(240.0f, 400.0f));
+            
             if(ImGui::Button("output buffer file"))
             {
                 rayTracer.WriteToFile();
             }
+            
+            if(ImGui::Button("Run Tracing"))
+            {
+                rayTracer.Run();
+            }
+            
+            ImGui::InputText("SceneName", rayTracer.scene_path, 256);
+            if(ImGui::Button("Reinit Scene"))
+            {
+                rayTracer.Init();
+            }
+            //rayTracer.scene_path = ImGui::inputt
             
             ImGui::End();
         }
         
         {
             ImGui::Begin("Color Buffer");
-            ImGui::SetWindowPos(ImVec2(0.0f, 80.0f));
             ImGui::SetWindowSize(ImVec2(renderTexture->Width + 20, renderTexture->Height + 40));
             ImGui::Image
                 (
@@ -152,6 +171,22 @@ void Window::StartUpdate()
             (
              (ImTextureID)zbufferTexture->Id,
              ImVec2(zbufferTexture->Width,zbufferTexture->Height),
+             ImVec2(0,0),
+             ImVec2(1,1),
+             ImVec4(1.0, 1.0, 1.0, 1.0),
+             ImVec4(1.0, 1.0, 1.0, 1.0)
+             );
+            
+            ImGui::End();
+        }
+        
+        {
+            ImGui::Begin("Time Buffer");
+            ImGui::SetWindowSize(ImVec2(timeTexture->Width + 20, timeTexture->Height + 40));
+            ImGui::Image
+            (
+             (ImTextureID)timeTexture->Id,
+             ImVec2(timeTexture->Width, timeTexture->Height),
              ImVec2(0,0),
              ImVec2(1,1),
              ImVec4(1.0, 1.0, 1.0, 1.0),
