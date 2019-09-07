@@ -21,10 +21,11 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         
         Color colorComing;
         Vec3f lightDir = -1.0f * light->Direction(hInfo.p);
+        
         float cosTheta = lightDir.Dot(hInfo.N);
-        if(cosTheta < 0)
+        if(cosTheta <= 0)
         {
-            cosTheta = 0;
+            continue;
         }
         
         Vec3f H = (-1.0f * ray.dir.GetNormalized() + lightDir).GetNormalized();
@@ -39,7 +40,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             
             Color specularColor =
             Color::Black();
-            //            colorComing * specular * pow(V.Dot(R), glossiness);
+//                        colorComing * specular * pow(H.Dot(hInfo.N), glossiness);
             // / cosTheta;
             // / cosTheta;
             
