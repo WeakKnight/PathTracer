@@ -5,7 +5,7 @@ void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, V
     
 }
 
-float GenLight::Shadow(Ray ray, float t_max)
-{
-    return 1.0f;
-}
+//float GenLight::Shadow(Ray ray, float t_max)
+//{
+//    return 1.0f;
+//}

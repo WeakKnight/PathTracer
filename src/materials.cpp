@@ -9,8 +9,8 @@ using namespace cy;
 Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights) const
 {
     // ray world space
-    // N obj space need transform
-    // p obj space need transform
+    // N world space
+    // p world space
     // depth space independent
     // node space independent
     Color result = Color::Black();
@@ -23,7 +23,8 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         Vec3f lightDir = -1.0f * light->Direction(hInfo.p);
         
         float cosTheta = lightDir.Dot(hInfo.N);
-        if(cosTheta <= 0)
+        
+        if(cosTheta <= 0 && !light->IsAmbient())
         {
             continue;
         }
