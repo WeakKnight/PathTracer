@@ -9,7 +9,7 @@
       <scale value="8.0"/>
       <rotate angle="30" y="1"/>
       <translate x="0" y="50" z="5.1"/>
-      <object type="sphere" name="sphere3" material="mtl3">
+      <object type="sphere" name="sphere3" material="mtl1">
         <scale value="0.2"/>
         <translate x="0" y="0" z="1.2"/>
       </object>
@@ -23,11 +23,6 @@
     </material>
     <material type="blinn" name="mtl2">
       <diffuse  r="0.1" g="0.1" b="0.9"/>
-      <specular r="0.9" g="0.9" b="1.0" value="0.8"/>
-      <glossiness value="10"/>
-    </material>
-    <material type="phong" name="mtl3">
-      <diffuse  r="0.6" g="0.4" b="0.9"/>
       <specular r="0.9" g="0.9" b="1.0" value="0.8"/>
       <glossiness value="10"/>
     </material>

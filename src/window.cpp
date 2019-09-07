@@ -104,7 +104,6 @@ void Window::StartUpdate()
     
     auto renderTexture = rayTracer.GetRenderTexture();
     auto zbufferTexture = rayTracer.GetZBufferTexture();
-    auto timeTexture = rayTracer.GetTimeTexture();
     
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
@@ -171,22 +170,6 @@ void Window::StartUpdate()
             (
              (ImTextureID)zbufferTexture->Id,
              ImVec2(zbufferTexture->Width,zbufferTexture->Height),
-             ImVec2(0,0),
-             ImVec2(1,1),
-             ImVec4(1.0, 1.0, 1.0, 1.0),
-             ImVec4(1.0, 1.0, 1.0, 1.0)
-             );
-            
-            ImGui::End();
-        }
-        
-        {
-            ImGui::Begin("Time Buffer");
-            ImGui::SetWindowSize(ImVec2(timeTexture->Width + 20, timeTexture->Height + 40));
-            ImGui::Image
-            (
-             (ImTextureID)timeTexture->Id,
-             ImVec2(timeTexture->Width, timeTexture->Height),
              ImVec2(0,0),
              ImVec2(1,1),
              ImVec4(1.0, 1.0, 1.0, 1.0),

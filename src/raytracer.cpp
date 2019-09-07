@@ -34,8 +34,6 @@ cyVec3f cameraFront;
 cyVec3f cameraRight;
 
 Color24 *myZImg = nullptr;
-float *timebuffer = nullptr;
-Color24 *myTimeImg = nullptr;
 
 bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
 {
@@ -53,11 +51,16 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
         result = true;
         if(currentHitInfo.z < hitInfo.z)
         {
+            // world space
             hitInfo.z = currentHitInfo.z;
+            // node space
             hitInfo.p = currentHitInfo.p;
+            // node space
             hitInfo.N = currentHitInfo.N;
             hitInfo.node = node;
             hitInfo.front = currentHitInfo.front;
+            
+            // to world space
         }
     }
     
@@ -108,10 +111,6 @@ void RayTracer::Init()
     {
         zbufferTexture = std::make_shared<Texture2D>();
     }
-    if(!timeTexture)
-    {
-        timeTexture = std::make_shared<Texture2D>();
-    }
     
     // scene load, ini global variables
     LoadScene(scene_path);
@@ -133,13 +132,6 @@ void RayTracer::Init()
 
 void RayTracer::Run()
 {
-    if(timebuffer != nullptr)
-    {
-        delete [] timebuffer;
-    }
-    
-    timebuffer = new float[renderImage.GetWidth() * renderImage.GetHeight()];
-    
     float now = glfwGetTime();
     
     std::size_t cores = std::thread::hardware_concurrency() - 1;
@@ -154,7 +146,6 @@ void RayTracer::Run()
         threads.push_back(std::async([=](){
             for(std::size_t index = i; index < size; index+= cores)
             {
-                float pixelStartTime = glfwGetTime();
                 int y = index / renderImage.GetWidth();
                 int x = index - y * renderImage.GetWidth();
                 
@@ -181,11 +172,6 @@ void RayTracer::Run()
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
                 }
                 
-                float pixelEndTime = glfwGetTime();
-                
-                float pixelTime = pixelEndTime - pixelStartTime;
-                RenderImageHelper::SetTime(renderImage, timebuffer, x, y, pixelTime);
-                
                 renderImage.IncrementNumRenderPixel(1);
                 // done
                 if(renderImage.IsRenderDone())
@@ -203,30 +189,19 @@ void RayTracer::Run()
         delete [] myZImg;
     }
     
-    if(myTimeImg != nullptr)
-    {
-        delete [] myTimeImg;
-    }
-    
     myZImg = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
-    myTimeImg = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
 }
 
 void RayTracer::UpdateRenderResult()
 {
     RenderImageHelper::CalculateMyDepthImg(myZImg, renderImage);
-    RenderImageHelper::CalculateTimeImg(myTimeImg, timebuffer, renderImage);
 
     zbufferTexture->SetData((unsigned char *)myZImg, renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB);
-
     renderTexture->SetData((unsigned char *)renderImage.GetPixels(), renderImage.GetWidth(), renderImage.GetHeight());
-    
-    timeTexture->SetData((unsigned char *)myTimeImg, renderImage.GetWidth(), renderImage.GetHeight());
 }
 
 void RayTracer::WriteToFile()
 {
     renderImage.SaveImage("colorbuffer.png");
     renderImage.SaveZImage("zbuffer.png");
-    renderImage.SaveImage("time.png", (uint8_t*)myTimeImg);
 }
