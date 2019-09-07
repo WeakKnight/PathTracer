@@ -1,5 +1,7 @@
 #pragma once
 
+#define IMGUI_DEBUG
+
 #include <memory>
 
 class Window;

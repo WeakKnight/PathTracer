@@ -37,7 +37,10 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             
             
             
-            Color specularColor = colorComing * specular * pow(H.Dot(hInfo.N), glossiness);
+            Color specularColor =
+            Color::Black();
+            //            colorComing * specular * pow(V.Dot(R), glossiness);
+            // / cosTheta;
             // / cosTheta;
             
             result += (diffuseColor + specularColor);
@@ -98,9 +101,9 @@ Color MtlPhong::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             
             Color diffuseColor = Color(colorComing * diffuse);
             
-            
-            
-            Color specularColor = colorComing * specular * pow(V.Dot(R), glossiness);
+            Color specularColor =
+            Color::Black();
+//            colorComing * specular * pow(V.Dot(R), glossiness);
             // / cosTheta;
             
             result += (diffuseColor + specularColor);

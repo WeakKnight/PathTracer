@@ -15,6 +15,8 @@
 #include "spdlog/spdlog.h"
 #include "GLFW/glfw3.h"
 
+#include "application.h"
+
 Node rootNode;
 Camera camera;
 RenderImage renderImage;
@@ -39,8 +41,7 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
 {
     bool result = false;
     
-    Ray rayInNodeSpace = node->ToNodeCoords(ray); //WorldToLocal(ray, context);
-    // ray = node->ToNodeCoords(ray); //WorldToLocal(ray, context);
+    Ray rayInNodeSpace = node->ToNodeCoords(ray);
     
     HitInfo currentHitInfo;
     
@@ -59,8 +60,6 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
             hitInfo.N = currentHitInfo.N;
             hitInfo.node = node;
             hitInfo.front = currentHitInfo.front;
-            
-            // to world space
         }
     }
     
@@ -79,9 +78,16 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
                 hitInfo.N = currentHitInfo.N;
                 hitInfo.node = currentHitInfo.node;
                 hitInfo.front = currentHitInfo.front;
+                
+                node->FromNodeCoords(hitInfo);
             }
         }
     }
+    
+//    if(hitInfo.node)
+//    {
+//        
+//    }
     
     return result;
 }
@@ -103,6 +109,7 @@ Ray GenCameraRay(int x, int y)
 
 void RayTracer::Init()
 {
+#ifdef IMGUI_DEBUG
     if(!renderTexture)
     {
         renderTexture = std::make_shared<Texture2D>();
@@ -111,6 +118,7 @@ void RayTracer::Init()
     {
         zbufferTexture = std::make_shared<Texture2D>();
     }
+#endif
     
     // scene load, ini global variables
     LoadScene(scene_path);
@@ -176,9 +184,12 @@ void RayTracer::Run()
                 // done
                 if(renderImage.IsRenderDone())
                 {
-                    renderImage.ComputeZBufferImage();
                     float finish = glfwGetTime();
                     spdlog::debug("time is {}", finish - now);
+                    renderImage.ComputeZBufferImage();
+                    #ifndef IMGUI_DEBUG
+                    WriteToFile();
+                    #endif
                 }
             }
         }));
