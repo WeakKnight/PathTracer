@@ -60,6 +60,8 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
             hitInfo.N = currentHitInfo.N;
             hitInfo.node = node;
             hitInfo.front = currentHitInfo.front;
+            
+            node->FromNodeCoords(hitInfo);
         }
     }
     
@@ -168,7 +170,7 @@ void RayTracer::Run()
                 
                 if(sthTraced)
                 {
-                    hitInfo.node->FromNodeCoords(hitInfo);
+//                    hitInfo.node->FromNodeCoords(hitInfo);
                     Color shadingResult = hitInfo.node->GetMaterial()->Shade(cameraRay, hitInfo, lights);
                     RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r * 255.0f, shadingResult.g * 255.0f, shadingResult.b * 255.0f));
 //                    RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::White());
