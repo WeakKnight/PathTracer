@@ -3,7 +3,7 @@
 ///
 /// \file       lights.h
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    2.0
+/// \version    3.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -21,6 +21,7 @@ class GenLight : public Light
 {
 protected:
     void SetViewportParam(int lightID, ColorA ambient, ColorA intensity, Vec4f pos ) const;
+    static float Shadow(Ray ray, float t_max=BIGFLOAT);
 };
 
 //-------------------------------------------------------------------------------
@@ -45,7 +46,7 @@ class DirectLight : public GenLight
 {
 public:
     DirectLight() : intensity(0,0,0), direction(0,0,1) {}
-    virtual Color Illuminate(Vec3f const &p, Vec3f const &N) const { return intensity; }
+    virtual Color Illuminate(Vec3f const &p, Vec3f const &N) const { return Shadow(Ray(p,-direction)) * intensity; }
     virtual Vec3f Direction(Vec3f const &p) const { return direction; }
     virtual void SetViewportLight(int lightID) const { SetViewportParam(lightID,ColorA(0.0f),ColorA(intensity),Vec4f(-direction,0.0f)); }
     
@@ -62,7 +63,7 @@ class PointLight : public GenLight
 {
 public:
     PointLight() : intensity(0,0,0), position(0,0,0) {}
-    virtual Color Illuminate(Vec3f const &p, Vec3f const &N) const { return intensity; }
+    virtual Color Illuminate(Vec3f const &p, Vec3f const &N) const { return Shadow(Ray(p,position-p),1) * intensity; }
     virtual Vec3f Direction(Vec3f const &p) const { return (p-position).GetNormalized(); }
     virtual void SetViewportLight(int lightID) const { SetViewportParam(lightID,ColorA(0.0f),ColorA(intensity),Vec4f(position,1.0f)); }
     void SetIntensity(Color intens) { intensity=intens; }
