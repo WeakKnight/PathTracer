@@ -19,7 +19,7 @@ class RayTracer
     
     std::shared_ptr<Texture2D> GetZBufferTexture(){return zbufferTexture;}
     std::shared_ptr<Texture2D> GetRenderTexture(){return renderTexture;}
-    char scene_path[256] = "assets/project3_1.xml";
+    char scene_path[256] = "assets/project3_2.xml";
     
 private:
     std::shared_ptr<Texture2D> zbufferTexture;

@@ -11,11 +11,11 @@
     </object>
  
     <!-- Materials -->
-    <material type="blinn" name="ground">
+    <material type="phong" name="ground">
       <diffuse  r="1" g="1" b="1"/>
       <specular value="0"/>
     </material>
-    <material type="blinn" name="mtl1">
+    <material type="phong" name="mtl1">
       <diffuse  r="0.7" g="0.7" b="1"/>
       <specular r="1.0" g="1.0" b="1.0" value="0.9"/>
       <glossiness value="20"/>

@@ -1,6 +1,6 @@
 #pragma once
 
-//#define IMGUI_DEBUG
+#define IMGUI_DEBUG
 
 #include <memory>
 

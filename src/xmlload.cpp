@@ -258,7 +258,7 @@ void LoadMaterial(TiXmlElement *element)
         }
         else if ( COMPARE(type,"phong") ) {
             printf(" - Phong\n");
-            MtlBlinn *m = new MtlBlinn();
+            MtlPhong *m = new MtlPhong();
             mtl = m;
             for ( TiXmlElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
                 Color c(1,1,1);

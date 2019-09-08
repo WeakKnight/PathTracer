@@ -35,24 +35,24 @@
     </object>
  
     <!-- Materials -->
-    <material type="blinn" name="wall">
+    <material type="phong" name="wall">
       <diffuse  value="0.7" r="1" g="1" b="1"/>
       <specular value="0"/>
     </material>
-    <material type="blinn" name="wallRed">
+    <material type="phong" name="wallRed">
       <diffuse  r="1.0" g="0.5" b="0.5"/>
       <specular value="0"/>
     </material>
-    <material type="blinn" name="wallBlue">
+    <material type="phong" name="wallBlue">
       <diffuse  r="0.5" g="0.5" b="1.0"/>
       <specular value="0"/>
     </material>
-    <material type="blinn" name="mtl1">
+    <material type="phong" name="mtl1">
       <diffuse  r="0.8" g="0.2" b="0.2"/>
       <specular r="1.0" g="1.0" b="1.0" value="0.7"/>
       <glossiness value="20"/>
     </material>
-    <material type="blinn" name="mtl2">
+    <material type="phong" name="mtl2">
       <diffuse  r="0.1" g="0.1" b="0.9"/>
       <specular r="0.9" g="0.9" b="1.0" value="0.8"/>
       <glossiness value="10"/>

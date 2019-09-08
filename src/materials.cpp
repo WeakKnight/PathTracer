@@ -131,6 +131,7 @@ Color MtlPhong::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         }
     }
     
+    result.ClampMax();
     return result;
 }
 
