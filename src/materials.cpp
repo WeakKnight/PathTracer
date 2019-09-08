@@ -98,10 +98,6 @@ Color MtlPhong::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         Vec3f V = -1.0f * ray.dir.GetNormalized();
         
         float cosTheta = lightDir.Dot(hInfo.N);
-        if(cosTheta < 0)
-        {
-            cosTheta = 0;
-        }
         
         if(light->IsAmbient())
         {
@@ -118,6 +114,11 @@ Color MtlPhong::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         }
         else
         {
+            if(cosTheta < 0)
+            {
+                continue;
+            }
+            
             Color iComing = light->Illuminate(hInfo.p, hInfo.N);
             colorComing = iComing * cosTheta;
             
