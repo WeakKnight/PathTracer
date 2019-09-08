@@ -17,7 +17,10 @@ bool ShadowTraversal(Node* node, Ray& ray, float t_max)
         HitInfo objHitInfo;
         if(obj->IntersectRay(objectRay, objHitInfo))
         {
-            return true;
+            if(objHitInfo.z <= t_max)
+            {
+                return true;
+            }
         }
     }
     

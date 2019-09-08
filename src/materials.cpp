@@ -7,6 +7,8 @@
 
 using namespace cy;
 
+#define SHADOW_BIAS 0.0001f
+
 Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights) const
 {
     // ray world space
@@ -24,7 +26,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         
         if(light->IsAmbient())
         {
-            colorComing = light->Illuminate(hInfo.p, hInfo.N);
+            colorComing = light->Illuminate(hInfo.p + hInfo.N * SHADOW_BIAS, hInfo.N);
             
             Color diffuseColor = Color(colorComing * diffuse);
             
@@ -50,7 +52,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                 continue;
             }
             
-            Color iComing = light->Illuminate(hInfo.p, hInfo.N);
+            Color iComing = light->Illuminate(hInfo.p + hInfo.N * SHADOW_BIAS, hInfo.N);
             colorComing = iComing * cosTheta;
             
             Color diffuseColor = Color(colorComing * diffuse);
