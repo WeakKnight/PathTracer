@@ -89,8 +89,8 @@ public:
 
 	//!@name Limit functions
 	void Clamp   ( float limitMin=0.0f, float limitMax=1.0f ) { ClampMin(limitMin); ClampMax(limitMax); }
-	void ClampMin( float limitMin=0.0f ) { r=cy::Min(r,limitMin); g=cy::Min(g,limitMin); b=cy::Min(b,limitMin); }
-	void ClampMax( float limitMax=1.0f ) { r=cy::Max(r,limitMax); g=cy::Max(g,limitMax); b=cy::Max(b,limitMax); }
+	void ClampMin( float limitMin=0.0f ) { r=cy::Max(r,limitMin); g=cy::Max(g,limitMin); b=cy::Max(b,limitMin); }
+	void ClampMax( float limitMax=1.0f ) { r=cy::Min(r,limitMax); g=cy::Min(g,limitMax); b=cy::Min(b,limitMax); }
 	void Abs() { r = std::abs(r); g = std::abs(g); b = std::abs(b); }
 
 	//!@name Unary operators

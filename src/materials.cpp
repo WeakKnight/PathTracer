@@ -3,6 +3,7 @@
 #include "cyVector.h"
 #include "cyMatrix.h"
 #include "cyColor.h"
+#include <assert.h>
 
 using namespace cy;
 
@@ -20,16 +21,6 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         Light* light = lights[index];
         
         Color colorComing;
-        Vec3f lightDir = -1.0f * light->Direction(hInfo.p);
-        
-        float cosTheta = lightDir.Dot(hInfo.N);
-        
-        if(cosTheta <= 0 && !light->IsAmbient())
-        {
-            continue;
-        }
-        
-        Vec3f H = (-1.0f * ray.dir.GetNormalized() + lightDir).GetNormalized();
         
         if(light->IsAmbient())
         {
@@ -37,18 +28,28 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             
             Color diffuseColor = Color(colorComing * diffuse);
             
-            
-            
             Color specularColor =
             Color::Black();
-//                        colorComing * specular * pow(H.Dot(hInfo.N), glossiness);
-            // / cosTheta;
-            // / cosTheta;
             
             result += (diffuseColor + specularColor);
         }
         else
         {
+            Vec3f lightDir = -1.0f * light->Direction(hInfo.p);
+            assert(lightDir.IsUnit());
+            
+            assert(hInfo.N.IsUnit());
+            
+            Vec3f H = (-1.0f * ray.dir.GetNormalized() + lightDir).GetNormalized();
+            assert(H.IsUnit());
+            
+            float cosTheta = lightDir.Dot(hInfo.N);
+            
+            if(cosTheta < 0)
+            {
+                continue;
+            }
+            
             Color iComing = light->Illuminate(hInfo.p, hInfo.N);
             colorComing = iComing * cosTheta;
             
@@ -60,9 +61,12 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             result += (diffuseColor + specularColor);
         }
     }
-    
+    result.ClampMax();
     return result;
 }
+
+
+
 
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
