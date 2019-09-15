@@ -9,7 +9,7 @@ using namespace cy;
 
 #define SHADOW_BIAS 0.0001f
 
-Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights) const
+Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
 {
     // ray world space
     // N world space
@@ -74,7 +74,7 @@ void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
 }
 
-Color MtlPhong::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights) const
+Color MtlPhong::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
 {
     // ray world space
     // N obj space need transform
