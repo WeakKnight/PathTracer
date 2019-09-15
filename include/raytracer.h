@@ -4,6 +4,8 @@
 #include "cyVector.h"
 #include "scene.h"
 
+bool GenerateRayForNearestIntersection(Ray& ray, HitInfo& hitinfo);
+
 class Node;
 
 class Texture2D;
@@ -21,7 +23,7 @@ class RayTracer
     std::shared_ptr<Texture2D> GetRenderTexture(){return renderTexture;}
     std::shared_ptr<Texture2D> GetNormalTexture(){return normalTexture;}
     
-    char scene_path[256] = "assets/project3_2.xml";
+    char scene_path[256] = "assets/project4.xml";
     
 private:
     std::shared_ptr<Texture2D> zbufferTexture;

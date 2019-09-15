@@ -39,6 +39,38 @@ Color24 *myZImg = nullptr;
 
 Color24 *normalPixels = nullptr;
 
+bool InternalGenerateRayForNearestIntersection(Node* node, Ray& ray, HitInfo& hitinfo)
+{
+    Ray objectRay = node->ToNodeCoords(ray);
+    Object* obj = node->GetNodeObj();
+    
+    if(obj != nullptr)
+    {
+        if(obj->IntersectRay(objectRay, hitinfo))
+        {
+            node->FromNodeCoords(hitinfo);
+            return true;
+        }
+    }
+    
+    for(int i = 0; i < node->GetNumChild(); i++)
+    {
+        Node* child = node->GetChild(i);
+        if(InternalGenerateRayForNearestIntersection(child, objectRay, hitinfo))
+        {
+            node->FromNodeCoords(hitinfo);
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool GenerateRayForNearestIntersection(Ray& ray, HitInfo& hitinfo)
+{
+    return InternalGenerateRayForNearestIntersection(&rootNode, ray, hitinfo);
+}
+
 bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
 {
     bool result = false;
@@ -87,11 +119,6 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
             }
         }
     }
-    
-//    if(hitInfo.node)
-//    {
-//        
-//    }
     
     return result;
 }

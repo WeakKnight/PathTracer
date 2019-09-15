@@ -4,10 +4,16 @@
 #include "cyMatrix.h"
 #include "cyColor.h"
 #include <assert.h>
+#include "raytracer.h"
 
 using namespace cy;
 
-#define SHADOW_BIAS 0.0001f
+#define INTERSECTION_BIAS 0.0001f
+
+Vec3f Reflect(Vec3f I, Vec3f N)
+{
+    return I - 2.0f * N.Dot(I) * N;
+}
 
 Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
 {
@@ -26,7 +32,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         
         if(light->IsAmbient())
         {
-            colorComing = light->Illuminate(hInfo.p + hInfo.N * SHADOW_BIAS, hInfo.N);
+            colorComing = light->Illuminate(hInfo.p + hInfo.N * INTERSECTION_BIAS, hInfo.N);
             
             Color diffuseColor = Color(colorComing * diffuse);
             
@@ -37,27 +43,88 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         }
         else
         {
-            Vec3f lightDir = -1.0f * light->Direction(hInfo.p);
-            assert(lightDir.IsUnit());
+            Vec3f V = -1.0f * ray.dir.GetNormalized();
+            assert(V.IsUnit());
             
-            assert(hInfo.N.IsUnit());
+            Vec3f L = -1.0f * light->Direction(hInfo.p);
+            assert(L.IsUnit());
             
-            Vec3f H = (-1.0f * ray.dir.GetNormalized() + lightDir).GetNormalized();
+            Vec3f N = hInfo.N;
+            assert(N.IsUnit());
+            
+            Vec3f H = (V + L).GetNormalized();
             assert(H.IsUnit());
             
-            float cosTheta = lightDir.Dot(hInfo.N);
+            float cosTheta = L.Dot(N);
+            
+            // Schlicks Approximation
+            float Rs = 0.0f;
+            
+            // has refraction
+            if(refraction.Sum() > 0.0f)
+            {
+                float n1 = 0.0f;
+                float n2 = 0.0f;
+                
+                // currently ignore the situation from one refraction material into another refraction material
+                // from air to this
+                if(hInfo.front)
+                {
+                    n1 = 1.0f;
+                    n2 = ior;
+                }
+                // from this to air, may happen internal reflection
+                else
+                {
+                    n1 = ior;
+                    n2 = 1.0f;
+                }
+                
+                Vec3f NCrossV = N.Cross(V);
+                float sinTheta = NCrossV.Length();
+                float sinRefract = n1 * sinTheta / n2;
+                float cosRefract = sqrtf(1.0f - sinRefract * sinRefract);
+                
+                // no internal reflection
+                if(sinRefract < 1.0f)
+                {
+                    float Rs0 = powf((n1 - n2)/(n1 + n2), 2.0f);
+                    Rs = Rs0 + (1 - Rs0) * powf((1 - cosTheta), 5.0f);
+                    
+                    // Generate Refract Ray
+                }
+            }
+            
+            // has reflection
+            if(reflection.Sum() > 0.0f)
+            {
+                // only consider front reflect
+                if(hInfo.front)
+                {
+                    // Generate Reflect Ray Check Target
+                    Vec3f R = Reflect(V, N);
+                    Ray reflectRay;
+                    reflectRay.dir = R;
+                    reflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
+                    
+                    HitInfo reflectHitInfo;
+//                    GenerateRayForNearestIntersection(<#Node *node#>, <#Ray &ray#>, <#HitInfo &hitinfo#>)
+//                    
+//                    this->Shade(reflectRay, reflectHitInfo, <#lights#>, <#bounceCount#>)
+                }
+            }
             
             if(cosTheta < 0)
             {
                 continue;
             }
             
-            Color iComing = light->Illuminate(hInfo.p + hInfo.N * SHADOW_BIAS, hInfo.N);
+            Color iComing = light->Illuminate(hInfo.p + N * INTERSECTION_BIAS, N);
             colorComing = iComing * cosTheta;
             
             Color diffuseColor = Color(colorComing * diffuse);
             
-            Color specularColor = iComing * specular * pow(H.Dot(hInfo.N), glossiness);
+            Color specularColor = iComing * specular * pow(H.Dot(N), glossiness);
             // / cosTheta;
             
             result += (diffuseColor + specularColor);
@@ -90,11 +157,7 @@ Color MtlPhong::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         Color colorComing;
         Vec3f lightDir = -1.0f * light->Direction(hInfo.p);
         
-        auto reflect = [](Vec3f I, Vec3f N){
-            return I - 2.0f * N.Dot(I) * N;
-        };
-        
-        Vec3f R = reflect(lightDir, hInfo.N);
+        Vec3f R = Reflect(lightDir, hInfo.N);
         Vec3f V = -1.0f * ray.dir.GetNormalized();
         
         float cosTheta = lightDir.Dot(hInfo.N);
