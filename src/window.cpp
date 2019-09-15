@@ -104,6 +104,7 @@ void Window::StartUpdate()
     
     auto renderTexture = rayTracer.GetRenderTexture();
     auto zbufferTexture = rayTracer.GetZBufferTexture();
+    auto normalTexture = rayTracer.GetNormalTexture();
     
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
@@ -170,6 +171,22 @@ void Window::StartUpdate()
             (
              (ImTextureID)zbufferTexture->Id,
              ImVec2(zbufferTexture->Width,zbufferTexture->Height),
+             ImVec2(0,0),
+             ImVec2(1,1),
+             ImVec4(1.0, 1.0, 1.0, 1.0),
+             ImVec4(1.0, 1.0, 1.0, 1.0)
+             );
+            
+            ImGui::End();
+        }
+        
+        {
+            ImGui::Begin("Normal Buffer");
+            ImGui::SetWindowSize(ImVec2(normalTexture->Width + 20, normalTexture->Height + 40));
+            ImGui::Image
+            (
+             (ImTextureID)normalTexture->Id,
+             ImVec2(normalTexture->Width,normalTexture->Height),
              ImVec2(0,0),
              ImVec2(1,1),
              ImVec4(1.0, 1.0, 1.0, 1.0),

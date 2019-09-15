@@ -21,6 +21,12 @@ class RenderImageHelper
         pixels[x + y * width] = color;
     }
     
+    static void SetNormal(Color24* pixels, RenderImage& image, int x, int y, Vec3f normal)
+    {
+        int width = image.GetWidth();
+        pixels[x + y * width] = Color24((0.5f + normal.x * 0.5f) * 255.0f, (0.5f + normal.y * 0.5f) * 255.0f, (0.5f + normal.z * 0.5f) * 255.0f);
+    }
+    
     static void SetDepth(RenderImage& image, int x, int y, float depth)
     {
         float* zBuffer = image.GetZBuffer();

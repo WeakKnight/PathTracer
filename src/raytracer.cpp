@@ -37,6 +37,8 @@ cyVec3f cameraRight;
 
 Color24 *myZImg = nullptr;
 
+Color24 *normalPixels = nullptr;
+
 bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
 {
     bool result = false;
@@ -120,6 +122,11 @@ void RayTracer::Init()
     {
         zbufferTexture = std::make_shared<Texture2D>();
     }
+    if(!normalTexture)
+    {
+        normalTexture = std::make_shared<Texture2D>();
+    }
+    
 #endif
     
     // scene load, ini global variables
@@ -142,6 +149,13 @@ void RayTracer::Init()
 
 void RayTracer::Run()
 {
+    if(normalPixels != nullptr)
+    {
+        delete [] normalPixels;
+    }
+    
+    normalPixels = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
+    
     float now = glfwGetTime();
     
     std::size_t cores = std::thread::hardware_concurrency() - 1;
@@ -175,11 +189,13 @@ void RayTracer::Run()
                     RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r * 255.0f, shadingResult.g * 255.0f, shadingResult.b * 255.0f));
 //                    RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::White());
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
+                    RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, hitInfo.N);
                 }
                 else
                 {
                     RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::Black());
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
+                    RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, Vec3f());
                 }
                 
                 renderImage.IncrementNumRenderPixel(1);
@@ -189,9 +205,9 @@ void RayTracer::Run()
                     float finish = glfwGetTime();
                     spdlog::debug("time is {}", finish - now);
                     renderImage.ComputeZBufferImage();
-                    #ifndef IMGUI_DEBUG
+#ifndef IMGUI_DEBUG
                     WriteToFile();
-                    #endif
+#endif
                 }
             }
         }));
@@ -211,6 +227,7 @@ void RayTracer::UpdateRenderResult()
 
     zbufferTexture->SetData((unsigned char *)myZImg, renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB);
     renderTexture->SetData((unsigned char *)renderImage.GetPixels(), renderImage.GetWidth(), renderImage.GetHeight());
+    normalTexture->SetData((unsigned char *)normalPixels, renderImage.GetWidth(), renderImage.GetHeight());
 }
 
 void RayTracer::WriteToFile()
