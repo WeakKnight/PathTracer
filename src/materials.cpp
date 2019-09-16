@@ -21,7 +21,8 @@ void CalculateRefractDir(
                         Vec3f v,
                         Vec3f normal,
                         float n1, float n2,
-                        Vec3f& result,
+                        Vec3f& refract,
+                        Vec3f& reflect,
                         bool& internalReflection
                         )
 {
@@ -32,7 +33,6 @@ void CalculateRefractDir(
     if(sinRefract >= 1.0f)
     {
         internalReflection = true;
-        return;
     }
     else
     {
@@ -41,7 +41,8 @@ void CalculateRefractDir(
     
     float cosRefract = sqrtf(1.0f - sinRefract * sinRefract);
     
-    result = normal.Cross(NCrossV).GetNormalized() * sinRefract + (-1.0f) * normal * cosRefract;
+    refract = normal.Cross(NCrossV).GetNormalized() * sinRefract + (-1.0f) * normal * cosRefract;
+    reflect = Reflect(v, normal);
 }
 
 Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
@@ -86,12 +87,42 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             
             float cosTheta = L.Dot(N);
             
-            // Schlicks Approximation
-            float Rs = 0.0f;
-            
             // has refraction
             if(refraction.Sum() > 0.0f)
             {
+                // Schlicks Approximation
+                float Rs = 0.0f;
+                float n1 = 0.0f;
+                float n2 = 0.0f;
+                
+                if(hInfo.front)
+                {
+                    n1 = 1.0f;
+                    n2 = ior;
+                }
+                else
+                {
+                    n1 = ior;
+                    n2 = 1.0f;
+                }
+                
+                float Rs0 = powf((n1 - n2)/(n1 + n2), 2.0f);
+                Rs = Rs0 + ((1.0f - Rs0) * powf(1.0f - max(0.0f, cosTheta), 5.0f));
+                
+                bool hasInternalReflection = false;
+                Vec3f inRefractDir;
+                Vec3f inRelectDir;
+                
+                CalculateRefractDir(ray.dir, N, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
+                
+                Ray inReflectRay;
+                inReflectRay.dir = inRelectDir;
+                inReflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
+                
+                Ray inRefractRay;
+                inRefractRay.dir = inRefractDir;
+                inRefractRay.p = hInfo.p + (-1.0f) * N * INTERSECTION_BIAS;
+                
                 
             }
             
@@ -112,18 +143,18 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                     
                     HitInfo reflectHitInfo;
                     float transDistance = 0.0f;
-                    // detect front intersection for shading
+                    // detect front intersection for reflection shading
                     if(GenerateRayForNearestIntersection(reflectRay, reflectHitInfo, HIT_FRONT, transDistance))
                     {
                         const Material* mat = reflectHitInfo.node->GetMaterial();
                         
-                        Color reflectColor = (this->reflection + Rs * this->refraction) * mat->Shade(reflectRay, reflectHitInfo, lights, bounceCount - 1);
+                        Color reflectColor = this->reflection * mat->Shade(reflectRay, reflectHitInfo, lights, bounceCount - 1);
                         result += reflectColor;
                     }
                 }
             }
             
-            if(cosTheta < 0)
+            if(cosTheta < 0.0f)
             {
                 continue;
             }

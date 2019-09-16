@@ -72,7 +72,7 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
                         if(dist2 < hInfo.z)
                         {
                             hInfo.z = dist2;
-                            hInfo.N = intersectPoint2;
+                            hInfo.N = -1.0f * intersectPoint2;
 //                            hInfo.N.Normalize();
                             hInfo.p = intersectPoint2;
                             hInfo.front = false;
