@@ -4,7 +4,8 @@
 #include "cyVector.h"
 #include "scene.h"
 
-bool GenerateRayForNearestIntersection(Ray& ray, HitInfo& hitinfo);
+bool GenerateRayForAnyIntersection(Ray& ray, float t_max = BIGFLOAT);
+bool GenerateRayForNearestIntersection(Ray ray, HitInfo& hitinfo, int side, float& t);
 
 class Node;
 

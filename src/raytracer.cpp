@@ -39,26 +39,29 @@ Color24 *myZImg = nullptr;
 
 Color24 *normalPixels = nullptr;
 
-bool InternalGenerateRayForNearestIntersection(Node* node, Ray& ray, HitInfo& hitinfo)
+bool InternalGenerateRayForAnyIntersection(Node* node, Ray& ray, float t_max)
 {
     Ray objectRay = node->ToNodeCoords(ray);
     Object* obj = node->GetNodeObj();
     
     if(obj != nullptr)
     {
-        if(obj->IntersectRay(objectRay, hitinfo))
+        HitInfo objHitInfo;
+        if(obj->IntersectRay(objectRay, objHitInfo))
         {
-            node->FromNodeCoords(hitinfo);
-            return true;
+            if(objHitInfo.z < t_max)
+            {
+                return true;
+            }
         }
     }
     
     for(int i = 0; i < node->GetNumChild(); i++)
     {
         Node* child = node->GetChild(i);
-        if(InternalGenerateRayForNearestIntersection(child, objectRay, hitinfo))
+        
+        if(InternalGenerateRayForAnyIntersection(child, objectRay, t_max))
         {
-            node->FromNodeCoords(hitinfo);
             return true;
         }
     }
@@ -66,12 +69,12 @@ bool InternalGenerateRayForNearestIntersection(Node* node, Ray& ray, HitInfo& hi
     return false;
 }
 
-bool GenerateRayForNearestIntersection(Ray& ray, HitInfo& hitinfo)
+bool GenerateRayForAnyIntersection(Ray& ray, float t_max)
 {
-    return InternalGenerateRayForNearestIntersection(&rootNode, ray, hitinfo);
+    return InternalGenerateRayForAnyIntersection(&rootNode, ray, t_max);
 }
 
-bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
+bool TraceNode(HitInfo& hitInfo, Ray ray, Node* node, int side = HIT_FRONT)
 {
     bool result = false;
     
@@ -81,7 +84,7 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
     
     auto obj = node->GetNodeObj();
     
-    if(obj != nullptr && obj->IntersectRay(rayInNodeSpace, currentHitInfo, HIT_FRONT))
+    if(obj != nullptr && obj->IntersectRay(rayInNodeSpace, currentHitInfo, side))
     {
         result = true;
         if(currentHitInfo.z < hitInfo.z)
@@ -103,7 +106,7 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
     {
         HitInfo currentHitInfo;
         Node* child = node->GetChild(index);
-        if(TraceNode(currentHitInfo, rayInNodeSpace, child))
+        if(TraceNode(currentHitInfo, rayInNodeSpace, child, side))
         {
             result = true;
             
@@ -118,6 +121,18 @@ bool TraceNode(HitInfo& hitInfo, Ray& ray, Node* node)
                 node->FromNodeCoords(hitInfo);
             }
         }
+    }
+    
+    return result;
+}
+
+bool GenerateRayForNearestIntersection(Ray ray, HitInfo& hitinfo, int side, float& t)
+{
+    bool result = TraceNode(hitinfo, ray, &rootNode, side);
+    
+    if(result)
+    {
+        t += hitinfo.z;
     }
     
     return result;
@@ -185,7 +200,9 @@ void RayTracer::Run()
     
     float now = glfwGetTime();
     
-    std::size_t cores = std::thread::hardware_concurrency() - 1;
+    std::size_t cores =
+//    1;
+    std::thread::hardware_concurrency() - 1;
     std::vector<std::future<void>> threads;
     
     std::size_t size = renderImage.GetWidth() * renderImage.GetHeight();
@@ -200,7 +217,7 @@ void RayTracer::Run()
                 int y = index / renderImage.GetWidth();
                 int x = index - y * renderImage.GetWidth();
                 
-                if(x == 326 && y == 160)
+                if(x == 278 && y == 357)
                 {
                     int a = 1;
                 }

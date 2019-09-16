@@ -10,13 +10,9 @@ void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, V
 
 float GenLight::Shadow(Ray ray, float t_max)
 {
-    HitInfo hitinfo;
-    if (GenerateRayForNearestIntersection(ray, hitinfo))
+    if (GenerateRayForAnyIntersection(ray, t_max))
     {
-        if(hitinfo.z < t_max)
-        {
-            return 0.0f;
-        }
+        return 0.0f;
     }
     return 1.0f;
 }

@@ -8,11 +8,40 @@
 
 using namespace cy;
 
+extern Node rootNode;
+
 #define INTERSECTION_BIAS 0.0001f
 
 Vec3f Reflect(Vec3f I, Vec3f N)
 {
     return I - 2.0f * N.Dot(I) * N;
+}
+
+void CalculateRefractDir(
+                        Vec3f v,
+                        Vec3f normal,
+                        float n1, float n2,
+                        Vec3f& result,
+                        bool& internalReflection
+                        )
+{
+    Vec3f NCrossV = normal.Cross(v);
+    float sinTheta = NCrossV.Length();
+    float sinRefract = n1 * sinTheta / n2;
+    
+    if(sinRefract >= 1.0f)
+    {
+        internalReflection = true;
+        return;
+    }
+    else
+    {
+        internalReflection = false;
+    }
+    
+    float cosRefract = sqrtf(1.0f - sinRefract * sinRefract);
+    
+    result = normal.Cross(NCrossV).GetNormalized() * sinRefract + (-1.0f) * normal * cosRefract;
 }
 
 Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
@@ -43,7 +72,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         }
         else
         {
-            Vec3f V = -1.0f * ray.dir.GetNormalized();
+            Vec3f V = -1.0f * ray.dir;
             assert(V.IsUnit());
             
             Vec3f L = -1.0f * light->Direction(hInfo.p);
@@ -63,58 +92,44 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             // has refraction
             if(refraction.Sum() > 0.0f)
             {
-                float n1 = 0.0f;
-                float n2 = 0.0f;
                 
-                // currently ignore the situation from one refraction material into another refraction material
-                // from air to this
-                if(hInfo.front)
-                {
-                    n1 = 1.0f;
-                    n2 = ior;
-                }
-                // from this to air, may happen internal reflection
-                else
-                {
-                    n1 = ior;
-                    n2 = 1.0f;
-                }
-                
-                Vec3f NCrossV = N.Cross(V);
-                float sinTheta = NCrossV.Length();
-                float sinRefract = n1 * sinTheta / n2;
-                float cosRefract = sqrtf(1.0f - sinRefract * sinRefract);
-                
-                // no internal reflection
-                if(sinRefract < 1.0f)
-                {
-                    float Rs0 = powf((n1 - n2)/(n1 + n2), 2.0f);
-                    Rs = Rs0 + (1 - Rs0) * powf((1 - cosTheta), 5.0f);
-                    
-                    // Generate Refract Ray
-                }
             }
             
             // has reflection
-            if(reflection.Sum() > 0.0f)
+            if(reflection.Sum() > 0.0f && bounceCount > 0)
             {
                 // only consider front reflect
                 if(hInfo.front)
                 {
                     // Generate Reflect Ray Check Target
-                    Vec3f R = Reflect(V, N);
+                    Vec3f R = Reflect(ray.dir, N);
+                    assert(R.IsUnit());
+                    
+                    // world space
                     Ray reflectRay;
                     reflectRay.dir = R;
                     reflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
                     
                     HitInfo reflectHitInfo;
-//                    GenerateRayForNearestIntersection(<#Node *node#>, <#Ray &ray#>, <#HitInfo &hitinfo#>)
-//                    
-//                    this->Shade(reflectRay, reflectHitInfo, <#lights#>, <#bounceCount#>)
+                    float transDistance = 0.0f;
+                    // detect front intersection for shading
+                    if(GenerateRayForNearestIntersection(reflectRay, reflectHitInfo, HIT_FRONT, transDistance))
+                    {
+                        const Material* mat = reflectHitInfo.node->GetMaterial();
+                        
+                        Color reflectColor = (this->reflection + Rs * this->refraction) * mat->Shade(reflectRay, reflectHitInfo, lights, bounceCount - 1);
+                        result += reflectColor;
+                    }
                 }
             }
             
             if(cosTheta < 0)
+            {
+                continue;
+            }
+            
+            // don't shade diffuse color or specular color back side
+            if(!hInfo.front)
             {
                 continue;
             }
