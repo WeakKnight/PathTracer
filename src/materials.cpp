@@ -42,7 +42,7 @@ void CalculateRefractDir(
     float cosRefract = sqrtf(1.0f - sinRefract * sinRefract);
     
     refract = normal.Cross(NCrossV).GetNormalized() * sinRefract + (-1.0f) * normal * cosRefract;
-    reflect = Reflect(v, normal);
+    reflect = Reflect(-v, normal);
 }
 
 Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
@@ -87,6 +87,9 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             
             float cosTheta = L.Dot(N);
             
+            float cosBeta = V.Dot(N);
+            assert(cosBeta > - 0.00001f);
+            
             // has refraction
             if(refraction.Sum() > 0.0f)
             {
@@ -107,13 +110,13 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                 }
                 
                 float Rs0 = powf((n1 - n2)/(n1 + n2), 2.0f);
-                Rs = Rs0 + ((1.0f - Rs0) * powf(1.0f - max(0.0f, cosTheta), 5.0f));
+                Rs = Rs0 + ((1.0f - Rs0) * powf(1.0f - max(0.0f, cosBeta), 5.0f));
                 
                 bool hasInternalReflection = false;
                 Vec3f inRefractDir;
                 Vec3f inRelectDir;
                 
-                CalculateRefractDir(ray.dir, N, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
+                CalculateRefractDir(V, N, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
                 
                 Ray inReflectRay;
                 inReflectRay.dir = inRelectDir;
@@ -123,7 +126,75 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                 inRefractRay.dir = inRefractDir;
                 inRefractRay.p = hInfo.p + (-1.0f) * N * INTERSECTION_BIAS;
                 
-                
+                // from air, has absortion. no internal reflection
+                if(hInfo.front)
+                {
+                    assert(!hasInternalReflection);
+                    
+                    HitInfo refractHitInfo;
+                    float distance;
+                    
+                    if(bounceCount > 0 && GenerateRayForNearestIntersection(inRefractRay, refractHitInfo, HIT_BACK, distance))
+                    {
+                        Color absortionColor = Color(
+                                                       powf(M_E, -1.0f * distance * absorption.r)
+                                                     , powf(M_E, -1.0f * distance * absorption.g)
+                                                     , powf(M_E, -1.0f * distance * absorption.b));
+                        Color refractColor = absortionColor * refraction * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
+                        result += refractColor;
+                    }
+                    
+                    HitInfo reflectHitInfo;
+                    float reflectDistance;
+                    
+                    if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRay, reflectHitInfo, HIT_FRONT, reflectDistance))
+                    {
+                        Color reflectColor = Rs * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
+                        result += reflectColor;
+                    }
+                }
+                // into air, no absortion
+                else
+                {
+                    if(!hasInternalReflection)
+                    {
+                        HitInfo refractHitInfo;
+                        float distance;
+                        
+                        if(bounceCount > 0 && GenerateRayForNearestIntersection(inRefractRay, refractHitInfo, HIT_FRONT, distance))
+                        {
+//                            Color absortionColor = Color(
+//                                                         powf(M_E, -1.0f * distance * absorption.r)
+//                                                         , powf(M_E, -1.0f * distance * absorption.g)
+//                                                         , powf(M_E, -1.0f * distance * absorption.b));
+                            
+                            Color refractColor =
+//                            absortionColor *
+                            refraction *
+                            (1.0f - Rs) *
+                            refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
+                            result += refractColor;
+                        }
+                    }
+                    // totaly reflection
+                    else
+                    {
+                        HitInfo reflectHitInfo;
+                        float distance;
+                        
+                        if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRay, reflectHitInfo, HIT_BACK, distance))
+                        {
+                            Color absortionColor = Color(
+                                                         powf(M_E, -1.0f * distance * absorption.r)
+                                                         , powf(M_E, -1.0f * distance * absorption.g)
+                                                         , powf(M_E, -1.0f * distance * absorption.b));
+                            
+                            Color refractColor = absortionColor * refraction * (1.0f - Rs) * reflectHitInfo.node->GetMaterial()->Shade(inRefractRay, reflectHitInfo, lights, bounceCount - 1);
+                            
+                            result += refractColor;
+                        }
+                    }
+                }
             }
             
             // has reflection
@@ -169,9 +240,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             colorComing = iComing * cosTheta;
             
             Color diffuseColor = Color(colorComing * diffuse);
-            
             Color specularColor = iComing * specular * pow(H.Dot(N), glossiness);
-            // / cosTheta;
             
             result += (diffuseColor + specularColor);
         }
