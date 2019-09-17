@@ -170,7 +170,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                             
                             Color refractColor =
 //                            absortionColor *
-                            refraction *
+//                            refraction *
                             (1.0f - Rs) *
                             refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
                             result += refractColor;
@@ -186,7 +186,9 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                                                          , powf(M_E, -1.0f * reflectDistance * absorption.g)
                                                          , powf(M_E, -1.0f * reflectDistance * absorption.b));
                             
-                            Color refractColor = absortionColor * refraction * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
+                            Color refractColor = absortionColor
+//                            * refraction
+                            * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
                             
                             result += refractColor;
                         }
@@ -256,6 +258,11 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             
             Color diffuseColor = Color(colorComing * diffuse);
             Color specularColor = iComing * specular * pow(H.Dot(N), glossiness);
+            
+//            if(refraction.Sum() > 0.0f)
+//            {
+//                specularColor.SetBlack();
+//            }
             
             result += (diffuseColor + specularColor);
         }
