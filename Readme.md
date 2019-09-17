@@ -31,6 +31,8 @@
 Main Tracing Logic Located in 
 * src/raytracer.cpp
 * src/objects.cpp
+* src/materials.cpp
+* src/lights.cpp
 
 Program and ouput file will be generated in 
 * bin/ 
