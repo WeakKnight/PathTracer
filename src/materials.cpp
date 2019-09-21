@@ -88,7 +88,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             float cosTheta = L.Dot(N);
             
             float cosBeta = V.Dot(N);
-            assert(cosBeta > - 0.00001f);
+//            assert(cosBeta > - 0.00001f);
             
             // has refraction
             if(refraction.Sum() > 0.0f)

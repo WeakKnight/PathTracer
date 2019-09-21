@@ -5,7 +5,125 @@ extern Camera camera;
 
 bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
-    return false;
+    bool result = false;
+    for(unsigned i = 0; i < NF(); i++)
+    {
+        HitInfo currentHitInfo;
+        if(IntersectTriangle(ray, currentHitInfo, hitSide, i))
+        {
+            if(currentHitInfo.z < hInfo.z)
+            {
+                result = true;
+                
+                hInfo.N = currentHitInfo.N;
+                hInfo.p = currentHitInfo.p;
+                hInfo.z = currentHitInfo.z;
+                hInfo.front = currentHitInfo.front;
+            }
+        }
+    }
+    
+    return result;
+}
+
+bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const
+{
+    const TriFace& face = F(faceID);
+    
+    const Vec3f& v0 = V(face.v[0]);
+    const Vec3f& v1 = V(face.v[1]);
+    const Vec3f& v2 = V(face.v[2]);
+    
+    Vec3f v01 = v1 - v0;
+    Vec3f v02 = v2 - v0;
+    
+    // unnormalized
+    Vec3f n = v01.Cross(v02);
+    
+    // (ray.origin + ray.dir * t - v0).dot(n) = 0
+    float dirDotN = ray.dir.Dot(n);
+    
+    if(abs(dirDotN) <= __FLT_EPSILON__)
+    {
+        return false;
+    }
+    
+    float originDotN = ray.p.Dot(n);
+    float v0DotN = v0.Dot(n);
+    float t = (v0DotN - originDotN) / dirDotN;
+    
+    if(t < 0.0f)
+    {
+        return false;
+    }
+    
+    bool isFront = (dirDotN < 0.0f);
+    
+    if(hitSide == HIT_FRONT && !isFront)
+    {
+        return false;
+    }
+    
+    if(hitSide == HIT_BACK && isFront)
+    {
+        return false;
+    }
+    
+    Vec3f p = ray.p + ray.dir * t;
+    
+    Matrix3<float> mm = Matrix3<float>(-ray.dir, v01, v02);
+    mm.Invert();
+    
+    Vec3f vv0 = mm * v0;
+    Vec3f vv1 = mm * v1;
+    Vec3f vv2 = mm * v2;
+    Vec3f pp = mm * p;
+    
+    Vec2f v0_2d = Vec2f(vv0.y, vv0.z);
+    Vec2f v1_2d = Vec2f(vv1.y, vv1.z);
+    Vec2f v2_2d = Vec2f(vv2.y, vv2.z);
+    Vec2f p_2d = Vec2f(pp.y, pp.z);
+    
+    Vec2f pv0 = v0_2d - p_2d;
+    Vec2f pv1 = v1_2d - p_2d;
+    Vec2f pv2 = v2_2d - p_2d;
+    
+    float two_a0 = pv1.Cross(pv2);
+    if(two_a0 <= 0.0f)
+    {
+        return false;
+    }
+    float two_a1 = pv2.Cross(pv0);
+    if(two_a1 <= 0.0f)
+    {
+        return false;
+    }
+    float two_a2 = pv0.Cross(pv1);
+    if(two_a2 <= 0.0f)
+    {
+        return false;
+    }
+    
+    float two_a = (v1_2d - v0_2d).Cross(v2_2d - v0_2d);
+    
+    float beta0 = two_a0 / two_a;
+    float beta1 = two_a1 / two_a;
+    float beta2 = two_a2 / two_a;
+    
+    const TriFace& normalFace = FN(faceID);
+    
+    const Vec3f& n0 = VN(normalFace.v[0]);
+    const Vec3f& n1 = VN(normalFace.v[1]);
+    const Vec3f& n2 = VN(normalFace.v[2]);
+    
+    Vec3f normal = (beta0 * n0 + beta1 * n1 + beta2 * n2).GetNormalized();
+    
+    hInfo.p = p;
+    hInfo.z = t;
+    hInfo.N = isFront? normal: -1.0f * normal;
+    hInfo.front = isFront;
+    
+    return true;
 }
 
 void TriObj::ViewportDisplay(const Material *mtl) const
@@ -15,7 +133,54 @@ void TriObj::ViewportDisplay(const Material *mtl) const
 
 bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
-    return false;
+    Vec3f n = Vec3f(0.0f, 0.0f, 1.0f);
+    float dirDotN = ray.dir.Dot(n);
+    
+    if(abs(dirDotN - 0.0f) < 0.000001f)
+    {
+        return false;
+    }
+    
+    float originDotN = ray.p.Dot(n);
+    float t = -1.0f * (originDotN / dirDotN);
+    
+    if(t <= 0.0f)
+    {
+        return false;
+    }
+    
+    Vec3f p = ray.p + ray.dir * t;
+    
+    if(abs(p.x) >= 1.0f)
+    {
+        return false;
+    }
+    
+    if(abs(p.y) >= 1.0f)
+    {
+        return false;
+    }
+    
+    bool isFront = (dirDotN < 0.0f);
+    
+    if(hitSide == HIT_FRONT && !isFront)
+    {
+        return false;
+    }
+    
+    if(hitSide == HIT_BACK && isFront)
+    {
+        return false;
+    }
+    
+    hInfo.front = isFront;
+    hInfo.N = isFront? n : -1.0f * n;
+    hInfo.p = p;
+    hInfo.z = t;
+    // n = 0 0 1
+    // (ray.origin + ray.dir * t).dot(n) = 0
+    
+    return true;
 }
 
 void Plane::ViewportDisplay(const Material *mtl) const

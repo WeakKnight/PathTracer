@@ -219,7 +219,7 @@ void RayTracer::Run()
                 int y = index / renderImage.GetWidth();
                 int x = index - y * renderImage.GetWidth();
                 
-                if(x == 278 && y == 357)
+                if(x == 341 && y == 486)
                 {
                     int a = 1;
                 }
