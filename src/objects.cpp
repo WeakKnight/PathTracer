@@ -3,6 +3,26 @@
 
 extern Camera camera;
 
+bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
+{
+    return false;
+}
+
+void TriObj::ViewportDisplay(const Material *mtl) const
+{
+    
+}
+
+bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
+{
+    return false;
+}
+
+void Plane::ViewportDisplay(const Material *mtl) const
+{
+    
+}
+
 bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 { 
     // |ray.p + ray.dir * l| = 1

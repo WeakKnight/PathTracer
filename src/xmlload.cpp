@@ -3,7 +3,7 @@
 ///
 /// \file       xmlload.cpp
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    4.0
+/// \version    5.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -24,6 +24,7 @@ extern Camera camera;
 extern RenderImage renderImage;
 extern MaterialList materials;
 extern LightList lights;
+extern ObjFileList objList;
 
 //-------------------------------------------------------------------------------
 
@@ -83,11 +84,13 @@ int LoadScene(char const *filename)
     }
     
     nodeMtlList.clear();
-    
     rootNode.Init();
     materials.DeleteAll();
     lights.DeleteAll();
+    objList.Clear();
     LoadScene( scene );
+    
+    rootNode.ComputeChildBoundBox();
     
     // Assign materials
     int numNodes = nodeMtlList.size();
@@ -171,6 +174,23 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
         if ( COMPARE(type,"sphere") ) {
             node->SetNodeObj( &theSphere );
             printf(" - Sphere");
+        } else if ( COMPARE(type,"plane") ) {
+            node->SetNodeObj( &thePlane );
+            printf(" - Plane");
+        } else if ( COMPARE(type,"obj") ) {
+            printf(" - OBJ");
+            Object *obj = objList.Find(name);
+            if ( obj == nullptr ) { // object is not on the list, so we should load it now
+                TriObj *tobj = new TriObj;
+                if ( ! tobj->Load( name ) ) {
+                    printf(" -- ERROR: Cannot load file \"%s.\"", name);
+                    delete tobj;
+                } else {
+                    objList.Append(tobj,name);  // add to the list
+                    obj = tobj;
+                }
+            }
+            node->SetNodeObj( obj );
         } else {
             printf(" - UNKNOWN TYPE");
         }
@@ -269,44 +289,7 @@ void LoadMaterial(TiXmlElement *element)
                     printf("   absorption %f %f %f\n",c.r,c.g,c.b);
                 }
             }
-        }
-        else if ( COMPARE(type,"phong") ) {
-            printf(" - Phong\n");
-            MtlPhong *m = new MtlPhong();
-            mtl = m;
-            for ( TiXmlElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
-                Color c(1,1,1);
-                float f=1;
-                if ( COMPARE( child->Value(), "diffuse" ) ) {
-                    ReadColor( child, c );
-                    m->SetDiffuse(c);
-                    printf("   diffuse %f %f %f\n",c.r,c.g,c.b);
-                } else if ( COMPARE( child->Value(), "specular" ) ) {
-                    ReadColor( child, c );
-                    m->SetSpecular(c);
-                    printf("   specular %f %f %f\n",c.r,c.g,c.b);
-                } else if ( COMPARE( child->Value(), "glossiness" ) ) {
-                    ReadFloat( child, f );
-                    m->SetGlossiness(f);
-                    printf("   glossiness %f\n",f);
-                } else if ( COMPARE( child->Value(), "reflection" ) ) {
-                    ReadColor( child, c );
-                    m->SetReflection(c);
-                    printf("   reflection %f %f %f\n",c.r,c.g,c.b);
-                } else if ( COMPARE( child->Value(), "refraction" ) ) {
-                    ReadColor( child, c );
-                    m->SetRefraction(c);
-                    ReadFloat( child, f, "index" );
-                    m->SetRefractionIndex(f);
-                    printf("   refraction %f %f %f (index %f)\n",c.r,c.g,c.b,f);
-                } else if ( COMPARE( child->Value(), "absorption" ) ) {
-                    ReadColor( child, c );
-                    m->SetAbsorption(c);
-                    printf("   absorption %f %f %f\n",c.r,c.g,c.b);
-                }
-            }
-        }
-            else {
+        } else {
             printf(" - UNKNOWN\n");
         }
     }

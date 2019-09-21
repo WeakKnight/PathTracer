@@ -21,8 +21,10 @@ Node rootNode;
 Camera camera;
 RenderImage renderImage;
 Sphere theSphere;
+Plane thePlane;
 MaterialList materials;
 LightList lights;
+ObjFileList objList;
 
 float imgPlaneHeight;
 float imgPlaneWidth;
