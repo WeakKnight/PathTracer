@@ -5,6 +5,11 @@ extern Camera camera;
 
 bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
+    if(!GetBoundBox().IntersectRay(ray, BIGFLOAT))
+    {
+        return false;
+    }
+    
     bool result = false;
     for(unsigned i = 0; i < NF(); i++)
     {

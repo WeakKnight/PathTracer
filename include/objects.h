@@ -15,6 +15,7 @@
 
 #include "scene.h"
 #include "cyTriMesh.h"
+#include "string_utils.h"
 
 //-------------------------------------------------------------------------------
 
@@ -51,7 +52,13 @@ public:
     
     bool Load(char const *filename)
     {
-        if ( ! LoadFromFileObj( filename ) ) return false;
+        if ( ! LoadFromFileObj( filename ) )
+        {
+            if(! LoadFromFileObj( StringUtils::Format("assets/%s", filename).c_str() ))
+            {
+                return false;
+            }
+        }
         if ( ! HasNormals() ) ComputeNormals();
         ComputeBoundingBox();
         return true;

@@ -149,7 +149,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                     
                     if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRay, reflectHitInfo, HIT_FRONT, reflectDistance))
                     {
-                        Color reflectColor = Rs * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
+                        Color reflectColor = refraction * Rs * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
                         result += reflectColor;
                     }
                 }

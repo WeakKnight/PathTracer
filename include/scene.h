@@ -109,7 +109,47 @@ public:
     bool IsInside(Vec3f const &p) const { for ( int i=0; i<3; i++ ) if ( pmin[i] > p[i] || pmax[i] < p[i] ) return false; return true; }
     
     // Returns true if the ray intersects with the box for any parameter that is smaller than t_max; otherwise, returns false.
-    bool IntersectRay(Ray const &r, float t_max) const;
+    bool IntersectRay(Ray const &r, float t_max) const{
+        float tmin, tmax, tymin, tymax, tzmin, tzmax;
+        if (r.dir.x >= 0) {
+            tmin = (pmin.x - r.p.x) / r.dir.x;
+            tmax = (pmax.x - r.p.x) / r.dir.x;
+        } else {
+            tmin = (pmax.x - r.p.x) / r.dir.x;
+            tmax = (pmin.x - r.p.x) / r.dir.x;
+        }
+        if (r.dir.y >= 0) {
+            tymin = (pmin.y - r.p.y) / r.dir.y;
+            tymax = (pmax.y - r.p.y) / r.dir.y;
+        } else {
+            tymin = (pmax.y - r.p.y) / r.dir.y;
+            tymax = (pmin.y - r.p.y) / r.dir.y;
+        }
+        if ( (tmin > tymax) || (tymin > tmax) )
+            return false;
+        
+        if (tymin > tmin)
+            tmin = tymin;
+        if (tymax < tmax)
+            tmax = tymax;
+        
+        if (r.dir.z >= 0) {
+            tzmin = (pmin.z - r.p.z) / r.dir.z;
+            tzmax = (pmax.z - r.p.z) / r.dir.z;
+        } else {
+            tzmin = (pmax.z - r.p.z) / r.dir.z;
+            tzmax = (pmin.z - r.p.z) / r.dir.z;
+        }
+        if ( (tmin > tzmax) || (tzmin > tmax) )
+            return false;
+        if (tzmin > tmin)
+            tmin = tzmin;
+        if (tzmax < tmax)
+            tmax = tzmax;
+        
+        return ( (tmin < t_max) );
+        // && (tmax > t_min)
+    }
 };
 
 //-------------------------------------------------------------------------------
