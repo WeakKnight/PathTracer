@@ -27,6 +27,7 @@
 #include "cyVector.h"
 #include "cyMatrix.h"
 #include "cyColor.h"
+
 using namespace cy;
 
 //-------------------------------------------------------------------------------
@@ -110,45 +111,107 @@ public:
     
     // Returns true if the ray intersects with the box for any parameter that is smaller than t_max; otherwise, returns false.
     bool IntersectRay(Ray const &r, float t_max) const{
-        float tmin, tmax, tymin, tymax, tzmin, tzmax;
-        if (r.dir.x >= 0) {
-            tmin = (pmin.x - r.p.x) / r.dir.x;
-            tmax = (pmax.x - r.p.x) / r.dir.x;
-        } else {
-            tmin = (pmax.x - r.p.x) / r.dir.x;
-            tmax = (pmin.x - r.p.x) / r.dir.x;
+        assert(pmax.x - pmin.x >= 0.0f);
+        assert(pmax.y - pmin.y >= 0.0f);
+        assert(pmax.z - pmin.z >= 0.0f);
+        
+        //(r.p + r.dir * tx0).x = pmin.x
+        float tx0 = (pmin.x - r.p.x)/r.dir.x;
+        float tx1 = (pmax.x - r.p.x)/r.dir.x;
+        
+        float temp = 0.0f;
+        
+        // swap
+        if(tx0 > tx1)
+        {
+            temp = tx0;
+            tx0 = tx1;
+            tx1 = temp;
         }
-        if (r.dir.y >= 0) {
-            tymin = (pmin.y - r.p.y) / r.dir.y;
-            tymax = (pmax.y - r.p.y) / r.dir.y;
-        } else {
-            tymin = (pmax.y - r.p.y) / r.dir.y;
-            tymax = (pmin.y - r.p.y) / r.dir.y;
+        
+        assert(tx0 <= tx1);
+        
+        float ty0 = (pmin.y - r.p.y)/r.dir.y;
+        float ty1 = (pmax.y - r.p.y)/r.dir.y;
+        
+        // swap
+        if(ty0 > ty1)
+        {
+            temp = ty0;
+            ty0 = ty1;
+            ty1 = temp;
         }
-        if ( (tmin > tymax) || (tymin > tmax) )
+        
+        assert(ty0 <= ty1);
+        
+        if(ty1 < tx0)
+        {
             return false;
-        
-        if (tymin > tmin)
-            tmin = tymin;
-        if (tymax < tmax)
-            tmax = tymax;
-        
-        if (r.dir.z >= 0) {
-            tzmin = (pmin.z - r.p.z) / r.dir.z;
-            tzmax = (pmax.z - r.p.z) / r.dir.z;
-        } else {
-            tzmin = (pmax.z - r.p.z) / r.dir.z;
-            tzmax = (pmin.z - r.p.z) / r.dir.z;
         }
-        if ( (tmin > tzmax) || (tzmin > tmax) )
-            return false;
-        if (tzmin > tmin)
-            tmin = tzmin;
-        if (tzmax < tmax)
-            tmax = tzmax;
         
-        return ( (tmin < t_max) );
-        // && (tmax > t_min)
+        if(tx1 < ty0)
+        {
+            return false;
+        }
+        
+        float t0 = Max(tx0, ty0);
+        float t1 = Min(tx1, ty1);
+
+        float tz0 = (pmin.z - r.p.z)/r.dir.z;
+        float tz1 = (pmax.z - r.p.z)/r.dir.z;
+        
+        // swap
+        if(tz0 > tz1)
+        {
+            temp = tz0;
+            tz0 = tz1;
+            tz1 = temp;
+        }
+        
+        if(t1 < tz0)
+        {
+            return false;
+        }
+        
+        if(tz1 < t0)
+        {
+            return false;
+        }
+        
+        t0 = Max(t0, tz0);
+        t1 = Min(t1, tz1);
+        
+        if(t0 < 0.0f)
+        {
+            if(t1 < 0.0f)
+            {
+                return false;
+            }
+            else
+            {
+                if(t1 > t_max)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            if(t0 > t_max)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        
+        return true;
     }
 };
 
