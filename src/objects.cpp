@@ -1,7 +1,97 @@
 #include "objects.h"
 #include <vector>
+#include "bvh.h"
 
 extern Camera camera;
+
+bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode* node) const
+{
+    bool result = false;
+    
+    if(node->IsLeaf())
+    {
+        for(unsigned i = 0; i < node->faceList.size(); i++)
+        {
+            unsigned faceId = node->faceList[i];
+            HitInfo currentHitInfo;
+            if(IntersectTriangle(ray, currentHitInfo, hitSide, faceId))
+            {
+                if(currentHitInfo.z < hInfo.z)
+                {
+                    result = true;
+                    
+                    hInfo.N = currentHitInfo.N;
+                    hInfo.p = currentHitInfo.p;
+                    hInfo.z = currentHitInfo.z;
+                    hInfo.front = currentHitInfo.front;
+                }
+            }
+        }
+        
+        return result;
+    }
+    else
+    {
+        float tmin1 = BIGFLOAT;
+        float tmin2 = BIGFLOAT;
+        bool leftHit = node->left->bound.IntersectRay(ray, tmin1, BIGFLOAT);
+        bool rightHit = node->right->bound.IntersectRay(ray, tmin2, BIGFLOAT);
+        
+        if(leftHit && rightHit)
+        {
+            if(tmin1 <= tmin2)
+            {
+                if(tmin1 < hInfo.z)
+                {
+                    result = result || TraceBVHNode(ray, hInfo, hitSide, node->left);
+                    if(tmin2 < hInfo.z)
+                    {
+                        result = result || TraceBVHNode(ray, hInfo, hitSide, node->right);
+                    }
+                }
+            }
+            else
+            {
+                if(tmin2 < hInfo.z)
+                {
+                    result = result || TraceBVHNode(ray, hInfo, hitSide, node->right);
+                    if(tmin1 < hInfo.z)
+                    {
+                        result = result || TraceBVHNode(ray, hInfo, hitSide, node->left);
+                    }
+                }
+            }
+        }
+        else if(leftHit && !rightHit)
+        {
+            if(tmin1 < hInfo.z)
+            {
+                result = result || TraceBVHNode(ray, hInfo, hitSide, node->left);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if(!leftHit && rightHit)
+        {
+            if(tmin2 < hInfo.z)
+            {
+                result = result || TraceBVHNode(ray, hInfo, hitSide, node->right);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    return result;
+}
 
 bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
@@ -10,25 +100,45 @@ bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
         return false;
     }
     
-    bool result = false;
-    for(unsigned i = 0; i < NF(); i++)
-    {
-        HitInfo currentHitInfo;
-        if(IntersectTriangle(ray, currentHitInfo, hitSide, i))
-        {
-            if(currentHitInfo.z < hInfo.z)
-            {
-                result = true;
-                
-                hInfo.N = currentHitInfo.N;
-                hInfo.p = currentHitInfo.p;
-                hInfo.z = currentHitInfo.z;
-                hInfo.front = currentHitInfo.front;
-            }
-        }
-    }
+    return TraceBVHNode(ray, hInfo, hitSide, bvh->GetRoot());
     
-    return result;
+//    bool result = false;
+//    for(unsigned i = 0; i < NF(); i++)
+//    {
+//        HitInfo currentHitInfo;
+//        if(IntersectTriangle(ray, currentHitInfo, hitSide, i))
+//        {
+//            if(currentHitInfo.z < hInfo.z)
+//            {
+//                result = true;
+//                
+//                hInfo.N = currentHitInfo.N;
+//                hInfo.p = currentHitInfo.p;
+//                hInfo.z = currentHitInfo.z;
+//                hInfo.front = currentHitInfo.front;
+//            }
+//        }
+//    }
+//    
+//    return result;
+}
+
+bool TriObj::Load(char const *filename)
+{
+    if(! LoadFromFileObj( StringUtils::Format("assets/%s", filename).c_str() ))
+    {
+        return false;
+    }
+    if ( ! HasNormals() ) ComputeNormals();
+    ComputeBoundingBox();
+    
+    if(bvh != nullptr)
+    {
+        delete bvh;
+    }
+    bvh = new MeshBVH(this);
+    
+    return true;
 }
 
 bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const

@@ -219,10 +219,10 @@ void RayTracer::Run()
                 int y = index / renderImage.GetWidth();
                 int x = index - y * renderImage.GetWidth();
                 
-                if(x == 341 && y == 486)
-                {
-                    int a = 1;
-                }
+//                if(x == 419 && y == 439)
+//                {
+//                    int a = 1;
+//                }
                 
                 HitInfo hitInfo;
                 Ray cameraRay = GenCameraRay(x, y);

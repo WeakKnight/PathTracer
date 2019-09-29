@@ -16,7 +16,7 @@
 #include "scene.h"
 #include "cyTriMesh.h"
 #include "string_utils.h"
-#include "cyBVH.h"
+//#include "bvh.h"
 
 //-------------------------------------------------------------------------------
 
@@ -43,6 +43,8 @@ public:
 extern Plane thePlane;
 
 //-------------------------------------------------------------------------------
+class MeshBVH;
+class BVHNode;
 
 class TriObj : public Object, public cyTriMesh
 {
@@ -51,23 +53,12 @@ public:
     virtual Box GetBoundBox() const { return Box(GetBoundMin(),GetBoundMax()); }
     virtual void ViewportDisplay(const Material *mtl) const;
  
-    bool Load(char const *filename)
-    {
-        bvh.Clear();
-        if(! LoadFromFileObj( StringUtils::Format("assets/%s", filename).c_str() ))
-        {
-            return false;
-        }
-        if ( ! HasNormals() ) ComputeNormals();
-        ComputeBoundingBox();
-        bvh.SetMesh(this,4);
-        return true;
-    }
+    bool Load(char const *filename);
  
 private:
-    cyBVHTriMesh bvh;
+    MeshBVH* bvh = nullptr;
     bool IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const;
-    bool TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int nodeID ) const;
+    bool TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode* node) const;
 };
 
 //-------------------------------------------------------------------------------

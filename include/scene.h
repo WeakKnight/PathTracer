@@ -74,6 +74,12 @@ public:
     // Returns true if the box is empty; otherwise, returns false.
     bool IsEmpty() const { return pmin.x>pmax.x || pmin.y>pmax.y || pmin.z>pmax.z; }
     
+    float SurfaceArea()
+    {
+        Vec3f lengthVector = pmax - pmin;
+        return lengthVector.x * lengthVector.y * 2.0f + lengthVector.x * lengthVector.z * 2.0f + lengthVector.y * lengthVector.z * 2.0f;
+    }
+    
     // Returns one of the 8 corner point of the box in the following order:
     // 0:(x_min,y_min,z_min), 1:(x_max,y_min,z_min)
     // 2:(x_min,y_max,z_min), 3:(x_max,y_max,z_min)
@@ -108,6 +114,114 @@ public:
     
     // Returns true if the point is inside the box; otherwise, returns false.
     bool IsInside(Vec3f const &p) const { for ( int i=0; i<3; i++ ) if ( pmin[i] > p[i] || pmax[i] < p[i] ) return false; return true; }
+    
+    bool IntersectRay(Ray const &r, float& t, float t_max) const{
+        assert(pmax.x - pmin.x >= 0.0f);
+        assert(pmax.y - pmin.y >= 0.0f);
+        assert(pmax.z - pmin.z >= 0.0f);
+        
+        //(r.p + r.dir * tx0).x = pmin.x
+        float tx0 = (pmin.x - r.p.x)/r.dir.x;
+        float tx1 = (pmax.x - r.p.x)/r.dir.x;
+        
+        float temp = 0.0f;
+        
+        // swap
+        if(tx0 > tx1)
+        {
+            temp = tx0;
+            tx0 = tx1;
+            tx1 = temp;
+        }
+        
+        assert(tx0 <= tx1);
+        
+        float ty0 = (pmin.y - r.p.y)/r.dir.y;
+        float ty1 = (pmax.y - r.p.y)/r.dir.y;
+        
+        // swap
+        if(ty0 > ty1)
+        {
+            temp = ty0;
+            ty0 = ty1;
+            ty1 = temp;
+        }
+        
+        assert(ty0 <= ty1);
+        
+        if(ty1 < tx0)
+        {
+            return false;
+        }
+        
+        if(tx1 < ty0)
+        {
+            return false;
+        }
+        
+        float t0 = Max(tx0, ty0);
+        float t1 = Min(tx1, ty1);
+        
+        float tz0 = (pmin.z - r.p.z)/r.dir.z;
+        float tz1 = (pmax.z - r.p.z)/r.dir.z;
+        
+        // swap
+        if(tz0 > tz1)
+        {
+            temp = tz0;
+            tz0 = tz1;
+            tz1 = temp;
+        }
+        
+        if(t1 < tz0)
+        {
+            return false;
+        }
+        
+        if(tz1 < t0)
+        {
+            return false;
+        }
+        
+        t0 = Max(t0, tz0);
+        t1 = Min(t1, tz1);
+        
+        assert(t0 <= t1);
+        
+        if(t0 < 0.0f)
+        {
+            if(t1 < 0.0f)
+            {
+                return false;
+            }
+            else
+            {
+                if(t1 > t_max)
+                {
+                    return false;
+                }
+                else
+                {
+                    t = t1;
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            if(t0 > t_max)
+            {
+                return false;
+            }
+            else
+            {
+                t = t0;
+                return true;
+            }
+        }
+        
+        return false;
+    }
     
     // Returns true if the ray intersects with the box for any parameter that is smaller than t_max; otherwise, returns false.
     bool IntersectRay(Ray const &r, float t_max) const{
@@ -211,7 +325,7 @@ public:
             }
         }
         
-        return true;
+        return false;
     }
 };
 
