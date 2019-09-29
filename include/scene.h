@@ -236,31 +236,36 @@ public:
         assert(pmax.y - pmin.y >= 0.0f);
         assert(pmax.z - pmin.z >= 0.0f);
         
-        //(r.p + r.dir * tx0).x = pmin.x
-        float tx0 = (pmin.x - r.p.x)/r.dir.x;
-        float tx1 = (pmax.x - r.p.x)/r.dir.x;
+        Vec3f invertDir =  Vec3f(1.0f, 1.0f, 1.0f) / r.dir;
         
-        float temp = 0.0f;
+        float tx0;
+        float tx1;
         
-        // swap
-        if(tx0 > tx1)
+        if(invertDir.x >= 0.0f)
         {
-            temp = tx0;
-            tx0 = tx1;
-            tx1 = temp;
+            tx0 = (pmin.x - r.p.x) * invertDir.x;
+            tx1 = (pmax.x - r.p.x) * invertDir.x;
+        }
+        else
+        {
+            tx1 = (pmin.x - r.p.x) * invertDir.x;
+            tx0 = (pmax.x - r.p.x) * invertDir.x;
         }
         
         assert(tx0 <= tx1);
         
-        float ty0 = (pmin.y - r.p.y)/r.dir.y;
-        float ty1 = (pmax.y - r.p.y)/r.dir.y;
+        float ty0;
+        float ty1;
         
-        // swap
-        if(ty0 > ty1)
+        if(invertDir.y >= 0.0f)
         {
-            temp = ty0;
-            ty0 = ty1;
-            ty1 = temp;
+            ty0 = (pmin.y - r.p.y) * invertDir.y;
+            ty1 = (pmax.y - r.p.y) * invertDir.y;
+        }
+        else
+        {
+            ty1 = (pmin.y - r.p.y) * invertDir.y;
+            ty0 = (pmax.y - r.p.y) * invertDir.y;
         }
         
         assert(ty0 <= ty1);
@@ -277,16 +282,18 @@ public:
         
         float t0 = Max(tx0, ty0);
         float t1 = Min(tx1, ty1);
-
-        float tz0 = (pmin.z - r.p.z)/r.dir.z;
-        float tz1 = (pmax.z - r.p.z)/r.dir.z;
         
-        // swap
-        if(tz0 > tz1)
+        float tz0;
+        float tz1;
+        if(invertDir.z >= 0.0f)
         {
-            temp = tz0;
-            tz0 = tz1;
-            tz1 = temp;
+            tz0 = (pmin.z - r.p.z) * invertDir.z;
+            tz1 = (pmax.z - r.p.z) * invertDir.z;
+        }
+        else
+        {
+            tz1 = (pmin.z - r.p.z) * invertDir.z;
+            tz0 = (pmax.z - r.p.z) * invertDir.z;
         }
         
         if(t1 < tz0)
@@ -301,6 +308,8 @@ public:
         
         t0 = Max(t0, tz0);
         t1 = Min(t1, tz1);
+        
+        assert(t0 <= t1);
         
         if(t0 < 0.0f)
         {
