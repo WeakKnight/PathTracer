@@ -236,22 +236,15 @@ private:
         BuildNode(root);
     }
     
-    void BuildNode(BVHNode* parent)
+    bool MiddleSplit(std::vector<unsigned int>& leftFaceList,
+                        std::vector<unsigned int>& rightFaceList,
+                        BVHBound& leftBound,
+                        BVHBound& rightBound,
+                        BVHNode* parent)
     {
-        if(parent->faceList.size() == 0)
-        {
-            return;
-        }
-        
         Vec3f lengthVec = (parent->bound.GetMax() - parent->bound.GetMin());
         int maxIndex = lengthVec.MaxIndex();
         float middle = (parent->bound.data[3 + maxIndex] + parent->bound.data[maxIndex]) * 0.5f;
-        
-        std::vector<unsigned int> leftFaceList;
-        std::vector<unsigned int> rightFaceList;
-        
-        BVHBound leftBound = BVHBound();
-        BVHBound rightBound = BVHBound();
         
         for(size_t i = 0; i < parent->faceList.size(); i++)
         {
@@ -313,17 +306,153 @@ private:
         {
             pLeft = 0.0f;
         }
-
+        
         if(rightFaceList.size() == 0)
         {
             pRight = 0.0f;
         }
         
         float parentAsLeafTime = parent->faceList.size() * 1.0f;
-        float parentAsBranchTime = 1.0f + pLeft * leftFaceList.size() + pRight * rightFaceList.size();
+        float parentAsInternalTime = 1.0f + pLeft * leftFaceList.size() + pRight * rightFaceList.size();
+        
+        if(parentAsLeafTime > parentAsInternalTime)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    bool HeuristicSplit(std::vector<unsigned int>& leftFaceList,
+                        std::vector<unsigned int>& rightFaceList,
+                        BVHBound& leftBound,
+                        BVHBound& rightBound,
+                        BVHNode* parent)
+    {
+        float parentAsLeafTime = parent->faceList.size() * 1.0f;
+        float parentAsInternalTime = BIGFLOAT;
+        
+        Vec3f lengthVec = (parent->bound.GetMax() - parent->bound.GetMin());
+        int maxIndex = lengthVec.MaxIndex();
+        
+        // segment length
+        float step = 0.02;
+        for(float splitFactor = 0.0f; splitFactor < 1.0f; splitFactor+=step)
+        {
+            std::vector<unsigned int> currentLeftList;
+            std::vector<unsigned int> currentRightList;
+            BVHBound currentLeftBound;
+            BVHBound currentRightBound;
+            
+            float splitPos = parent->bound.data[maxIndex] + lengthVec[maxIndex] * splitFactor;
+            
+            for(size_t i = 0; i < parent->faceList.size(); i++)
+            {
+                unsigned int faceId = parent->faceList[i];
+                auto& face = mesh->F(faceId);
+                
+                // should this face add into left node
+                bool left = false;
+                
+                Vec3f sum = Vec3f(0.0f, 0.0f, 0.0f);
+                
+                for(int index = 0; index < 3; index++)
+                {
+                    int verticeIndex = face.v[index];
+                    Vec3f pos = mesh->V(verticeIndex);
+                    sum += pos;
+                }
+                
+                Vec3f avg = sum/3.0f;
+                
+                if(avg[maxIndex] <= splitPos)
+                {
+                    left = true;
+                }
+                
+                for(int index = 0; index < 3; index++)
+                {
+                    int verticeIndex = face.v[index];
+                    Vec3f pos = mesh->V(verticeIndex);
+                    
+                    if(left)
+                    {
+                        currentLeftBound.UpdateByPoint(pos);
+                    }
+                    else
+                    {
+                        currentRightBound.UpdateByPoint(pos);
+                    }
+                }
+                
+                if(left)
+                {
+                    currentLeftList.push_back(faceId);
+                }
+                else
+                {
+                    currentRightList.push_back(faceId);
+                }
+            }
+            
+            float totalSurfaceArea = parent->bound.SurfaceArea();
+            // possibility to hit based on surface area size
+            float leftSuraceArea = currentLeftBound.SurfaceArea();
+            float rightSurfaceArea = currentRightBound.SurfaceArea();
+            float pLeft = leftSuraceArea / totalSurfaceArea;
+            float pRight = rightSurfaceArea / totalSurfaceArea;
+            
+            if(currentLeftList.size() == 0)
+            {
+                pLeft = 0.0f;
+            }
+            
+            if(currentRightList.size() == 0)
+            {
+                pRight = 0.0f;
+            }
+            
+            float currentInternalTime = 1.0f + pLeft * currentLeftList.size() + pRight * currentRightList.size();
+            
+            if(currentInternalTime < parentAsInternalTime)
+            {
+                parentAsInternalTime = currentInternalTime;
+                rightFaceList = currentRightList;
+                leftFaceList = currentLeftList;
+                leftBound = currentLeftBound;
+                rightBound = currentRightBound;
+            }
+        }
+        
+        if(parentAsLeafTime > parentAsInternalTime)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    void BuildNode(BVHNode* parent)
+    {
+        if(parent->faceList.size() == 0 || parent->faceList.size() == 1)
+        {
+            assert(parent->IsLeaf());
+            return;
+        }
+        
+        std::vector<unsigned int> leftFaceList;
+        std::vector<unsigned int> rightFaceList;
+        
+        BVHBound leftBound = BVHBound();
+        BVHBound rightBound = BVHBound();
         
         // continue, divided into two leaves still could get better performance
-        if(parentAsLeafTime > parentAsBranchTime)
+        if(HeuristicSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
+//        if(MiddleSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
         {
             parent->left = new BVHNode();
             parent->left->bound = leftBound;
@@ -334,13 +463,6 @@ private:
             parent->right->bound = rightBound;
             parent->right->faceList = rightFaceList;
             BuildNode(parent->right);
-            
-        }
-        // stop
-        else
-        {
-            parent->left = nullptr;
-            parent->right = nullptr;
         }
     }
     
