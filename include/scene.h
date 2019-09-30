@@ -74,12 +74,6 @@ public:
     // Returns true if the box is empty; otherwise, returns false.
     bool IsEmpty() const { return pmin.x>pmax.x || pmin.y>pmax.y || pmin.z>pmax.z; }
     
-    float SurfaceArea()
-    {
-        Vec3f lengthVector = pmax - pmin;
-        return lengthVector.x * lengthVector.y * 2.0f + lengthVector.x * lengthVector.z * 2.0f + lengthVector.y * lengthVector.z * 2.0f;
-    }
-    
     // Returns one of the 8 corner point of the box in the following order:
     // 0:(x_min,y_min,z_min), 1:(x_max,y_min,z_min)
     // 2:(x_min,y_max,z_min), 3:(x_max,y_max,z_min)
@@ -114,121 +108,6 @@ public:
     
     // Returns true if the point is inside the box; otherwise, returns false.
     bool IsInside(Vec3f const &p) const { for ( int i=0; i<3; i++ ) if ( pmin[i] > p[i] || pmax[i] < p[i] ) return false; return true; }
-    
-    bool IntersectRay(Ray const &r, float& t, float t_max) const{
-        assert(pmax.x - pmin.x >= 0.0f);
-        assert(pmax.y - pmin.y >= 0.0f);
-        assert(pmax.z - pmin.z >= 0.0f);
-        
-        Vec3f invertDir =  Vec3f(1.0f, 1.0f, 1.0f) / r.dir;
-        
-        float tx0;
-        float tx1;
-        
-        if(invertDir.x >= 0.0f)
-        {
-            tx0 = (pmin.x - r.p.x) * invertDir.x;
-            tx1 = (pmax.x - r.p.x) * invertDir.x;
-        }
-        else
-        {
-            tx1 = (pmin.x - r.p.x) * invertDir.x;
-            tx0 = (pmax.x - r.p.x) * invertDir.x;
-        }
-        
-        assert(tx0 <= tx1);
-        
-        float ty0;
-        float ty1;
-        
-        if(invertDir.y >= 0.0f)
-        {
-            ty0 = (pmin.y - r.p.y) * invertDir.y;
-            ty1 = (pmax.y - r.p.y) * invertDir.y;
-        }
-        else
-        {
-            ty1 = (pmin.y - r.p.y) * invertDir.y;
-            ty0 = (pmax.y - r.p.y) * invertDir.y;
-        }
-        
-        assert(ty0 <= ty1);
-        
-        if(ty1 < tx0)
-        {
-            return false;
-        }
-        
-        if(tx1 < ty0)
-        {
-            return false;
-        }
-        
-        float t0 = Max(tx0, ty0);
-        float t1 = Min(tx1, ty1);
-        
-        float tz0;
-        float tz1;
-        if(invertDir.z >= 0.0f)
-        {
-            tz0 = (pmin.z - r.p.z) * invertDir.z;
-            tz1 = (pmax.z - r.p.z) * invertDir.z;
-        }
-        else
-        {
-            tz1 = (pmin.z - r.p.z) * invertDir.z;
-            tz0 = (pmax.z - r.p.z) * invertDir.z;
-        }
-        
-        if(t1 < tz0)
-        {
-            return false;
-        }
-        
-        if(tz1 < t0)
-        {
-            return false;
-        }
-        
-        t0 = Max(t0, tz0);
-        t1 = Min(t1, tz1);
-        
-        assert(t0 <= t1);
-        
-        if(t0 < 0.0f)
-        {
-            if(t1 < 0.0f)
-            {
-                return false;
-            }
-            else
-            {
-                if(t1 > t_max)
-                {
-                    return false;
-                }
-                else
-                {
-                    t = t1;
-                    return true;
-                }
-            }
-        }
-        else
-        {
-            if(t0 > t_max)
-            {
-                return false;
-            }
-            else
-            {
-                t = t0;
-                return true;
-            }
-        }
-        
-        return false;
-    }
     
     // Returns true if the ray intersects with the box for any parameter that is smaller than t_max; otherwise, returns false.
     bool IntersectRay(Ray const &r, float t_max) const{

@@ -9,12 +9,192 @@
 
 class TriObj;
 
+class BVHBound
+{
+public:
+    BVHBound()
+    {
+        
+    }
+    
+    BVHBound(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+    {
+        data[0] = minX;
+        data[1] = minY;
+        data[2] = minZ;
+        data[3] = maxX;
+        data[4] = maxY;
+        data[5] = maxZ;
+    }
+    
+    float data[6] = {BIGFLOAT, BIGFLOAT, BIGFLOAT, -BIGFLOAT, -BIGFLOAT, -BIGFLOAT};
+
+    Vec3f GetMax()
+    {
+        return Vec3f(data[3], data[4], data[5]);
+    }
+    
+    Vec3f GetMin()
+    {
+        return Vec3f(data[0], data[1], data[2]);
+    }
+    
+    float SurfaceArea()
+    {
+        Vec3f lengthVector = GetMax() - GetMin();
+        return lengthVector.x * lengthVector.y * 2.0f + lengthVector.x * lengthVector.z * 2.0f + lengthVector.y * lengthVector.z * 2.0f;
+    }
+    
+    void UpdateByPoint(Vec3f point)
+    {
+        if(point.x > data[3])
+        {
+            data[3] = point.x;
+        }
+        if(point.x < data[0])
+        {
+            data[0] = point.x;
+        }
+        if(point.y > data[4])
+        {
+            data[4] = point.y;
+        }
+        if(point.y < data[1])
+        {
+            data[1] = point.y;
+        }
+        if(point.z > data[5])
+        {
+            data[5] = point.z;
+        }
+        if(point.z < data[2])
+        {
+            data[2] = point.z;
+        }
+    }
+    
+    bool IntersectRay(Ray const &r, float& t, float t_max) const{
+        assert(data[3] - data[0] >= 0.0f);
+        assert(data[4] - data[1] >= 0.0f);
+        assert(data[5] - data[2] >= 0.0f);
+        
+        Vec3f invertDir =  Vec3f(1.0f, 1.0f, 1.0f) / r.dir;
+        
+        float tx0;
+        float tx1;
+        
+        if(invertDir.x >= 0.0f)
+        {
+            tx0 = (data[0] - r.p.x) * invertDir.x;
+            tx1 = (data[3] - r.p.x) * invertDir.x;
+        }
+        else
+        {
+            tx1 = (data[0] - r.p.x) * invertDir.x;
+            tx0 = (data[3] - r.p.x) * invertDir.x;
+        }
+        
+        assert(tx0 <= tx1);
+        
+        float ty0;
+        float ty1;
+        
+        if(invertDir.y >= 0.0f)
+        {
+            ty0 = (data[1] - r.p.y) * invertDir.y;
+            ty1 = (data[4] - r.p.y) * invertDir.y;
+        }
+        else
+        {
+            ty1 = (data[1] - r.p.y) * invertDir.y;
+            ty0 = (data[4] - r.p.y) * invertDir.y;
+        }
+        
+        assert(ty0 <= ty1);
+        
+        if(ty1 < tx0)
+        {
+            return false;
+        }
+        
+        if(tx1 < ty0)
+        {
+            return false;
+        }
+        
+        float t0 = Max(tx0, ty0);
+        float t1 = Min(tx1, ty1);
+        
+        float tz0;
+        float tz1;
+        if(invertDir.z >= 0.0f)
+        {
+            tz0 = (data[2] - r.p.z) * invertDir.z;
+            tz1 = (data[5] - r.p.z) * invertDir.z;
+        }
+        else
+        {
+            tz1 = (data[2] - r.p.z) * invertDir.z;
+            tz0 = (data[5] - r.p.z) * invertDir.z;
+        }
+        
+        if(t1 < tz0)
+        {
+            return false;
+        }
+        
+        if(tz1 < t0)
+        {
+            return false;
+        }
+        
+        t0 = Max(t0, tz0);
+        t1 = Min(t1, tz1);
+        
+        assert(t0 <= t1);
+        
+        if(t0 < 0.0f)
+        {
+            if(t1 < 0.0f)
+            {
+                return false;
+            }
+            else
+            {
+                if(t1 > t_max)
+                {
+                    return false;
+                }
+                else
+                {
+                    t = t1;
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            if(t0 > t_max)
+            {
+                return false;
+            }
+            else
+            {
+                t = t0;
+                return true;
+            }
+        }
+        
+        return false;
+    }
+};
+
 class BVHNode
 {
 public:
     BVHNode* left = nullptr;
     BVHNode* right = nullptr;
-    Box bound;
+    BVHBound bound;
     std::vector<unsigned int> faceList;
     
     bool IsLeaf()
@@ -44,7 +224,8 @@ private:
         // divide by middle
         // choose widest side from x y z
         root = new BVHNode();
-        root->bound = mesh->GetBoundBox();
+        auto meshBound = mesh->GetBoundBox();
+        root->bound = BVHBound(meshBound.pmin.x, meshBound.pmin.y, meshBound.pmin.z, meshBound.pmax.x, meshBound.pmax.y, meshBound.pmax.z);
         
         // add all face to root node
         for(unsigned int i = 0; i < mesh->NF(); i++)
@@ -62,30 +243,15 @@ private:
             return;
         }
         
-        Vec3f lengthVec = (parent->bound.pmax - parent->bound.pmin);
+        Vec3f lengthVec = (parent->bound.GetMax() - parent->bound.GetMin());
         int maxIndex = lengthVec.MaxIndex();
-        float middle = (parent->bound.pmin[maxIndex] + parent->bound.pmax[maxIndex]) * 0.5f;
+        float middle = (parent->bound.data[3 + maxIndex] + parent->bound.data[maxIndex]) * 0.5f;
         
         std::vector<unsigned int> leftFaceList;
         std::vector<unsigned int> rightFaceList;
         
-        float left_xmin = BIGFLOAT;
-        float left_xmax = -BIGFLOAT;
-        
-        float left_ymin = BIGFLOAT;
-        float left_ymax = -BIGFLOAT;
-        
-        float left_zmin = BIGFLOAT;
-        float left_zmax = -BIGFLOAT;
-        
-        float right_xmin = BIGFLOAT;
-        float right_xmax = -BIGFLOAT;
-        
-        float right_ymin = BIGFLOAT;
-        float right_ymax = -BIGFLOAT;
-        
-        float right_zmin = BIGFLOAT;
-        float right_zmax = -BIGFLOAT;
+        BVHBound leftBound = BVHBound();
+        BVHBound rightBound = BVHBound();
         
         for(size_t i = 0; i < parent->faceList.size(); i++)
         {
@@ -118,57 +284,11 @@ private:
                 
                 if(left)
                 {
-                    if(pos.x > left_xmax)
-                    {
-                        left_xmax = pos.x;
-                    }
-                    if(pos.x < left_xmin)
-                    {
-                        left_xmin = pos.x;
-                    }
-                    if(pos.y > left_ymax)
-                    {
-                        left_ymax = pos.y;
-                    }
-                    if(pos.y < left_ymin)
-                    {
-                        left_ymin = pos.y;
-                    }
-                    if(pos.z > left_zmax)
-                    {
-                        left_zmax = pos.z;
-                    }
-                    if(pos.z < left_zmin)
-                    {
-                        left_zmin = pos.z;
-                    }
+                    leftBound.UpdateByPoint(pos);
                 }
                 else
                 {
-                    if(pos.x > right_xmax)
-                    {
-                        right_xmax = pos.x;
-                    }
-                    if(pos.x < right_xmin)
-                    {
-                        right_xmin = pos.x;
-                    }
-                    if(pos.y > right_ymax)
-                    {
-                        right_ymax = pos.y;
-                    }
-                    if(pos.y < right_ymin)
-                    {
-                        right_ymin = pos.y;
-                    }
-                    if(pos.z > right_zmax)
-                    {
-                        right_zmax = pos.z;
-                    }
-                    if(pos.z < right_zmin)
-                    {
-                        right_zmin = pos.z;
-                    }
+                    rightBound.UpdateByPoint(pos);
                 }
             }
             
@@ -181,10 +301,6 @@ private:
                 rightFaceList.push_back(faceId);
             }
         }
-        
-        
-        Box leftBound = Box(left_xmin, left_ymin, left_zmin, left_xmax, left_ymax, left_zmax);
-        Box rightBound = Box(right_xmin, right_ymin, right_zmin, right_xmax, right_ymax, right_zmax);
         
         float totalSurfaceArea = parent->bound.SurfaceArea();
         // possibility to hit based on surface area size
