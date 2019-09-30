@@ -325,7 +325,7 @@ private:
         }
     }
     
-    bool HeuristicSplit(std::vector<unsigned int>& leftFaceList,
+    bool ScanLineSplit(std::vector<unsigned int>& leftFaceList,
                         std::vector<unsigned int>& rightFaceList,
                         BVHBound& leftBound,
                         BVHBound& rightBound,
@@ -451,7 +451,7 @@ private:
         BVHBound rightBound = BVHBound();
         
         // continue, divided into two leaves still could get better performance
-        if(HeuristicSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
+        if(ScanLineSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
 //        if(MiddleSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
         {
             parent->left = new BVHNode();
