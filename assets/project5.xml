@@ -28,14 +28,14 @@
         <translate x="15"/>
       </object>
     </object>
-    <object type="obj" name="teapot_lowpoly.obj" material="mtl1">
+    <object type="obj" name="teapot.obj" material="mtl1">
       <scale value="0.8"/>
       <rotate angle="-30" z="1"/>
       <translate x="2" y="5" z="0"/>
     </object>
-    <object type="obj" name="cat.obj" material="mtl3">
-      <scale value="0.025"/>
-      <rotate angle="90" x="1"/>
+    <object type="obj" name="teapot.obj" material="mtl1">
+      <scale value="0.3"/>
+      <rotate angle="-60" z="1"/>
       <translate x="5" y="-6" z="0"/>
     </object>
     <object type="sphere" name="sphere2" material="mtl2">
@@ -69,13 +69,6 @@
       <glossiness value="10"/>
       <refraction value="0.8" index="1.52"/>
       <absorption r="0.01" g="0.001" b="0.0001"/>
-    </material>
-    <material type="blinn" name="mtl3">
-      <diffuse  r="0.0" g="0.0" b="0.1"/>
-      <specular r="0.0" g="0.0" b="0.0" value="0.8"/>
-      <glossiness value="10"/>
-      <refraction value="1.0" index="1.52"/>
-      <absorption r="0.0" g="0.0" b="0.0"/>
     </material>
  
     <!-- Lights -->
