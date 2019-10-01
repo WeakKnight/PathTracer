@@ -41,6 +41,8 @@ Color24 *myZImg = nullptr;
 
 Color24 *normalPixels = nullptr;
 
+float buildTime = 0.0f;
+
 bool InternalGenerateRayForAnyIntersection(Node* node, Ray& ray, float t_max)
 {
     Ray objectRay = node->ToNodeCoords(ray);
@@ -249,6 +251,8 @@ void RayTracer::Run()
                 if(renderImage.IsRenderDone())
                 {
                     float finish = glfwGetTime();
+                    
+                    spdlog::debug("bvh build time is {}", buildTime);
                     spdlog::debug("time is {}", finish - now);
                     renderImage.ComputeZBufferImage();
 #ifndef IMGUI_DEBUG

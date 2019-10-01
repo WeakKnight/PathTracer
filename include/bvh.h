@@ -83,7 +83,9 @@ public:
         }
     }
     
-    bool IntersectRay(Ray const &r, float& t, float t_max) const{
+    bool IntersectRay(Ray const &r,
+//                      float& t,
+                      float t_max = BIGFLOAT) const{
         assert(data[3] - data[0] >= 0.0f);
         assert(data[4] - data[1] >= 0.0f);
         assert(data[5] - data[2] >= 0.0f);
@@ -177,7 +179,7 @@ public:
                 }
                 else
                 {
-                    t = t1;
+//                    t = t1;
                     return true;
                 }
             }
@@ -190,7 +192,7 @@ public:
             }
             else
             {
-                t = t0;
+//                t = t0;
                 return true;
             }
         }
@@ -462,7 +464,7 @@ private:
         
         // continue, divided into two leaves still could get better performance
         if(ScanLineSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
-//        if(MiddleSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
+//        if(RandomSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
         {
             assert(leftFaceList.size() + rightFaceList.size() == parent->faceList.size());
             parent->left = new BVHNode();

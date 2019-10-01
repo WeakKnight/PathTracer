@@ -1,7 +1,9 @@
 #include "objects.h"
 #include <vector>
 #include "bvh.h"
+#include "GLFW/glfw3.h"
 
+extern float buildTime;
 extern Camera camera;
 #ifndef MY_BVH
 bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int nodeID ) const
@@ -35,8 +37,7 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
     }
     else
     {
-        float tmin = BIGFLOAT;
-        if(node->bound.IntersectRay(ray, tmin, BIGFLOAT))
+        if(node->bound.IntersectRay(ray))
         {
             HitInfo leftHitInfo;
             HitInfo rightHitInfo;
@@ -121,7 +122,10 @@ bool TriObj::Load(char const *filename)
     {
         delete bvh;
     }
+    float now = glfwGetTime();
     bvh = new MeshBVH(this);
+    float then = glfwGetTime();
+    buildTime += (then - now);
 #endif
    
     
