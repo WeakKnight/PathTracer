@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <stdarg.h>
 
 namespace StringUtils
 {

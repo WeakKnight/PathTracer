@@ -454,6 +454,7 @@ private:
         if(ScanLineSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
 //        if(MiddleSplit(leftFaceList, rightFaceList, leftBound, rightBound, parent))
         {
+            assert(leftFaceList.size() + rightFaceList.size() == parent->faceList.size());
             parent->left = new BVHNode();
             parent->left->bound = leftBound;
             parent->left->faceList = leftFaceList;
