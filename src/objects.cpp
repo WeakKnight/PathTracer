@@ -2,6 +2,7 @@
 #include <vector>
 #include "bvh.h"
 #include "GLFW/glfw3.h"
+#include "float.h"
 
 extern float buildTime;
 extern Camera camera;
@@ -108,9 +109,12 @@ bool TriObj::Load(char const *filename)
     #ifndef MY_BVH
     bvh.Clear();
     #endif
-    if(! LoadFromFileObj( StringUtils::Format("assets/%s", filename).c_str() ))
+    if(! LoadFromFileObj(filename))
     {
-        return false;
+        if(! LoadFromFileObj( StringUtils::Format("assets/%s", filename).c_str() ))
+        {
+            return false;
+        }
     }
     if ( ! HasNormals() ) ComputeNormals();
     ComputeBoundingBox();
@@ -149,7 +153,7 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
     // (ray.origin + ray.dir * t - v0).dot(n) = 0
     float dirDotN = ray.dir.Dot(n);
     
-    if(abs(dirDotN) <= __FLT_EPSILON__)
+    if(abs(dirDotN) <= FLT_EPSILON)
     {
         return false;
     }
