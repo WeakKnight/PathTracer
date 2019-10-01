@@ -6,59 +6,7 @@ extern Camera camera;
 #ifndef MY_BVH
 bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int nodeID ) const
 {
-    bool result = false;
-    unsigned int current = nodeID;
-    if(!bvh.IsLeafNode(nodeID))
-    {
-        unsigned int left;
-        unsigned int right;
-        bvh.GetChildNodes(nodeID, left, right);
-
-        auto leftBound = BVHBound(bvh.GetNodeBounds(left));
-        auto rightBound = BVHBound(bvh.GetNodeBounds(right));
-        
-        float tmin1;
-        float tmin2;
-        
-//        tmin1 = 
-    }
-    
-    return result;
-//    if(bvh.IsLeafNode(nodeID))
-//    {
-//        for(unsigned i = 0; i < bvh.GetNodeElementCount(nodeID); i++)
-//        {
-//            unsigned faceId = bvh.GetNodeElements(nodeID)[i];
-//            HitInfo currentHitInfo;
-//            if(IntersectTriangle(ray, currentHitInfo, hitSide, faceId))
-//            {
-//                if(currentHitInfo.z < hInfo.z)
-//                {
-//                    result = true;
-//
-//                    hInfo.N = currentHitInfo.N;
-//                    hInfo.p = currentHitInfo.p;
-//                    hInfo.z = currentHitInfo.z;
-//                    hInfo.front = currentHitInfo.front;
-//                }
-//            }
-//        }
-//
-//        return result;
-//    }
-//    else
-//    {
-//        unsigned int left;
-//        unsigned int right;
-//        bvh.GetChildNodes(nodeID, left, right);
-//
-//        auto leftBound = BVHBound(bvh.GetNodeBounds(left));
-//        auto rightBound = BVHBound(bvh.GetNodeBounds(right));
-//
-//
-//
-//        return result;
-//    }
+    return false;
 }
 #else
 bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode* node) const
