@@ -18,6 +18,11 @@
 #include "string_utils.h"
 //#include "bvh.h"
 
+#define MY_BVH
+
+#ifndef MY_BVH
+#include "cyBVH.h"
+#endif
 //-------------------------------------------------------------------------------
 
 class Sphere : public Object
@@ -56,9 +61,19 @@ public:
     bool Load(char const *filename);
  
 private:
+    
+    #ifndef MY_BVH
+    cyBVHTriMesh bvh;
+    #else
     MeshBVH* bvh = nullptr;
+    #endif
+    
     bool IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const;
+    #ifndef MY_BVH
+    bool TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int nodeID ) const;
+    #else
     bool TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode* node) const;
+    #endif
 };
 
 //-------------------------------------------------------------------------------

@@ -17,6 +17,16 @@ public:
         
     }
     
+    BVHBound(const float* data)
+    {
+        this->data[0] = data[0];
+        this->data[1] = data[1];
+        this->data[2] = data[2];
+        this->data[3] = data[3];
+        this->data[4] = data[4];
+        this->data[5] = data[5];
+    }
+    
     BVHBound(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
     {
         data[0] = minX;
