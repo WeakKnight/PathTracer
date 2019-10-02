@@ -1,3 +1,10 @@
+# Todo List
+1. Cache BVH With Same Path Or HashID.
+2. Make Node Part Of BVH.
+3. Optimazition For BVH Tmin1, Tmin2 Comparison.
+4. Eliminate Invert Matrix Calculation In Ray Triangle Computation.
+5. Blender Plugin(Output Scene File).
+
 # Build Instruction
 ## macOS
 1. mkdir build
