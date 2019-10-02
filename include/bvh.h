@@ -347,94 +347,96 @@ private:
         float parentAsInternalTime = BIGFLOAT;
         
         Vec3f lengthVec = (parent->bound.GetMax() - parent->bound.GetMin());
-        int maxIndex = lengthVec.MaxIndex();
         
         // segment length
         float step = 0.02;
-        for(float splitFactor = 0.0f; splitFactor < 1.0f; splitFactor+=step)
+        for(int axisIndex = 0; axisIndex <= 2; axisIndex++)
         {
-            std::vector<unsigned int> currentLeftList;
-            std::vector<unsigned int> currentRightList;
-            BVHBound currentLeftBound;
-            BVHBound currentRightBound;
-            
-            float splitPos = parent->bound.data[maxIndex] + lengthVec[maxIndex] * splitFactor;
-            
-            for(size_t i = 0; i < parent->faceList.size(); i++)
+            for(float splitFactor = 0.0f; splitFactor < 1.0f; splitFactor+=step)
             {
-                unsigned int faceId = parent->faceList[i];
-                auto& face = mesh->F(faceId);
+                std::vector<unsigned int> currentLeftList;
+                std::vector<unsigned int> currentRightList;
+                BVHBound currentLeftBound;
+                BVHBound currentRightBound;
                 
-                // should this face add into left node
-                bool left = false;
+                float splitPos = parent->bound.data[axisIndex] + lengthVec[axisIndex] * splitFactor;
                 
-                Vec3f sum = Vec3f(0.0f, 0.0f, 0.0f);
-                
-                for(int index = 0; index < 3; index++)
+                for(size_t i = 0; i < parent->faceList.size(); i++)
                 {
-                    int verticeIndex = face.v[index];
-                    Vec3f pos = mesh->V(verticeIndex);
-                    sum += pos;
-                }
-                
-                Vec3f avg = sum/3.0f;
-                
-                if(avg[maxIndex] <= splitPos)
-                {
-                    left = true;
-                }
-                
-                for(int index = 0; index < 3; index++)
-                {
-                    int verticeIndex = face.v[index];
-                    Vec3f pos = mesh->V(verticeIndex);
+                    unsigned int faceId = parent->faceList[i];
+                    auto& face = mesh->F(faceId);
+                    
+                    // should this face add into left node
+                    bool left = false;
+                    
+                    Vec3f sum = Vec3f(0.0f, 0.0f, 0.0f);
+                    
+                    for(int index = 0; index < 3; index++)
+                    {
+                        int verticeIndex = face.v[index];
+                        Vec3f pos = mesh->V(verticeIndex);
+                        sum += pos;
+                    }
+                    
+                    Vec3f avg = sum/3.0f;
+                    
+                    if(avg[axisIndex] <= splitPos)
+                    {
+                        left = true;
+                    }
+                    
+                    for(int index = 0; index < 3; index++)
+                    {
+                        int verticeIndex = face.v[index];
+                        Vec3f pos = mesh->V(verticeIndex);
+                        
+                        if(left)
+                        {
+                            currentLeftBound.UpdateByPoint(pos);
+                        }
+                        else
+                        {
+                            currentRightBound.UpdateByPoint(pos);
+                        }
+                    }
                     
                     if(left)
                     {
-                        currentLeftBound.UpdateByPoint(pos);
+                        currentLeftList.push_back(faceId);
                     }
                     else
                     {
-                        currentRightBound.UpdateByPoint(pos);
+                        currentRightList.push_back(faceId);
                     }
                 }
                 
-                if(left)
+                float totalSurfaceArea = parent->bound.SurfaceArea();
+                // possibility to hit based on surface area size
+                float leftSuraceArea = currentLeftBound.SurfaceArea();
+                float rightSurfaceArea = currentRightBound.SurfaceArea();
+                float pLeft = leftSuraceArea / totalSurfaceArea;
+                float pRight = rightSurfaceArea / totalSurfaceArea;
+                
+                if(currentLeftList.size() == 0)
                 {
-                    currentLeftList.push_back(faceId);
+                    pLeft = 0.0f;
                 }
-                else
+                
+                if(currentRightList.size() == 0)
                 {
-                    currentRightList.push_back(faceId);
+                    pRight = 0.0f;
                 }
-            }
-            
-            float totalSurfaceArea = parent->bound.SurfaceArea();
-            // possibility to hit based on surface area size
-            float leftSuraceArea = currentLeftBound.SurfaceArea();
-            float rightSurfaceArea = currentRightBound.SurfaceArea();
-            float pLeft = leftSuraceArea / totalSurfaceArea;
-            float pRight = rightSurfaceArea / totalSurfaceArea;
-            
-            if(currentLeftList.size() == 0)
-            {
-                pLeft = 0.0f;
-            }
-            
-            if(currentRightList.size() == 0)
-            {
-                pRight = 0.0f;
-            }
-            
-            float currentInternalTime = 1.0f + pLeft * currentLeftList.size() + pRight * currentRightList.size();
-            
-            if(currentInternalTime < parentAsInternalTime)
-            {
-                parentAsInternalTime = currentInternalTime;
-                rightFaceList = currentRightList;
-                leftFaceList = currentLeftList;
-                leftBound = currentLeftBound;
-                rightBound = currentRightBound;
+                
+                float currentInternalTime = 1.0f + pLeft * currentLeftList.size() + pRight * currentRightList.size();
+                
+                if(currentInternalTime < parentAsInternalTime)
+                {
+                    parentAsInternalTime = currentInternalTime;
+                    rightFaceList = currentRightList;
+                    leftFaceList = currentLeftList;
+                    leftBound = currentLeftBound;
+                    rightBound = currentRightBound;
+                }
             }
         }
         
