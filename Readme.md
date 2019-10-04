@@ -5,6 +5,7 @@
 4. Eliminate Invert Matrix Calculation In Ray Triangle Computation.
 5. Blender Plugin(Output Scene File).
 6. Use Assimp To Load Mesh Data.
+7. Use Texture To parialy change material of meshes(For example, a sphere with a transparent part).
 
 # Build Instruction
 ## macOS

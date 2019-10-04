@@ -6,12 +6,7 @@
 
 extern float buildTime;
 extern Camera camera;
-#ifndef MY_BVH
-bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int nodeID ) const
-{
-    return false;
-}
-#else
+
 bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode* node) const
 {
     if(node->IsLeaf())
@@ -89,7 +84,7 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
         }
     }
 }
-#endif
+
 
 bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
@@ -97,18 +92,12 @@ bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
     {
         return false;
     }
-    #ifndef MY_BVH
-    return TraceBVHNode(ray, hInfo, hitSide, bvh.GetRootNodeID());
-#else
+
     return TraceBVHNode(ray, hInfo, hitSide, bvh->GetRoot());
-#endif
 }
 
 bool TriObj::Load(char const *filename)
 {
-    #ifndef MY_BVH
-    bvh.Clear();
-    #endif
     if(! LoadFromFileObj(filename))
     {
         if(! LoadFromFileObj( StringUtils::Format("assets/%s", filename).c_str() ))
@@ -119,9 +108,6 @@ bool TriObj::Load(char const *filename)
     if ( ! HasNormals() ) ComputeNormals();
     ComputeBoundingBox();
     
-#ifndef MY_BVH
-    bvh.SetMesh(this,4);
-#else
     if(bvh != nullptr)
     {
         delete bvh;
@@ -130,9 +116,7 @@ bool TriObj::Load(char const *filename)
     bvh = new MeshBVH(this);
     float then = glfwGetTime();
     buildTime += (then - now);
-#endif
    
-    
     return true;
 }
 
