@@ -86,7 +86,7 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
 }
 
 
-bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
+bool TriObj::IntersectRay(const Ray &ray, HitInfo &hInfo, int hitSide) const
 {
     if(!GetBoundBox().IntersectRay(ray, BIGFLOAT))
     {
@@ -96,11 +96,11 @@ bool TriObj::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
     return TraceBVHNode(ray, hInfo, hitSide, bvh->GetRoot());
 }
 
-bool TriObj::Load(char const *filename)
+bool TriObj::Load(char const *filename, bool loadMtl)
 {
-    if(! LoadFromFileObj(filename))
+    if(! LoadFromFileObj(filename, loadMtl))
     {
-        if(! LoadFromFileObj( StringUtils::Format("assets/%s", filename).c_str() ))
+        if(! LoadFromFileObj( StringUtils::Format("assets/%s", filename).c_str() , loadMtl))
         {
             return false;
         }

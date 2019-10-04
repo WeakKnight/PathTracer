@@ -25,6 +25,9 @@ Plane thePlane;
 MaterialList materials;
 LightList lights;
 ObjFileList objList;
+TexturedColor background;
+TexturedColor environment;
+TextureList textureList;
 
 float imgPlaneHeight;
 float imgPlaneWidth;

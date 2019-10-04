@@ -64,7 +64,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         {
             colorComing = light->Illuminate(hInfo.p + hInfo.N * INTERSECTION_BIAS, hInfo.N);
             
-            Color diffuseColor = Color(colorComing * diffuse);
+            Color diffuseColor = Color(colorComing * diffuse.GetColor());
             
             Color specularColor =
             Color::Black();
@@ -91,7 +91,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
 //            assert(cosBeta > - 0.00001f);
             
             // has refraction
-            if(refraction.Sum() > 0.0f)
+            if(refraction.GetColor().Sum() > 0.0f)
             {
                 // Schlicks Approximation
                 float Rs = 0.0f;
@@ -140,7 +140,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                                                        powf(M_E, -1.0f * distance * absorption.r)
                                                      , powf(M_E, -1.0f * distance * absorption.g)
                                                      , powf(M_E, -1.0f * distance * absorption.b));
-                        Color refractColor = absortionColor * refraction * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
+                        Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
                         result += refractColor;
                     }
                     
@@ -149,7 +149,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                     
                     if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRay, reflectHitInfo, HIT_FRONT, reflectDistance))
                     {
-                        Color reflectColor = refraction * Rs * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
+                        Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
                         result += reflectColor;
                     }
                 }
@@ -206,7 +206,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                                                          , powf(M_E, -1.0f * distance * absorption.g)
                                                          , powf(M_E, -1.0f * distance * absorption.b));
                             
-                            Color refractColor = absortionColor * refraction * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
+                            Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
                             
                             result += refractColor;
                         }
@@ -215,7 +215,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             }
             
             // has reflection
-            if(reflection.Sum() > 0.0f && bounceCount > 0)
+            if(reflection.GetColor().Sum() > 0.0f && bounceCount > 0)
             {
                 // only consider front reflect
                 if(hInfo.front)
@@ -236,7 +236,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                     {
                         const Material* mat = reflectHitInfo.node->GetMaterial();
                         
-                        Color reflectColor = this->reflection * mat->Shade(reflectRay, reflectHitInfo, lights, bounceCount - 1);
+                        Color reflectColor = this->reflection.GetColor() * mat->Shade(reflectRay, reflectHitInfo, lights, bounceCount - 1);
                         result += reflectColor;
                     }
                 }
@@ -256,8 +256,8 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             Color iComing = light->Illuminate(hInfo.p + N * INTERSECTION_BIAS, N);
             colorComing = iComing * cosTheta;
             
-            Color diffuseColor = Color(colorComing * diffuse);
-            Color specularColor = iComing * specular * pow(H.Dot(N), glossiness);
+            Color diffuseColor = Color(colorComing * diffuse.GetColor());
+            Color specularColor = iComing * specular.GetColor() * pow(H.Dot(N), glossiness);
             
 //            if(refraction.Sum() > 0.0f)
 //            {
@@ -275,66 +275,5 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
 
 
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
-{
-}
-
-Color MtlPhong::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
-{
-    // ray world space
-    // N obj space need transform
-    // p obj space need transform
-    // depth space independent
-    // node space independent
-    Color result = Color::Black();
-    
-    for(size_t index = 0; index < lights.size(); index++)
-    {
-        Light* light = lights[index];
-        
-        Color colorComing;
-        Vec3f lightDir = -1.0f * light->Direction(hInfo.p);
-        
-        Vec3f R = Reflect(lightDir, hInfo.N);
-        Vec3f V = -1.0f * ray.dir.GetNormalized();
-        
-        float cosTheta = lightDir.Dot(hInfo.N);
-        
-        if(light->IsAmbient())
-        {
-            colorComing = light->Illuminate(hInfo.p, hInfo.N);
-            
-            Color diffuseColor = Color(colorComing * diffuse);
-            
-            Color specularColor =
-            Color::Black();
-//            colorComing * specular * pow(V.Dot(R), glossiness);
-            // / cosTheta;
-            
-            result += (diffuseColor + specularColor);
-        }
-        else
-        {
-            if(cosTheta < 0)
-            {
-                continue;
-            }
-            
-            Color iComing = light->Illuminate(hInfo.p, hInfo.N);
-            colorComing = iComing * cosTheta;
-            
-            Color diffuseColor = Color(colorComing * diffuse);
-            
-            Color specularColor = iComing * specular * pow(V.Dot(R), glossiness);
-            // / cosTheta;
-            
-            result += (diffuseColor + specularColor);
-        }
-    }
-    
-    result.ClampMax();
-    return result;
-}
-
-void MtlPhong::SetViewportMaterial(int subMtlID) const
 {
 }

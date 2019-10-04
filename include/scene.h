@@ -3,7 +3,7 @@
 ///
 /// \file       scene.h
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    5.0
+/// \version    7.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -12,6 +12,10 @@
 
 #ifndef _SCENE_H_INCLUDED_
 #define _SCENE_H_INCLUDED_
+
+//-------------------------------------------------------------------------------
+
+#define TEXTURE_SAMPLE_COUNT 32
 
 //-------------------------------------------------------------------------------
 
@@ -27,7 +31,6 @@
 #include "cyVector.h"
 #include "cyMatrix.h"
 #include "cyColor.h"
-
 using namespace cy;
 
 //-------------------------------------------------------------------------------
@@ -110,118 +113,7 @@ public:
     bool IsInside(Vec3f const &p) const { for ( int i=0; i<3; i++ ) if ( pmin[i] > p[i] || pmax[i] < p[i] ) return false; return true; }
     
     // Returns true if the ray intersects with the box for any parameter that is smaller than t_max; otherwise, returns false.
-    bool IntersectRay(Ray const &r, float t_max) const{
-        assert(pmax.x - pmin.x >= 0.0f);
-        assert(pmax.y - pmin.y >= 0.0f);
-        assert(pmax.z - pmin.z >= 0.0f);
-        
-        Vec3f invertDir =  Vec3f(1.0f, 1.0f, 1.0f) / r.dir;
-        
-        float tx0;
-        float tx1;
-        
-        if(invertDir.x >= 0.0f)
-        {
-            tx0 = (pmin.x - r.p.x) * invertDir.x;
-            tx1 = (pmax.x - r.p.x) * invertDir.x;
-        }
-        else
-        {
-            tx1 = (pmin.x - r.p.x) * invertDir.x;
-            tx0 = (pmax.x - r.p.x) * invertDir.x;
-        }
-        
-        assert(tx0 <= tx1);
-        
-        float ty0;
-        float ty1;
-        
-        if(invertDir.y >= 0.0f)
-        {
-            ty0 = (pmin.y - r.p.y) * invertDir.y;
-            ty1 = (pmax.y - r.p.y) * invertDir.y;
-        }
-        else
-        {
-            ty1 = (pmin.y - r.p.y) * invertDir.y;
-            ty0 = (pmax.y - r.p.y) * invertDir.y;
-        }
-        
-        assert(ty0 <= ty1);
-        
-        if(ty1 < tx0)
-        {
-            return false;
-        }
-        
-        if(tx1 < ty0)
-        {
-            return false;
-        }
-        
-        float t0 = Max(tx0, ty0);
-        float t1 = Min(tx1, ty1);
-        
-        float tz0;
-        float tz1;
-        if(invertDir.z >= 0.0f)
-        {
-            tz0 = (pmin.z - r.p.z) * invertDir.z;
-            tz1 = (pmax.z - r.p.z) * invertDir.z;
-        }
-        else
-        {
-            tz1 = (pmin.z - r.p.z) * invertDir.z;
-            tz0 = (pmax.z - r.p.z) * invertDir.z;
-        }
-        
-        if(t1 < tz0)
-        {
-            return false;
-        }
-        
-        if(tz1 < t0)
-        {
-            return false;
-        }
-        
-        t0 = Max(t0, tz0);
-        t1 = Min(t1, tz1);
-        
-        assert(t0 <= t1);
-        
-        if(t0 < 0.0f)
-        {
-            if(t1 < 0.0f)
-            {
-                return false;
-            }
-            else
-            {
-                if(t1 > t_max)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-        }
-        else
-        {
-            if(t0 > t_max)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
-        
-        return false;
-    }
+    bool IntersectRay(Ray const &r, float t_max) const;
 };
 
 //-------------------------------------------------------------------------------
@@ -238,11 +130,14 @@ struct HitInfo
     float       z;      // the distance from the ray center to the hit point
     Vec3f       p;      // position of the hit point
     Vec3f       N;      // surface normal at the hit point
+    Vec3f       uvw;    // texture coordinate at the hit point
+    Vec3f       duvw[2];// derivatives of the texture coordinate
     Node const *node;   // the object node that was hit
     bool        front;  // true if the ray hits the front side, false if the ray hits the back side
+    int         mtlID;  // sub-material index
     
     HitInfo() { Init(); }
-    void Init() { z=BIGFLOAT; node=nullptr; front=true; }
+    void Init() { z=BIGFLOAT; node=nullptr; front=true; uvw.Set(0.5f,0.5f,0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID=0; }
 };
 
 //-------------------------------------------------------------------------------
@@ -389,6 +284,122 @@ class MaterialList : public ItemList<Material>
 {
 public:
     Material* Find( char const *name ) { int n=size(); for ( int i=0; i<n; i++ ) if ( at(i) && strcmp(name,at(i)->GetName())==0 ) return at(i); return nullptr; }
+};
+
+//-------------------------------------------------------------------------------
+
+class Texture : public ItemBase
+{
+public:
+    // Evaluates the color at the given uvw location.
+    virtual Color Sample(Vec3f const &uvw) const=0;
+    
+    // Evaluates the color around the given uvw location using the derivatives duvw
+    // by calling the Sample function multiple times.
+    virtual Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic=true) const
+    {
+        Color c = Sample(uvw);
+        if ( duvw[0].LengthSquared() + duvw[1].LengthSquared() == 0 ) return c;
+        for ( int i=1; i<TEXTURE_SAMPLE_COUNT; i++ ) {
+            float x=0, y=0, fx=0.5f, fy=1.0f/3.0f;
+            for ( int ix=i; ix>0; ix/=2 ) { x+=fx*(ix%2); fx/=2; }   // Halton sequence (base 2)
+            for ( int iy=i; iy>0; iy/=3 ) { y+=fy*(iy%3); fy/=3; }   // Halton sequence (base 3)
+            if ( elliptic ) {
+                float r = sqrtf(x)*0.5f;
+                x = r*sinf(y*(float)M_PI*2);
+                y = r*cosf(y*(float)M_PI*2);
+            } else {
+                if ( x > 0.5f ) x-=1;
+                if ( y > 0.5f ) y-=1;
+            }
+            c += Sample( uvw + x*duvw[0] + y*duvw[1] );
+        }
+        return c / float(TEXTURE_SAMPLE_COUNT);
+    }
+    
+    virtual bool SetViewportTexture() const { return false; }   // used for OpenGL display
+    
+protected:
+    
+    // Clamps the uvw values for tiling textures, such that all values fall between 0 and 1.
+    static Vec3f TileClamp(Vec3f const &uvw)
+    {
+        Vec3f u;
+        u.x = uvw.x - (int) uvw.x;
+        u.y = uvw.y - (int) uvw.y;
+        u.z = uvw.z - (int) uvw.z;
+        if ( u.x < 0 ) u.x += 1;
+        if ( u.y < 0 ) u.y += 1;
+        if ( u.z < 0 ) u.z += 1;
+        return u;
+    }
+};
+
+typedef ItemFileList<Texture> TextureList;
+
+//-------------------------------------------------------------------------------
+
+// This class handles textures with texture transformations.
+// The uvw values passed to the Sample methods are transformed
+// using the texture transformation.
+class TextureMap : public Transformation
+{
+public:
+    TextureMap() : texture(nullptr) {}
+    TextureMap(Texture *tex) : texture(tex) {}
+    void SetTexture(Texture *tex) { texture = tex; }
+    
+    virtual Color Sample(Vec3f const &uvw) const { return texture ? texture->Sample(TransformTo(uvw)) : Color(0,0,0); }
+    virtual Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic=true) const
+    {
+        if ( texture == nullptr ) return Color(0,0,0);
+        Vec3f u = TransformTo(uvw);
+        Vec3f d[2];
+        d[0] = TransformTo(duvw[0]+uvw)-u;
+        d[1] = TransformTo(duvw[1]+uvw)-u;
+        return texture->Sample(u,d,elliptic);
+    }
+    
+    bool SetViewportTexture() const { if ( texture ) return texture->SetViewportTexture(); return false; }   // used for OpenGL display
+    
+private:
+    Texture *texture;
+};
+
+//-------------------------------------------------------------------------------
+
+// This class keeps a TextureMap and a color. This is useful for keeping material
+// color parameters that can also be textures. If no texture is specified, it
+// automatically uses the color value. Otherwise, the texture value is multiplied
+// by the color value.
+class TexturedColor
+{
+private:
+    Color color;
+    TextureMap *map;
+public:
+    TexturedColor() : color(0,0,0), map(nullptr) {}
+    TexturedColor(float r, float g, float b) : color(r,g,b), map(nullptr) {}
+    virtual ~TexturedColor() { if ( map ) delete map; }
+    
+    void SetColor(const Color &c) { color=c; }
+    void SetTexture(TextureMap *m) { if ( map ) delete map; map=m; }
+    
+    Color GetColor() const { return color; }
+    const TextureMap* GetTexture() const { return map; }
+    
+    Color Sample(Vec3f const &uvw) const { return ( map ) ? color*map->Sample(uvw) : color; }
+    Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic=true) const { return ( map ) ? color*map->Sample(uvw,duvw,elliptic) : color; }
+    
+    // Returns the color value at the given direction for environment mapping.
+    Color SampleEnvironment(Vec3f const &dir) const
+    {
+        float z = asinf(-dir.z)/float(M_PI)+0.5f;
+        float x = dir.x / (fabs(dir.x)+fabs(dir.y));
+        float y = dir.y / (fabs(dir.x)+fabs(dir.y));
+        return Sample( Vec3f(0.5f,0.5f,0.0f) + z*(x*Vec3f(0.5f,0.5f,0) + y*Vec3f(-0.5f,0.5f,0)) );
+    }
+    
 };
 
 //-------------------------------------------------------------------------------
