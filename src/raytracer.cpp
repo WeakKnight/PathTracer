@@ -105,6 +105,11 @@ bool TraceNode(HitInfo& hitInfo, Ray ray, Node* node, int side = HIT_FRONT)
             hitInfo.node = node;
             hitInfo.front = currentHitInfo.front;
             
+            hitInfo.uvw = currentHitInfo.uvw;
+            hitInfo.mtlID = currentHitInfo.mtlID;
+            hitInfo.duvw[0] = currentHitInfo.duvw[0];
+            hitInfo.duvw[1] = currentHitInfo.duvw[1];
+            
             node->FromNodeCoords(hitInfo);
         }
     }
@@ -124,6 +129,10 @@ bool TraceNode(HitInfo& hitInfo, Ray ray, Node* node, int side = HIT_FRONT)
                 hitInfo.N = currentHitInfo.N;
                 hitInfo.node = currentHitInfo.node;
                 hitInfo.front = currentHitInfo.front;
+                hitInfo.uvw = currentHitInfo.uvw;
+                hitInfo.mtlID = currentHitInfo.mtlID;
+                hitInfo.duvw[0] = currentHitInfo.duvw[0];
+                hitInfo.duvw[1] = currentHitInfo.duvw[1];
                 
                 node->FromNodeCoords(hitInfo);
             }
@@ -235,16 +244,18 @@ void RayTracer::Run()
                 
                 if(sthTraced)
                 {
-//                    hitInfo.node->FromNodeCoords(hitInfo);
+                    // ray diff
+                    
                     Color shadingResult = hitInfo.node->GetMaterial()->Shade(cameraRay, hitInfo, lights, 4);
                     RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r * 255.0f, shadingResult.g * 255.0f, shadingResult.b * 255.0f));
-//                    RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::White());
+
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
                     RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, hitInfo.N);
                 }
                 else
                 {
-                    RenderImageHelper::SetPixel(renderImage, x, y, cyColor24::Black());
+                    
+                    RenderImageHelper::SetPixel(renderImage, x, y, Color24(background.Sample(Vec3f(x/(float)renderImage.GetWidth(), y/(float)renderImage.GetHeight(), 0.0f))));
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
                     RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, Vec3f());
                 }

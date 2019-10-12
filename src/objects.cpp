@@ -26,6 +26,10 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
                     hInfo.p = currentHitInfo.p;
                     hInfo.z = currentHitInfo.z;
                     hInfo.front = currentHitInfo.front;
+                    hInfo.uvw = currentHitInfo.uvw;
+                    hInfo.mtlID = currentHitInfo.mtlID;
+                    hInfo.duvw[0] = currentHitInfo.duvw[0];
+                    hInfo.duvw[1] = currentHitInfo.duvw[1];
                 }
             }
         }
@@ -47,6 +51,10 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
                     hInfo.p = leftHitInfo.p;
                     hInfo.z = leftHitInfo.z;
                     hInfo.front = leftHitInfo.front;
+                    hInfo.uvw = leftHitInfo.uvw;
+                    hInfo.mtlID = leftHitInfo.mtlID;
+                    hInfo.duvw[0] = leftHitInfo.duvw[0];
+                    hInfo.duvw[1] = leftHitInfo.duvw[1];
                 }
                 else
                 {
@@ -54,6 +62,10 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
                     hInfo.p = rightHitInfo.p;
                     hInfo.z = rightHitInfo.z;
                     hInfo.front = rightHitInfo.front;
+                    hInfo.uvw = rightHitInfo.uvw;
+                    hInfo.mtlID = rightHitInfo.mtlID;
+                    hInfo.duvw[0] = rightHitInfo.duvw[0];
+                    hInfo.duvw[1] = rightHitInfo.duvw[1];
                 }
                 return true;
             }
@@ -63,6 +75,10 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
                 hInfo.p = leftHitInfo.p;
                 hInfo.z = leftHitInfo.z;
                 hInfo.front = leftHitInfo.front;
+                hInfo.uvw = leftHitInfo.uvw;
+                hInfo.mtlID = leftHitInfo.mtlID;
+                hInfo.duvw[0] = leftHitInfo.duvw[0];
+                hInfo.duvw[1] = leftHitInfo.duvw[1];
                 return true;
             }
             else if (hitRight)
@@ -71,6 +87,10 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
                 hInfo.p = rightHitInfo.p;
                 hInfo.z = rightHitInfo.z;
                 hInfo.front = rightHitInfo.front;
+                hInfo.uvw = rightHitInfo.uvw;
+                hInfo.mtlID = rightHitInfo.mtlID;
+                hInfo.duvw[0] = rightHitInfo.duvw[0];
+                hInfo.duvw[1] = rightHitInfo.duvw[1];
                 return true;
             }
             else
@@ -120,7 +140,7 @@ bool TriObj::Load(char const *filename, bool loadMtl)
     return true;
 }
 
-bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const
+bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID) const
 {
     const TriFace& face = F(faceID);
     
@@ -212,10 +232,19 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
     
     Vec3f normal = (beta0 * n0 + beta1 * n1 + beta2 * n2).GetNormalized();
     
+    const TriFace& texFace = FT(faceID);
+    
+    const Vec3f& t0 = VT(texFace.v[0]);
+    const Vec3f& t1 = VT(texFace.v[1]);
+    const Vec3f& t2 = VT(texFace.v[2]);
+    
+    Vec3f tex = beta0 * t0 + beta1 * t1 + beta2 * t2;
+    
     hInfo.p = p;
     hInfo.z = t;
     hInfo.N = isFront? normal: -1.0f * normal;
     hInfo.front = isFront;
+    hInfo.uvw = tex;
     
     return true;
 }
@@ -271,9 +300,10 @@ bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
     hInfo.N = isFront? n : -1.0f * n;
     hInfo.p = p;
     hInfo.z = t;
+    
+    hInfo.uvw = Vec3f(0.5f, 0.5f, 0.0f) + 0.5f * p;
     // n = 0 0 1
     // (ray.origin + ray.dir * t).dot(n) = 0
-    
     return true;
 }
 
