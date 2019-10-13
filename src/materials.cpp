@@ -145,7 +145,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                     if(bounceCount > 0)
                     {
                         if(GenerateRayForNearestIntersection(inRefractRayContext, refractHitInfo, HIT_BACK, distance))
-                        {
+                        {                            
                             Color absortionColor = Color(
                                                            powf(M_E, -1.0f * distance * absorption.r)
                                                          , powf(M_E, -1.0f * distance * absorption.g)

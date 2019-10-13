@@ -25,10 +25,7 @@ public:
     virtual bool IntersectRay( const Ray &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const;
     virtual Box GetBoundBox() const { return Box(-1,-1,-1,1,1,1); }
     virtual void ViewportDisplay(const Material *mtl) const;
-    virtual bool IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSide = HIT_FRONT) const
-    {
-        return false;
-    }
+    virtual bool IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSide = HIT_FRONT) const;
 };
 
 extern Sphere theSphere;
@@ -56,17 +53,16 @@ public:
     virtual bool IntersectRay( const Ray &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const;
     virtual Box GetBoundBox() const { return Box(GetBoundMin(),GetBoundMax()); }
     virtual void ViewportDisplay(const Material *mtl) const;
-    virtual bool IntersectRay(RayContext const &rayContext, HitInfo &hInfo, int hitSide = HIT_FRONT) const
-    {
-        return false;
-    }
+    virtual bool IntersectRay(RayContext const &rayContext, HitInfo &hInfo, int hitSide = HIT_FRONT) const;
     
     bool Load(const char *filename, bool loadMtl);
     
 private:
     MeshBVH* bvh = nullptr;
     bool IntersectTriangle( const Ray &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const;
+    bool IntersectTriangle( const RayContext &rayContext, HitInfo &hInfo, int hitSide, unsigned int faceID ) const;
     bool TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode* node) const;
+    bool TraceBVHNode( RayContext const &rayContext, HitInfo &hInfo, int hitSide, BVHNode* node) const;
 };
 
 //-------------------------------------------------------------------------------
