@@ -302,8 +302,7 @@ bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
     hInfo.z = t;
     
     hInfo.uvw = Vec3f(0.5f, 0.5f, 0.0f) + 0.5f * p;
-    // n = 0 0 1
-    // (ray.origin + ray.dir * t).dot(n) = 0
+
     return true;
 }
 

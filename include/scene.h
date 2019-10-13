@@ -140,6 +140,11 @@ struct HitInfo
     void Init() { z=BIGFLOAT; node=nullptr; front=true; uvw.Set(0.5f,0.5f,0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID=0; }
 };
 
+struct RayDiffHitInfo
+{
+
+};
+
 //-------------------------------------------------------------------------------
 
 class ItemBase

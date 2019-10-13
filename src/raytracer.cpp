@@ -156,17 +156,17 @@ bool GenerateRayForNearestIntersection(Ray ray, HitInfo& hitinfo, int side, floa
 
 Ray GenCameraRay(int x, int y)
 {
-    Ray result;
+    Ray cameraRay;
     
-    result.p = camera.pos;
-    result.dir =
+    cameraRay.p = camera.pos;
+    cameraRay.dir =
     cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + 0.5f * texelWdith) +
     cameraUp * (imgPlaneHeight * 0.5f - y * texelHeight - 0.5f * texelHeight) +
     cameraFront;
     
-    result.Normalize();
+    cameraRay.Normalize();
     
-    return result;
+    return cameraRay;
 }
 
 void RayTracer::Init()
@@ -239,13 +239,13 @@ void RayTracer::Run()
 //                }
                 
                 HitInfo hitInfo;
+                
                 Ray cameraRay = GenCameraRay(x, y);
+                
                 bool sthTraced = TraceNode(hitInfo, cameraRay, &rootNode);
                 
                 if(sthTraced)
-                {
-                    // ray diff
-                    
+                {                
                     Color shadingResult = hitInfo.node->GetMaterial()->Shade(cameraRay, hitInfo, lights, 4);
                     RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r * 255.0f, shadingResult.g * 255.0f, shadingResult.b * 255.0f));
 
