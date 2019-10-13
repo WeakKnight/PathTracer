@@ -267,7 +267,7 @@ void RayTracer::Run()
                 
                 if(sthTraced)
                 {                
-                    Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfo, lights, 4);
+                    Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext.cameraRay, hitInfo, lights, 4);
                     RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r * 255.0f, shadingResult.g * 255.0f, shadingResult.b * 255.0f));
 
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
