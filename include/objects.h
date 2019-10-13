@@ -25,6 +25,10 @@ public:
     virtual bool IntersectRay( const Ray &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const;
     virtual Box GetBoundBox() const { return Box(-1,-1,-1,1,1,1); }
     virtual void ViewportDisplay(const Material *mtl) const;
+    virtual bool IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSide = HIT_FRONT) const
+    {
+        return false;
+    }
 };
 
 extern Sphere theSphere;
@@ -37,6 +41,7 @@ public:
     virtual bool IntersectRay( const Ray &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const;
     virtual Box GetBoundBox() const { return Box(-1,-1,0,1,1,0); }
     virtual void ViewportDisplay(const Material *mtl) const;
+    virtual bool IntersectRay(RayContext const &rayContext, HitInfo&hInfo, int hitSide = HIT_FRONT) const;
 };
 
 extern Plane thePlane;
@@ -51,6 +56,10 @@ public:
     virtual bool IntersectRay( const Ray &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const;
     virtual Box GetBoundBox() const { return Box(GetBoundMin(),GetBoundMax()); }
     virtual void ViewportDisplay(const Material *mtl) const;
+    virtual bool IntersectRay(RayContext const &rayContext, HitInfo &hInfo, int hitSide = HIT_FRONT) const
+    {
+        return false;
+    }
     
     bool Load(const char *filename, bool loadMtl);
     

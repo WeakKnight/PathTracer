@@ -254,6 +254,35 @@ void TriObj::ViewportDisplay(const Material *mtl) const
     
 }
 
+Vec3f CalculatePlaneTexCoord(const Vec3f &p){
+    return p * 0.5f + Vec3f(0.5f, 0.5f, 0.0f);
+};
+
+bool Plane::IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSide) const
+{
+    if(IntersectRay(rayContext.cameraRay, hInfo, hitSide))
+    {
+        // RAY DIFF
+    
+        const Ray& rightRay = rayContext.rightRay;
+        const Ray& topRay = rayContext.topRay;
+        HitInfo rightHitInfo;
+        HitInfo topHitInfo;
+        if(IntersectRay(rightRay, rightHitInfo, hitSide)
+           && IntersectRay(topRay, topHitInfo, hitSide))
+        {
+            hInfo.duvw[0] = (CalculatePlaneTexCoord(rightHitInfo.p) - hInfo.uvw) / rayContext.delta;
+            hInfo.duvw[1] = (CalculatePlaneTexCoord(topHitInfo.p) - hInfo.uvw) / rayContext.delta;
+        }
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
     Vec3f n = Vec3f(0.0f, 0.0f, 1.0f);
@@ -301,7 +330,7 @@ bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
     hInfo.p = p;
     hInfo.z = t;
     
-    hInfo.uvw = Vec3f(0.5f, 0.5f, 0.0f) + 0.5f * p;
+    hInfo.uvw = CalculatePlaneTexCoord(p);
 
     return true;
 }

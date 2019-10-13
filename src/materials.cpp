@@ -46,13 +46,15 @@ void CalculateRefractDir(
     reflect = Reflect(-v, normal);
 }
 
-Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
+Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
 {
     // ray world space
     // N world space
     // p world space
     // depth space independent
     // node space independent
+    const Ray& ray = rayContext.cameraRay;
+    
     Color result = Color::Black();
     
     for(size_t index = 0; index < lights.size(); index++)
@@ -126,9 +128,13 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                 inReflectRay.dir = inRelectDir;
                 inReflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
                 
+                RayContext inReflectRayContext = GenRayContext(inReflectRay);
+                
                 Ray inRefractRay;
                 inRefractRay.dir = inRefractDir;
                 inRefractRay.p = hInfo.p + (-1.0f) * N * INTERSECTION_BIAS;
+                
+                RayContext inRefractRayContext = GenRayContext(inRefractRay);
                 
                 // from air, has absortion. no internal reflection
                 if(hInfo.front)
@@ -140,13 +146,13 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                     
                     if(bounceCount > 0)
                     {
-                        if(GenerateRayForNearestIntersection(inRefractRay, refractHitInfo, HIT_BACK, distance))
+                        if(GenerateRayForNearestIntersection(inRefractRayContext, refractHitInfo, HIT_BACK, distance))
                         {
                             Color absortionColor = Color(
                                                            powf(M_E, -1.0f * distance * absorption.r)
                                                          , powf(M_E, -1.0f * distance * absorption.g)
                                                          , powf(M_E, -1.0f * distance * absorption.b));
-                            Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
+                            Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(inRefractRayContext, refractHitInfo, lights, bounceCount - 1);
                             result += refractColor;
                         }
                         else
@@ -160,9 +166,9 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                     
                     if(bounceCount > 0)
                     {
-                        if(GenerateRayForNearestIntersection(inReflectRay, reflectHitInfo, HIT_FRONT, reflectDistance))
+                        if(GenerateRayForNearestIntersection(inReflectRayContext, reflectHitInfo, HIT_FRONT, reflectDistance))
                         {
-                            Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
+                            Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.node->GetMaterial()->Shade(inReflectRayContext, reflectHitInfo, lights, bounceCount - 1);
                             result += reflectColor;
                         }
                         else
@@ -181,13 +187,13 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                         
                         if(bounceCount > 0)
                         {
-                            if(GenerateRayForNearestIntersection(inRefractRay, refractHitInfo, HIT_FRONT, distance))
+                            if(GenerateRayForNearestIntersection(inRefractRayContext, refractHitInfo, HIT_FRONT, distance))
                             {
                                 Color refractColor =
     //                            absortionColor *
     //                            refraction *
                                 (1.0f - Rs) *
-                                refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
+                                refractHitInfo.node->GetMaterial()->Shade(inRefractRayContext, refractHitInfo, lights, bounceCount - 1);
                                 result += refractColor;
                             }
                             else
@@ -199,7 +205,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                         HitInfo reflectHitInfo;
                         float reflectDistance;
                         
-                        if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRay, reflectHitInfo, HIT_BACK, reflectDistance))
+                        if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRayContext, reflectHitInfo, HIT_BACK, reflectDistance))
                         {
                             Color absortionColor = Color(
                                                          powf(M_E, -1.0f * reflectDistance * absorption.r)
@@ -208,7 +214,7 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                             
                             Color refractColor = absortionColor
 //                            * refraction
-                            * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
+                            * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRayContext, reflectHitInfo, lights, bounceCount - 1);
                             
                             result += refractColor;
                         }
@@ -219,14 +225,14 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                         HitInfo reflectHitInfo;
                         float distance;
                         
-                        if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRay, reflectHitInfo, HIT_BACK, distance))
+                        if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRayContext, reflectHitInfo, HIT_BACK, distance))
                         {
                             Color absortionColor = Color(
                                                          powf(M_E, -1.0f * distance * absorption.r)
                                                          , powf(M_E, -1.0f * distance * absorption.g)
                                                          , powf(M_E, -1.0f * distance * absorption.b));
                             
-                            Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
+                            Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRayContext, reflectHitInfo, lights, bounceCount - 1);
                             
                             result += refractColor;
                         }
@@ -249,14 +255,16 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
                     reflectRay.dir = R;
                     reflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
                     
+                    RayContext reflectRayContext = GenRayContext(reflectRay);
+                    
                     HitInfo reflectHitInfo;
                     float transDistance = 0.0f;
                     // detect front intersection for reflection shading
-                    if(GenerateRayForNearestIntersection(reflectRay, reflectHitInfo, HIT_FRONT, transDistance))
+                    if(GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfo, HIT_FRONT, transDistance))
                     {
                         const Material* mat = reflectHitInfo.node->GetMaterial();
                         
-                        Color reflectColor = this->reflection.GetColor() * mat->Shade(reflectRay, reflectHitInfo, lights, bounceCount - 1);
+                        Color reflectColor = this->reflection.GetColor() * mat->Shade(reflectRayContext, reflectHitInfo, lights, bounceCount - 1);
                         result += reflectColor;
                     }
                 }

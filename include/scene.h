@@ -45,6 +45,8 @@ using namespace cy;
 
 #define BIGFLOAT 1.0e30f
 
+#define RAY_DIFF_DELTA 0.01f
+
 //-------------------------------------------------------------------------------
 
 class Ray
@@ -140,9 +142,23 @@ struct HitInfo
     void Init() { z=BIGFLOAT; node=nullptr; front=true; uvw.Set(0.5f,0.5f,0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID=0; }
 };
 
-struct RayDiffHitInfo
+struct RayContext
 {
-
+    Ray cameraRay;
+    // Ray Differential
+    Ray rightRay;
+    Ray topRay;
+    float delta;
+    
+    RayContext() {}
+    RayContext( RayContext const &r ) :
+    cameraRay(r.cameraRay),
+    rightRay(r.rightRay),
+    topRay(r.topRay),
+    delta(r.delta)
+    {
+        
+    }
 };
 
 //-------------------------------------------------------------------------------
@@ -252,6 +268,7 @@ class Object
 {
 public:
     virtual bool IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const=0;
+    virtual bool IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSide= HIT_FRONT) const=0;
     virtual Box  GetBoundBox() const=0;
     virtual void ViewportDisplay(const Material *mtl) const {}  // used for OpenGL display
 };
@@ -280,7 +297,7 @@ public:
     // ray: incoming ray,
     // hInfo: hit information for the point that is being shaded, lights: the light list,
     // bounceCount: permitted number of additional bounces for reflection and refraction.
-    virtual Color Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const=0;
+    virtual Color Shade(RayContext const &rayContext, const HitInfo &hInfo, const LightList &lights, int bounceCount) const=0;
     
     virtual void SetViewportMaterial(int subMtlID=0) const {}   // used for OpenGL display
 };
@@ -480,6 +497,19 @@ public:
         r.dir = TransformTo(ray.p + ray.dir) - r.p;
         return r;
     }
+    
+    RayContext ToNodeCoords(RayContext const & rayContext) const
+    {
+        RayContext result;
+        
+        result.cameraRay = ToNodeCoords(rayContext.cameraRay);
+        result.rightRay = ToNodeCoords(rayContext.rightRay);
+        result.topRay = ToNodeCoords(rayContext.topRay);
+        result.delta = rayContext.delta;
+        
+        return result;
+    }
+    
     void FromNodeCoords( HitInfo &hInfo ) const
     {
         hInfo.p = TransformFrom(hInfo.p);
