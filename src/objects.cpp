@@ -3,6 +3,7 @@
 #include "bvh.h"
 #include "GLFW/glfw3.h"
 #include "float.h"
+#include <math.h>
 
 extern float buildTime;
 extern Camera camera;
@@ -105,16 +106,23 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
     }
 }
 
-bool TriObj::TraceBVHNode( RayContext const &rayContext, HitInfo &hInfo, int hitSide, BVHNode* node) const
+bool TriObj::TraceBVHNode( RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide, BVHNode* node) const
 {
+    HitInfo& hInfo = hInfoContext.mainHitInfo;
+    HitInfo& hInfoRight = hInfoContext.rightHitInfo;
+    HitInfo& hInfoTop =hInfoContext.topHitInfo;
+    
     if(node->IsLeaf())
     {
         bool result = false;
         for(unsigned i = 0; i < node->faceList.size(); i++)
         {
             unsigned faceId = node->faceList[i];
-            HitInfo currentHitInfo;
-            if(IntersectTriangle(rayContext, currentHitInfo, hitSide, faceId))
+            
+            HitInfoContext currentHitInfoContext;
+            HitInfo& currentHitInfo = currentHitInfoContext.mainHitInfo;
+            
+            if(IntersectTriangle(rayContext, currentHitInfoContext, hitSide, faceId))
             {
                 if(currentHitInfo.z < hInfo.z)
                 {
@@ -128,6 +136,14 @@ bool TriObj::TraceBVHNode( RayContext const &rayContext, HitInfo &hInfo, int hit
                     hInfo.mtlID = currentHitInfo.mtlID;
                     hInfo.duvw[0] = currentHitInfo.duvw[0];
                     hInfo.duvw[1] = currentHitInfo.duvw[1];
+                    
+                    hInfoRight.N = currentHitInfoContext.rightHitInfo.N;
+                    hInfoRight.z = currentHitInfoContext.rightHitInfo.z;
+                    hInfoRight.p = currentHitInfoContext.rightHitInfo.p;
+                    
+                    hInfoTop.N = currentHitInfoContext.topHitInfo.N;
+                    hInfoTop.z = currentHitInfoContext.topHitInfo.z;
+                    hInfoTop.p = currentHitInfoContext.topHitInfo.p;
                 }
             }
         }
@@ -139,10 +155,18 @@ bool TriObj::TraceBVHNode( RayContext const &rayContext, HitInfo &hInfo, int hit
         
         if(node->bound.IntersectRay(ray))
         {
-            HitInfo leftHitInfo;
-            HitInfo rightHitInfo;
-            bool hitLeft = TraceBVHNode(rayContext, leftHitInfo, hitSide, node->left);
-            bool hitRight = TraceBVHNode(rayContext, rightHitInfo, hitSide, node->right);
+            HitInfoContext leftHitInfoContext;
+            HitInfo& leftHitInfo = leftHitInfoContext.mainHitInfo;
+            HitInfo& left_RightHitInfo = leftHitInfoContext.rightHitInfo;
+            HitInfo& left_TopHitInfo = leftHitInfoContext.topHitInfo;
+            
+            HitInfoContext rightHitInfoContext;
+            HitInfo& rightHitInfo = rightHitInfoContext.mainHitInfo;
+            HitInfo& right_RightHitInfo = rightHitInfoContext.rightHitInfo;
+            HitInfo& right_TopHitInfo = rightHitInfoContext.topHitInfo;
+            
+            bool hitLeft = TraceBVHNode(rayContext, leftHitInfoContext, hitSide, node->left);
+            bool hitRight = TraceBVHNode(rayContext, rightHitInfoContext, hitSide, node->right);
             
             if (hitLeft && hitRight) {
                 if (leftHitInfo.z < rightHitInfo.z)
@@ -155,6 +179,14 @@ bool TriObj::TraceBVHNode( RayContext const &rayContext, HitInfo &hInfo, int hit
                     hInfo.mtlID = leftHitInfo.mtlID;
                     hInfo.duvw[0] = leftHitInfo.duvw[0];
                     hInfo.duvw[1] = leftHitInfo.duvw[1];
+                    
+                    hInfoRight.N = left_RightHitInfo.N;
+                    hInfoRight.z = left_RightHitInfo.z;
+                    hInfoRight.p = left_RightHitInfo.p;
+                    
+                    hInfoTop.N = left_TopHitInfo.N;
+                    hInfoTop.z = left_TopHitInfo.z;
+                    hInfoTop.p = left_TopHitInfo.p;
                 }
                 else
                 {
@@ -166,6 +198,14 @@ bool TriObj::TraceBVHNode( RayContext const &rayContext, HitInfo &hInfo, int hit
                     hInfo.mtlID = rightHitInfo.mtlID;
                     hInfo.duvw[0] = rightHitInfo.duvw[0];
                     hInfo.duvw[1] = rightHitInfo.duvw[1];
+                    
+                    hInfoRight.N = right_RightHitInfo.N;
+                    hInfoRight.z = right_RightHitInfo.z;
+                    hInfoRight.p = right_RightHitInfo.p;
+                    
+                    hInfoTop.N = right_TopHitInfo.N;
+                    hInfoTop.z = right_TopHitInfo.z;
+                    hInfoTop.p = right_TopHitInfo.p;
                 }
                 return true;
             }
@@ -179,6 +219,15 @@ bool TriObj::TraceBVHNode( RayContext const &rayContext, HitInfo &hInfo, int hit
                 hInfo.mtlID = leftHitInfo.mtlID;
                 hInfo.duvw[0] = leftHitInfo.duvw[0];
                 hInfo.duvw[1] = leftHitInfo.duvw[1];
+                
+                hInfoRight.N = left_RightHitInfo.N;
+                hInfoRight.z = left_RightHitInfo.z;
+                hInfoRight.p = left_RightHitInfo.p;
+                
+                hInfoTop.N = left_TopHitInfo.N;
+                hInfoTop.z = left_TopHitInfo.z;
+                hInfoTop.p = left_TopHitInfo.p;
+                
                 return true;
             }
             else if (hitRight)
@@ -191,6 +240,15 @@ bool TriObj::TraceBVHNode( RayContext const &rayContext, HitInfo &hInfo, int hit
                 hInfo.mtlID = rightHitInfo.mtlID;
                 hInfo.duvw[0] = rightHitInfo.duvw[0];
                 hInfo.duvw[1] = rightHitInfo.duvw[1];
+                
+                hInfoRight.N = right_RightHitInfo.N;
+                hInfoRight.z = right_RightHitInfo.z;
+                hInfoRight.p = right_RightHitInfo.p;
+                
+                hInfoTop.N = right_TopHitInfo.N;
+                hInfoTop.z = right_TopHitInfo.z;
+                hInfoTop.p = right_TopHitInfo.p;
+                
                 return true;
             }
             else
@@ -216,14 +274,14 @@ bool TriObj::IntersectRay(const Ray &ray, HitInfo &hInfo, int hitSide) const
     return TraceBVHNode(ray, hInfo, hitSide, bvh->GetRoot());
 }
 
-bool TriObj::IntersectRay(RayContext const &rayContext, HitInfo &hInfo, int hitSide) const
+bool TriObj::IntersectRay(RayContext &rayContext, HitInfoContext &hInfoContext, int hitSide) const
 {
     if(!GetBoundBox().IntersectRay(rayContext.cameraRay, BIGFLOAT))
     {
         return false;
     }
     
-    return TraceBVHNode(rayContext, hInfo, hitSide, bvh->GetRoot());
+    return TraceBVHNode(rayContext, hInfoContext, hitSide, bvh->GetRoot());
 }
 
 bool TriObj::Load(char const *filename, bool loadMtl)
@@ -250,18 +308,135 @@ bool TriObj::Load(char const *filename, bool loadMtl)
     return true;
 }
 
-bool TriObj::IntersectTriangle( RayContext const &rayContext, HitInfo &hInfo, int hitSide, unsigned int faceID) const
+bool TriObj::IntersectTriangle( RayContext &rayContext, HitInfoContext &hInfoContext, int hitSide, unsigned int faceID) const
 {
+    HitInfo& hInfo = hInfoContext.mainHitInfo;
+    
     if(IntersectTriangle(rayContext.cameraRay, hInfo, hitSide, faceID))
     {
-        HitInfo rightInfo;
-        HitInfo topInfo;
+        const TriFace& face = F(faceID);
         
-        if(IntersectTriangle(rayContext.rightRay, rightInfo, hitSide, faceID) &&
-           IntersectTriangle(rayContext.topRay, topInfo, hitSide, faceID))
+        const Vec3f& v0 = V(face.v[0]);
+        const Vec3f& v1 = V(face.v[1]);
+        const Vec3f& v2 = V(face.v[2]);
+        
+        Vec3f v01 = v1 - v0;
+        Vec3f v02 = v2 - v0;
+        
+        const Ray& rightRay = rayContext.rightRay;
+        const Ray& topRay = rayContext.topRay;
+        
+        HitInfo& rightInfo = hInfoContext.rightHitInfo;
+        HitInfo& topInfo = hInfoContext.topHitInfo;
+        
+        const auto N = hInfo.N.GetNormalized();
+        
+        const auto zRight = (rightRay.p - hInfo.p).Dot(N);
+        const auto tRight = zRight / (rightRay.dir.Dot(N));
+        const auto pRight = rightRay.p + tRight * rightRay.dir;
+        const auto nRight = N;
+        
+        const auto zTop = (topRay.p - hInfo.p).Dot(N);
+        const auto tTop = zTop / (topRay.dir.Dot(N));
+        const auto pTop = topRay.p + tTop * topRay.dir;
+        const auto nTop = N;
+        
+        assert(!isnan(nTop.x));
+        assert(!isnan(nRight.x));
+        
+        rightInfo.N = nRight;
+        rightInfo.z = tRight;
+        rightInfo.p = pRight;
+        
+        topInfo.N = nTop;
+        topInfo.z = tTop;
+        topInfo.p = pTop;
+        
+        Vec3f texRight;
         {
-            hInfo.duvw[0] = (rightInfo.uvw - hInfo.uvw) / rayContext.delta;
-            hInfo.duvw[1] = (topInfo.uvw - hInfo.uvw) / rayContext.delta;
+            Matrix3<float> mmRight = Matrix3<float>(-rightRay.dir, v01, v02);
+            mmRight.Invert();
+            
+            Vec3f vv0 = mmRight * v0;
+            Vec3f vv1 = mmRight * v1;
+            Vec3f vv2 = mmRight * v2;
+            Vec3f pp = mmRight * pRight;
+            
+            Vec2f v0_2d = Vec2f(vv0.y, vv0.z);
+            Vec2f v1_2d = Vec2f(vv1.y, vv1.z);
+            Vec2f v2_2d = Vec2f(vv2.y, vv2.z);
+            Vec2f p_2d = Vec2f(pp.y, pp.z);
+            
+            Vec2f pv0 = v0_2d - p_2d;
+            Vec2f pv1 = v1_2d - p_2d;
+            Vec2f pv2 = v2_2d - p_2d;
+            
+            float two_a0 = pv1.Cross(pv2);
+            float two_a1 = pv2.Cross(pv0);
+            float two_a2 = pv0.Cross(pv1);
+            
+            float two_a = (v1_2d - v0_2d).Cross(v2_2d - v0_2d);
+            
+            float beta0 = two_a0 / two_a;
+            float beta1 = two_a1 / two_a;
+            float beta2 = two_a2 / two_a;
+            
+            const TriFace& texFace = FT(faceID);
+            
+            const Vec3f& t0 = VT(texFace.v[0]);
+            const Vec3f& t1 = VT(texFace.v[1]);
+            const Vec3f& t2 = VT(texFace.v[2]);
+            
+            texRight = beta0 * t0 + beta1 * t1 + beta2 * t2;
+        }
+        
+        Vec3f texTop;
+        {
+            Matrix3<float> mmTop = Matrix3<float>(-topRay.dir, v01, v02);
+            mmTop.Invert();
+            
+            Vec3f vv0 = mmTop * v0;
+            Vec3f vv1 = mmTop * v1;
+            Vec3f vv2 = mmTop * v2;
+            Vec3f pp = mmTop * pTop;
+            
+            Vec2f v0_2d = Vec2f(vv0.y, vv0.z);
+            Vec2f v1_2d = Vec2f(vv1.y, vv1.z);
+            Vec2f v2_2d = Vec2f(vv2.y, vv2.z);
+            Vec2f p_2d = Vec2f(pp.y, pp.z);
+            
+            Vec2f pv0 = v0_2d - p_2d;
+            Vec2f pv1 = v1_2d - p_2d;
+            Vec2f pv2 = v2_2d - p_2d;
+            
+            float two_a0 = pv1.Cross(pv2);
+            float two_a1 = pv2.Cross(pv0);
+            float two_a2 = pv0.Cross(pv1);
+            
+            float two_a = (v1_2d - v0_2d).Cross(v2_2d - v0_2d);
+            
+            float beta0 = two_a0 / two_a;
+            float beta1 = two_a1 / two_a;
+            float beta2 = two_a2 / two_a;
+            
+            const TriFace& texFace = FT(faceID);
+            
+            const Vec3f& t0 = VT(texFace.v[0]);
+            const Vec3f& t1 = VT(texFace.v[1]);
+            const Vec3f& t2 = VT(texFace.v[2]);
+            
+            texTop = beta0 * t0 + beta1 * t1 + beta2 * t2;
+        }
+        
+        if(rayContext.hasDiff)
+        {
+            hInfo.duvw[0] = (texRight - hInfo.uvw) / rayContext.delta;
+            hInfo.duvw[1] = (texTop - hInfo.uvw) / rayContext.delta;
+        }
+        else
+        {
+            hInfo.duvw[0] = Vec3f(0.0f, 0.0f, 0.0f);
+            hInfo.duvw[1] = Vec3f(0.0f, 0.0f, 0.0f);
         }
         
         return true;
@@ -386,22 +561,58 @@ void TriObj::ViewportDisplay(const Material *mtl) const
     
 }
 
-bool Plane::IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSide) const
+Vec3f PlaneCalculatePlaneTexCoord(const Vec3f &p)
 {
+    return p * 0.5f + Vec3f(0.5f, 0.5f, 0.0f);
+};
+
+bool Plane::IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide) const
+{
+    HitInfo& hInfo = hInfoContext.mainHitInfo;
+    
     if(IntersectRay(rayContext.cameraRay, hInfo, hitSide))
     {
         // RAY DIFF
         const Ray& rightRay = rayContext.rightRay;
         const Ray& topRay = rayContext.topRay;
-        HitInfo rightHitInfo;
-        HitInfo topHitInfo;
-        if(IntersectRay(rightRay, rightHitInfo, hitSide)
-           && IntersectRay(topRay, topHitInfo, hitSide))
+        
+        HitInfo& rightInfo = hInfoContext.rightHitInfo;
+        HitInfo& topInfo = hInfoContext.topHitInfo;
+        
+        const auto N = hInfo.N.GetNormalized();
+        
+        const auto zRight = rightRay.p.Dot(N);
+        const auto tRight = -1.0f * zRight / (rightRay.dir.Dot(N));
+        const auto pRight = rightRay.p + tRight * rightRay.dir;
+        const auto nRight = N;
+        
+        const auto zTop = topRay.p.Dot(N);
+        const auto tTop = -1.0f * zTop / (topRay.dir.Dot(N));
+        const auto pTop = topRay.p + tTop * topRay.dir;
+        const auto nTop = N;
+        
+        assert(!isnan(nTop.x));
+        assert(!isnan(nRight.x));
+        
+        hInfoContext.rightHitInfo.p = pRight;
+        hInfoContext.rightHitInfo.N = nRight;
+        hInfoContext.rightHitInfo.z = tRight;
+        
+        hInfoContext.topHitInfo.p = pTop;
+        hInfoContext.topHitInfo.N = nTop;
+        hInfoContext.topHitInfo.z = tTop;
+        
+        if(rayContext.hasDiff)
         {
-            hInfo.duvw[0] = (rightHitInfo.uvw - hInfo.uvw) / rayContext.delta;
-            hInfo.duvw[1] = (topHitInfo.uvw - hInfo.uvw) / rayContext.delta;
+            hInfo.duvw[0] = (PlaneCalculatePlaneTexCoord(hInfoContext.rightHitInfo.p) - hInfo.uvw) / rayContext.delta;
+            hInfo.duvw[1] = (PlaneCalculatePlaneTexCoord(hInfoContext.topHitInfo.p) - hInfo.uvw) / rayContext.delta;
         }
-
+        else
+        {
+            hInfo.duvw[0] = Vec3f(0.0f, 0.0f, 0.0f);
+            hInfo.duvw[1] = Vec3f(0.0f, 0.0f, 0.0f);
+        }
+        
         return true;
     }
     else
@@ -412,10 +623,6 @@ bool Plane::IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSi
 
 bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
-    auto CalculatePlaneTexCoord = [](const Vec3f &p){
-        return p * 0.5f + Vec3f(0.5f, 0.5f, 0.0f);
-    };
-    
     Vec3f n = Vec3f(0.0f, 0.0f, 1.0f);
     float dirDotN = ray.dir.Dot(n);
     
@@ -461,7 +668,7 @@ bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
     hInfo.p = p;
     hInfo.z = t;
     
-    hInfo.uvw = CalculatePlaneTexCoord(p);
+    hInfo.uvw = PlaneCalculatePlaneTexCoord(p);
 
     return true;
 }
@@ -471,21 +678,62 @@ void Plane::ViewportDisplay(const Material *mtl) const
     
 }
 
-bool Sphere::IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSide) const
+Vec3f SphereCalculateCoord(Vec3f& p, float reverseLength)
 {
+    return Vec3f(
+                 (0.5f - atan2(p.x, p.y) / (2.0f * Pi<float>())),
+                 (0.5f + asin(p.z * reverseLength) / (Pi<float>())),
+                 0.0f
+                 );
+};
+
+bool Sphere::IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide) const
+{
+    HitInfo& hInfo = hInfoContext.mainHitInfo;
+    
     if(IntersectRay(rayContext.cameraRay, hInfo, hitSide))
     {
         // RAY DIFF
         const Ray& rightRay = rayContext.rightRay;
         const Ray& topRay = rayContext.topRay;
-        HitInfo rightHitInfo;
-        HitInfo topHitInfo;
-        if(IntersectRay(rightRay, rightHitInfo, hitSide)
-           && IntersectRay(topRay, topHitInfo, hitSide))
+        
+        HitInfo& rightHitInfo = hInfoContext.rightHitInfo;
+        HitInfo& topHitInfo = hInfoContext.topHitInfo;
+        
+        const auto N = hInfo.N.GetNormalized();
+        
+        const auto zRight = (rightRay.p - hInfo.p).Dot(N);
+        const auto tRight = -1.0f * zRight / (rightRay.dir.Dot(N));
+        const auto pRight = rightRay.p + tRight * rightRay.dir;
+        const auto nRight = pRight.GetNormalized();
+        
+        const auto zTop = (topRay.p - hInfo.p).Dot(N);
+        const auto tTop = -1.0f * zTop / (topRay.dir.Dot(N));
+        const auto pTop = topRay.p + tTop * topRay.dir;
+        const auto nTop = pTop.GetNormalized();
+        
+        assert(!isnan(nTop.x));
+        assert(!isnan(nRight.x));
+        
+        rightHitInfo.p = pRight;
+        rightHitInfo.N = nRight;
+        rightHitInfo.z = tRight;
+        
+        topHitInfo.p = pTop;
+        topHitInfo.N = nTop;
+        topHitInfo.z = tTop;
+        
+        if(rayContext.hasDiff)
         {
-            hInfo.duvw[0] = (rightHitInfo.uvw - hInfo.uvw) / rayContext.delta;
-            hInfo.duvw[1] = (topHitInfo.uvw - hInfo.uvw) / rayContext.delta;
+            hInfo.duvw[0] = (SphereCalculateCoord(rightHitInfo.p, 1.0f/ rightHitInfo.p.Length()) - hInfo.uvw) / rayContext.delta;
+            hInfo.duvw[1] = (SphereCalculateCoord(topHitInfo.p, 1.0f/ topHitInfo.p.Length()) - hInfo.uvw) / rayContext.delta;
         }
+        else
+        {
+            hInfo.duvw[0] = Vec3f(0.0f, 0.0f, 0.0f);
+            hInfo.duvw[1] = Vec3f(0.0f, 0.0f, 0.0f);
+        }
+        
         return true;
     }
     else
@@ -496,15 +744,6 @@ bool Sphere::IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitS
 
 bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
-    auto CalculateCoord = [](Vec3f& p)
-    {
-        return Vec3f(
-                     (0.5f - atan(p.x / p.y) / (2.0f * Pi<float>())),
-                     (0.5f + asin(p.z) / (2.0f * Pi<float>())),
-                     0.0f
-                     );
-    };
-    
     // |ray.p + ray.dir * l| = 1
     // ray.dir.LengthSquared() * l * l + 2 * ray.p.Dot(ray.dir) * l + ray.p.LengthSquared() - 1 = 0
     float a = ray.dir.LengthSquared();
@@ -541,7 +780,7 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
                         hInfo.p = intersectPoint; // obj space
                         // behind the image plane and only one root, it is in the tangent plane, must be front
                         hInfo.front = true;
-                        hInfo.uvw = CalculateCoord(intersectPoint);
+                        hInfo.uvw = SphereCalculateCoord(intersectPoint, 1.0f);
                     }
                     return true;
                 }
@@ -577,7 +816,7 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 //                            hInfo.N.Normalize();
                             hInfo.p = intersectPoint2;
                             hInfo.front = false;
-                            hInfo.uvw = CalculateCoord(intersectPoint2);
+                            hInfo.uvw = SphereCalculateCoord(intersectPoint2, 1.0f);
                         }
 
                         return true;
@@ -599,7 +838,7 @@ bool Sphere::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 //                        hInfo.N.Normalize();
                         hInfo.p = intersectPoint1;
                         hInfo.front = true;
-                        hInfo.uvw = CalculateCoord(intersectPoint1);
+                        hInfo.uvw = SphereCalculateCoord(intersectPoint1, 1.0f);
                     }
 
                     return true;

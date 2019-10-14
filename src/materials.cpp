@@ -46,7 +46,7 @@ void CalculateRefractDir(
     reflect = Reflect(-v, normal);
 }
 
-Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const
+Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount) const
 {
     // ray world space
     // N world space
@@ -54,6 +54,243 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
     // depth space independent
     // node space independent
     Color result = Color::Black();
+    
+    const HitInfo& hInfo = hInfoContext.mainHitInfo;
+    const Ray& ray = rayContext.cameraRay;
+    
+    Vec3f V = -1.0f * ray.dir;
+    assert(V.IsUnit());
+    
+    Vec3f N = hInfo.N;
+    assert(N.IsUnit());
+    
+    float cosBeta = V.Dot(N);
+    
+    // has refraction
+    if(refraction.GetColor().Sum() > 0.0f)
+    {
+        // Schlicks Approximation
+        float Rs = 0.0f;
+        float n1 = 0.0f;
+        float n2 = 0.0f;
+
+        if(hInfo.front)
+        {
+            n1 = 1.0f;
+            n2 = ior;
+        }
+        else
+        {
+            n1 = ior;
+            n2 = 1.0f;
+        }
+
+        float Rs0 = powf((n1 - n2)/(n1 + n2), 2.0f);
+        Rs = Rs0 + ((1.0f - Rs0) * powf(1.0f - max(0.0f, cosBeta), 5.0f));
+
+        bool hasInternalReflection = false;
+
+        Vec3f inRefractDir;
+        Vec3f inRelectDir;
+
+        CalculateRefractDir(V, N, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
+
+        Ray inReflectRay;
+        inReflectRay.dir = inRelectDir;
+        inReflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
+
+        Ray inRefractRay;
+        inRefractRay.dir = inRefractDir;
+        inRefractRay.p = hInfo.p + (-1.0f) * N * INTERSECTION_BIAS;
+
+        RayContext reflectRayContext;
+        reflectRayContext.cameraRay = inReflectRay;
+        reflectRayContext.rightRay = inReflectRay;
+        reflectRayContext.topRay = inReflectRay;
+        reflectRayContext.delta = RAY_DIFF_DELTA;
+
+        RayContext refractRayContext;
+        refractRayContext.cameraRay = inRefractRay;
+        refractRayContext.rightRay = inRefractRay;
+        refractRayContext.topRay = inRefractRay;
+        refractRayContext.delta = RAY_DIFF_DELTA;
+
+        // from air, has absortion. no internal reflection
+        if(hInfo.front)
+        {
+            assert(!hasInternalReflection);
+
+            HitInfoContext refractHitInfoContext;
+            HitInfo& refractHitInfo = refractHitInfoContext.mainHitInfo;
+
+            float distance;
+
+            if(bounceCount > 0)
+            {
+                if(GenerateRayForNearestIntersection(refractRayContext, refractHitInfoContext, HIT_BACK, distance))
+                {
+                    Color absortionColor = Color(
+                                                 powf(M_E, -1.0f * distance * absorption.r)
+                                                 , powf(M_E, -1.0f * distance * absorption.g)
+                                                 , powf(M_E, -1.0f * distance * absorption.b));
+                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1);
+                    result += refractColor;
+                }
+                else
+                {
+
+                }
+            }
+
+            HitInfoContext reflectHitInfoContext;
+            HitInfo& reflectHitInfo = reflectHitInfoContext.mainHitInfo;
+
+            float reflectDistance;
+
+            if(bounceCount > 0)
+            {
+                if(GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfoContext, HIT_FRONT, reflectDistance))
+                {
+                    Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1);
+                    result += reflectColor;
+                }
+                else
+                {
+                    result += Rs * environment.SampleEnvironment(inReflectRay.dir);
+                }
+            }
+        }
+        // into air, no absortion
+        else
+        {
+            if(!hasInternalReflection)
+            {
+                HitInfoContext refractHitInfoContext;
+                HitInfo& refractHitInfo = refractHitInfoContext.mainHitInfo;
+
+                float distance;
+
+                if(bounceCount > 0)
+                {
+                    if(GenerateRayForNearestIntersection(refractRayContext, refractHitInfoContext, HIT_FRONT, distance))
+                    {
+                        Color refractColor =
+                        //                            absortionColor *
+                        //                            refraction *
+                        (1.0f - Rs) *
+                        refractHitInfo.node->GetMaterial()->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1);
+                        result += refractColor;
+                    }
+                    else
+                    {
+                        result += (1.0f - Rs) * environment.SampleEnvironment(inRefractRay.dir);
+                    }
+                }
+
+                HitInfoContext reflectHitInfoContext;
+                HitInfo& reflectHitInfo = reflectHitInfoContext.mainHitInfo;
+
+                float reflectDistance;
+
+                if(bounceCount > 0 && GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfoContext, HIT_BACK, reflectDistance))
+                {
+                    Color absortionColor = Color(
+                                                 powf(M_E, -1.0f * reflectDistance * absorption.r)
+                                                 , powf(M_E, -1.0f * reflectDistance * absorption.g)
+                                                 , powf(M_E, -1.0f * reflectDistance * absorption.b));
+
+                    Color refractColor = absortionColor
+                    //                            * refraction
+                    * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1);
+
+                    result += refractColor;
+                }
+            }
+            // totaly reflection
+            else
+            {
+                HitInfoContext reflectHitInfoContext;
+                HitInfo& reflectHitInfo = reflectHitInfoContext.mainHitInfo;
+
+                float distance;
+
+                if(bounceCount > 0 && GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfoContext, HIT_BACK, distance))
+                {
+                    Color absortionColor = Color(
+                                                 powf(M_E, -1.0f * distance * absorption.r)
+                                                 , powf(M_E, -1.0f * distance * absorption.g)
+                                                 , powf(M_E, -1.0f * distance * absorption.b));
+
+                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1);
+
+                    result += refractColor;
+                }
+            }
+        }
+    }
+    
+    Color reflectFactor = this->reflection.GetColor();
+    if(this->reflection.GetTexture())
+    {
+        reflectFactor = this->reflection.Sample(hInfo.uvw, hInfo.duvw);
+    }
+    
+    // has reflection
+    if(reflectFactor.Sum() > 0.0f && bounceCount > 0)
+    {
+        // only consider front reflect
+        if(hInfo.front)
+        {
+            
+            // Generate Reflect Ray Check Target
+            Vec3f R = Reflect(ray.dir, N);
+            
+            assert(R.IsUnit());
+            assert(N.IsUnit());
+            assert(ray.dir.IsUnit());
+            
+            //                    Vec3f Rr = Reflect(rayContext.rightRay.dir, hInfoContext.rightHitInfo.N);
+            //                    Vec3f Rt = Reflect(rayContext.topRay.dir, hInfoContext.topHitInfo.N);
+            
+            // world space
+            Ray reflectRay;
+            reflectRay.dir = R;
+            reflectRay.p = hInfo.p;
+            
+            //                    Ray rightReflectRay;
+            //                    rightReflectRay.dir = Rr;
+            //                    rightReflectRay.p = hInfoContext.rightHitInfo.p;
+            //
+            //                    Ray topReflectRay;
+            //                    topReflectRay.dir = Rt;
+            //                    topReflectRay.p = hInfoContext.topHitInfo.p;
+            
+            RayContext reflectRayContext;
+            reflectRayContext.cameraRay = reflectRay;
+            reflectRayContext.rightRay = reflectRay;
+            reflectRayContext.topRay = reflectRay;
+            reflectRayContext.delta = RAY_DIFF_DELTA;
+            reflectRayContext.hasDiff = false;
+            
+            HitInfoContext reflectHitInfoContext;
+            HitInfo& reflectHitInfo = reflectHitInfoContext.mainHitInfo;
+            
+            float transDistance = 0.0f;
+            
+            // detect front intersection for reflection shading
+            if(GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfoContext, HIT_FRONT, transDistance))
+            {
+                const Material* mat = reflectHitInfo.node->GetMaterial();
+                
+                Color reflectColor = reflectFactor * mat->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1);
+                result += reflectColor;
+            }
+            else
+            {
+                result += reflectFactor * environment.SampleEnvironment(reflectRayContext.cameraRay.dir);
+            }
+        }
+    }
     
     for(size_t index = 0; index < lights.size(); index++)
     {
@@ -68,7 +305,14 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             Color diffuseColor = colorComing * diffuse.GetColor();
             if(diffuse.GetTexture())
             {
-                diffuseColor = diffuseColor * diffuse.Sample(hInfo.uvw, hInfo.duvw);
+                if(!rayContext.hasDiff)
+                {
+                    diffuseColor = colorComing * diffuse.Sample(hInfo.uvw);
+                }
+                else
+                {
+                    diffuseColor = colorComing * diffuse.Sample(hInfo.uvw, hInfo.duvw);
+                }
             }
             Color specularColor =
             Color::Black();
@@ -77,196 +321,18 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
         }
         else
         {
-            Vec3f V = -1.0f * ray.dir;
-            assert(V.IsUnit());
-            
             Vec3f L = -1.0f * light->Direction(hInfo.p);
             assert(L.IsUnit());
-            
-            Vec3f N = hInfo.N;
-            assert(N.IsUnit());
             
             Vec3f H = (V + L).GetNormalized();
             assert(H.IsUnit());
             
             float cosTheta = L.Dot(N);
-            
-            float cosBeta = V.Dot(N);
+            if(cosTheta < 0.0f)
+            {
+                cosTheta = 0.0f;
+            }
 //            assert(cosBeta > - 0.00001f);
-            
-            // has refraction
-            if(refraction.GetColor().Sum() > 0.0f)
-            {
-                // Schlicks Approximation
-                float Rs = 0.0f;
-                float n1 = 0.0f;
-                float n2 = 0.0f;
-                
-                if(hInfo.front)
-                {
-                    n1 = 1.0f;
-                    n2 = ior;
-                }
-                else
-                {
-                    n1 = ior;
-                    n2 = 1.0f;
-                }
-                
-                float Rs0 = powf((n1 - n2)/(n1 + n2), 2.0f);
-                Rs = Rs0 + ((1.0f - Rs0) * powf(1.0f - max(0.0f, cosBeta), 5.0f));
-                
-                bool hasInternalReflection = false;
-                Vec3f inRefractDir;
-                Vec3f inRelectDir;
-                
-                CalculateRefractDir(V, N, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
-                
-                Ray inReflectRay;
-                inReflectRay.dir = inRelectDir;
-                inReflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
-                
-                RayContext inReflectRayContext = GenRayContext(inReflectRay);
-                
-                Ray inRefractRay;
-                inRefractRay.dir = inRefractDir;
-                inRefractRay.p = hInfo.p + (-1.0f) * N * INTERSECTION_BIAS;
-                
-                RayContext inRefractRayContext = GenRayContext(inRefractRay);
-                
-                // from air, has absortion. no internal reflection
-                if(hInfo.front)
-                {
-                    assert(!hasInternalReflection);
-                    
-                    HitInfo refractHitInfo;
-                    float distance;
-                    
-                    if(bounceCount > 0)
-                    {
-                        if(GenerateRayForNearestIntersection(inRefractRayContext, refractHitInfo, HIT_BACK, distance))
-                        {                            
-                            Color absortionColor = Color(
-                                                           powf(M_E, -1.0f * distance * absorption.r)
-                                                         , powf(M_E, -1.0f * distance * absorption.g)
-                                                         , powf(M_E, -1.0f * distance * absorption.b));
-                            Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
-                            result += refractColor;
-                        }
-                        else
-                        {
-                            
-                        }
-                    }
-                    
-                    HitInfo reflectHitInfo;
-                    float reflectDistance;
-                    
-                    if(bounceCount > 0)
-                    {
-                        if(GenerateRayForNearestIntersection(inReflectRayContext, reflectHitInfo, HIT_FRONT, reflectDistance))
-                        {
-                            Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
-                            result += reflectColor;
-                        }
-                        else
-                        {
-                            result += Rs * environment.SampleEnvironment(inReflectRay.dir);
-                        }
-                    }
-                }
-                // into air, no absortion
-                else
-                {
-                    if(!hasInternalReflection)
-                    {
-                        HitInfo refractHitInfo;
-                        float distance;
-                        
-                        if(bounceCount > 0)
-                        {
-                            if(GenerateRayForNearestIntersection(inRefractRayContext, refractHitInfo, HIT_FRONT, distance))
-                            {
-                                Color refractColor =
-    //                            absortionColor *
-    //                            refraction *
-                                (1.0f - Rs) *
-                                refractHitInfo.node->GetMaterial()->Shade(inRefractRay, refractHitInfo, lights, bounceCount - 1);
-                                result += refractColor;
-                            }
-                            else
-                            {
-                                result += (1.0f - Rs) * environment.SampleEnvironment(inRefractRay.dir);
-                            }
-                        }
-                        
-                        HitInfo reflectHitInfo;
-                        float reflectDistance;
-                        
-                        if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRayContext, reflectHitInfo, HIT_BACK, reflectDistance))
-                        {
-                            Color absortionColor = Color(
-                                                         powf(M_E, -1.0f * reflectDistance * absorption.r)
-                                                         , powf(M_E, -1.0f * reflectDistance * absorption.g)
-                                                         , powf(M_E, -1.0f * reflectDistance * absorption.b));
-                            
-                            Color refractColor = absortionColor
-//                            * refraction
-                            * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
-                            
-                            result += refractColor;
-                        }
-                    }
-                    // totaly reflection
-                    else
-                    {
-                        HitInfo reflectHitInfo;
-                        float distance;
-                        
-                        if(bounceCount > 0 && GenerateRayForNearestIntersection(inReflectRayContext, reflectHitInfo, HIT_BACK, distance))
-                        {
-                            Color absortionColor = Color(
-                                                         powf(M_E, -1.0f * distance * absorption.r)
-                                                         , powf(M_E, -1.0f * distance * absorption.g)
-                                                         , powf(M_E, -1.0f * distance * absorption.b));
-                            
-                            Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(inReflectRay, reflectHitInfo, lights, bounceCount - 1);
-                            
-                            result += refractColor;
-                        }
-                    }
-                }
-            }
-            
-            // has reflection
-            if(reflection.GetColor().Sum() > 0.0f && bounceCount > 0)
-            {
-                // only consider front reflect
-                if(hInfo.front)
-                {
-                    // Generate Reflect Ray Check Target
-                    Vec3f R = Reflect(ray.dir, N);
-                    assert(R.IsUnit());
-                    
-                    // world space
-                    Ray reflectRay;
-                    reflectRay.dir = R;
-                    reflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
-                    
-                    RayContext reflectRayContext = GenRayContext(reflectRay);
-                    
-                    HitInfo reflectHitInfo;
-                    float transDistance = 0.0f;
-                    // detect front intersection for reflection shading
-                    if(GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfo, HIT_FRONT, transDistance))
-                    {
-                        const Material* mat = reflectHitInfo.node->GetMaterial();
-                        
-                        Color reflectColor = this->reflection.GetColor() * mat->Shade(reflectRay, reflectHitInfo, lights, bounceCount - 1);
-                        result += reflectColor;
-                    }
-                }
-            }
             
             if(cosTheta < 0.0f)
             {
@@ -285,7 +351,14 @@ Color MtlBlinn::Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lig
             Color diffuseColor = colorComing * diffuse.GetColor();
             if(diffuse.GetTexture())
             {
-                diffuseColor = diffuseColor * diffuse.Sample(hInfo.uvw, hInfo.duvw);
+                if(!rayContext.hasDiff)
+                {
+                    diffuseColor = colorComing * diffuse.Sample(hInfo.uvw);
+                }
+                else
+                {
+                    diffuseColor = colorComing * diffuse.Sample(hInfo.uvw, hInfo.duvw);
+                }
             }
             
             Color specularColor = iComing * specular.GetColor() * pow(H.Dot(N), glossiness);

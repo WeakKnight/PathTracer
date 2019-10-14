@@ -142,6 +142,20 @@ struct HitInfo
     void Init() { z=BIGFLOAT; node=nullptr; front=true; uvw.Set(0.5f,0.5f,0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID=0; }
 };
 
+struct HitInfoContext
+{
+    HitInfoContext()
+    {
+        mainHitInfo.Init();
+        rightHitInfo.Init();
+        topHitInfo.Init();
+    }
+    
+    HitInfo mainHitInfo;
+    HitInfo rightHitInfo;
+    HitInfo topHitInfo;
+};
+
 struct RayContext
 {
     Ray cameraRay;
@@ -149,6 +163,7 @@ struct RayContext
     Ray rightRay;
     Ray topRay;
     float delta;
+    bool hasDiff = true;
     
     RayContext() {}
     RayContext( RayContext const &r ) :
@@ -268,7 +283,7 @@ class Object
 {
 public:
     virtual bool IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const=0;
-    virtual bool IntersectRay(RayContext const &rayContext, HitInfo& hInfo, int hitSide= HIT_FRONT) const=0;
+    virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide= HIT_FRONT) const=0;
     virtual Box  GetBoundBox() const=0;
     virtual void ViewportDisplay(const Material *mtl) const {}  // used for OpenGL display
 };
@@ -297,7 +312,7 @@ public:
     // ray: incoming ray,
     // hInfo: hit information for the point that is being shaded, lights: the light list,
     // bounceCount: permitted number of additional bounces for reflection and refraction.
-    virtual Color Shade(Ray const &ray, const HitInfo &hInfo, const LightList &lights, int bounceCount) const=0;
+    virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount) const=0;
     
     virtual void SetViewportMaterial(int subMtlID=0) const {}   // used for OpenGL display
 };
@@ -514,6 +529,15 @@ public:
     {
         hInfo.p = TransformFrom(hInfo.p);
         hInfo.N = VectorTransformFrom(hInfo.N).GetNormalized();
+    }
+    
+    void FromNodeCoords( HitInfoContext &hInfoContext ) const
+    {
+        FromNodeCoords(hInfoContext.mainHitInfo);
+        FromNodeCoords(hInfoContext.rightHitInfo);
+        assert(!isnan(hInfoContext.rightHitInfo.N.x));
+        FromNodeCoords(hInfoContext.topHitInfo);
+        assert(!isnan(hInfoContext.topHitInfo.N.x));
     }
 };
 

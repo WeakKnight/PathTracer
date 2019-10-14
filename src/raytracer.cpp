@@ -81,16 +81,22 @@ bool GenerateRayForAnyIntersection(Ray& ray, float t_max)
     return InternalGenerateRayForAnyIntersection(&rootNode, ray, t_max);
 }
 
-bool TraceNode(HitInfo& hitInfo, RayContext rayContext, Node* node, int side = HIT_FRONT)
+bool TraceNode(HitInfoContext& hitInfoContext, RayContext& rayContext, Node* node, int side = HIT_FRONT)
 {
     bool result = false;
     
     RayContext rayContextInNodeSpace = node->ToNodeCoords(rayContext);
-    HitInfo currentHitInfo;
+    
+    HitInfo& hitInfo = hitInfoContext.mainHitInfo;
+    HitInfo& rightInfo = hitInfoContext.rightHitInfo;
+    HitInfo& topInfo = hitInfoContext.topHitInfo;
+    
+    HitInfoContext currentHitInfoContext;
+    HitInfo& currentHitInfo = currentHitInfoContext.mainHitInfo;
     
     auto obj = node->GetNodeObj();
     
-    if(obj != nullptr && obj->IntersectRay(rayContextInNodeSpace, currentHitInfo, side))
+    if(obj != nullptr && obj->IntersectRay(rayContextInNodeSpace, currentHitInfoContext, side))
     {
         result = true;
         
@@ -110,16 +116,30 @@ bool TraceNode(HitInfo& hitInfo, RayContext rayContext, Node* node, int side = H
             hitInfo.duvw[0] = currentHitInfo.duvw[0];
             hitInfo.duvw[1] = currentHitInfo.duvw[1];
             
-            node->FromNodeCoords(hitInfo);
+            rightInfo.N = currentHitInfoContext.rightHitInfo.N;
+            rightInfo.z = currentHitInfoContext.rightHitInfo.z;
+            rightInfo.p = currentHitInfoContext.rightHitInfo.p;
+            
+            topInfo.N = currentHitInfoContext.topHitInfo.N;
+            topInfo.z = currentHitInfoContext.topHitInfo.z;
+            topInfo.p = currentHitInfoContext.topHitInfo.p;
+            
+            assert(!isnan(rightInfo.N.Sum()));
+            assert(!isnan(topInfo.N.Sum()));
+            
+            node->FromNodeCoords(hitInfoContext);
+            
+            assert(hitInfo.node != nullptr);
         }
     }
     
     for(int index = 0; index < node->GetNumChild(); index++)
     {
-        HitInfo currentHitInfo;
+        HitInfoContext currentHitInfoContext;
+        HitInfo& currentHitInfo = currentHitInfoContext.mainHitInfo;
         
         Node* child = node->GetChild(index);
-        if(TraceNode(currentHitInfo, rayContextInNodeSpace, child, side))
+        if(TraceNode(currentHitInfoContext, rayContextInNodeSpace, child, side))
         {
             result = true;
             
@@ -135,7 +155,20 @@ bool TraceNode(HitInfo& hitInfo, RayContext rayContext, Node* node, int side = H
                 hitInfo.duvw[0] = currentHitInfo.duvw[0];
                 hitInfo.duvw[1] = currentHitInfo.duvw[1];
                 
-                node->FromNodeCoords(hitInfo);
+                rightInfo.N = currentHitInfoContext.rightHitInfo.N;
+                rightInfo.z = currentHitInfoContext.rightHitInfo.z;
+                rightInfo.p = currentHitInfoContext.rightHitInfo.p;
+                
+                topInfo.N = currentHitInfoContext.topHitInfo.N;
+                topInfo.z = currentHitInfoContext.topHitInfo.z;
+                topInfo.p = currentHitInfoContext.topHitInfo.p;
+                
+                assert(!isnan(rightInfo.N.Sum()));
+                assert(!isnan(topInfo.N.Sum()));
+                
+                node->FromNodeCoords(hitInfoContext);
+                
+                assert(hitInfo.node != nullptr);
             }
         }
     }
@@ -143,13 +176,13 @@ bool TraceNode(HitInfo& hitInfo, RayContext rayContext, Node* node, int side = H
     return result;
 }
 
-bool GenerateRayForNearestIntersection(RayContext& rayContext, HitInfo& hitinfo, int side, float& t)
+bool GenerateRayForNearestIntersection(RayContext& rayContext, HitInfoContext& hitinfoContext, int side, float& t)
 {
-    bool result = TraceNode(hitinfo, rayContext, &rootNode, side);
+    bool result = TraceNode(hitinfoContext, rayContext, &rootNode, side);
     
     if(result)
     {
-        t += hitinfo.z;
+        t += hitinfoContext.mainHitInfo.z;
     }
     
     return result;
@@ -255,19 +288,20 @@ void RayTracer::Run()
                 int y = index / renderImage.GetWidth();
                 int x = index - y * renderImage.GetWidth();
                 
-//                if(x == 419 && y == 439)
-//                {
-//                    int a = 1;
-//                }
+                if(x == 399 && y == 150)
+                {
+                    int a = 1;
+                }
                 
                 RayContext rayContext = GenCameraRayContext(x, y);
-                HitInfo hitInfo;
+                HitInfoContext hitInfoContext;
+                HitInfo& hitInfo = hitInfoContext.mainHitInfo;
                 
-                bool sthTraced = TraceNode(hitInfo, rayContext, &rootNode);
+                bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode);
                 
                 if(sthTraced)
                 {                
-                    Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext.cameraRay, hitInfo, lights, 4);
+                    Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfoContext, lights, 4);
                     RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r * 255.0f, shadingResult.g * 255.0f, shadingResult.b * 255.0f));
 
                     RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);

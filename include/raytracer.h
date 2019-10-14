@@ -5,7 +5,7 @@
 #include "scene.h"
 
 bool GenerateRayForAnyIntersection(Ray& ray, float t_max = BIGFLOAT);
-bool GenerateRayForNearestIntersection(RayContext& ray, HitInfo& hitinfo, int side, float& t);
+bool GenerateRayForNearestIntersection(RayContext& ray, HitInfoContext& hitinfoContext, int side, float& t);
 RayContext GenRayContext(Ray ray, float delta = RAY_DIFF_DELTA);
 
 class Node;
