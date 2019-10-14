@@ -45,10 +45,9 @@ using namespace cy;
 
 #define BIGFLOAT 1.0e30f
 
-#define RAY_DIFF_DELTA 0.01f
+#define RAY_DIFF_DELTA 1.0f
 
 //-------------------------------------------------------------------------------
-
 class Ray
 {
 public:

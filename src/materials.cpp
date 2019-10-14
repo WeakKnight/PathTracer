@@ -65,6 +65,10 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     assert(N.IsUnit());
     
     float cosBeta = V.Dot(N);
+    if(cosBeta < 0.0f)
+    {
+        cosBeta = 0.0f;
+    }
     
     // has refraction
     if(refraction.GetColor().Sum() > 0.0f)
@@ -94,25 +98,62 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
         Vec3f inRelectDir;
 
         CalculateRefractDir(V, N, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
+        
+        bool rightHasInternalReflection = false;
+        
+        Vec3f rightInRefractDir;
+        Vec3f rightInRelectDir;
+        
+        bool topHasInternalReflection = false;
+        
+        Vec3f topInRefractDir;
+        Vec3f topInRelectDir;
+        
+        const Vec3f& Vright = -1.0f * rayContext.rightRay.dir;
+        assert(Vright.IsUnit());
+        const Vec3f& Vtop = -1.0f * rayContext.topRay.dir;
+        assert(Vtop.IsUnit());
+        
+        const Vec3f pRight = rayContext.rightRay.p + rayContext.rightRay.dir * hInfo.z;
+        const Vec3f pTop = rayContext.topRay.p + rayContext.topRay.dir * hInfo.z;
+        
+        CalculateRefractDir(Vright, N, n1, n2, rightInRefractDir, rightInRelectDir, rightHasInternalReflection);
+        CalculateRefractDir(Vtop, N, n1, n2, topInRefractDir, topInRelectDir, topHasInternalReflection);
 
         Ray inReflectRay;
         inReflectRay.dir = inRelectDir;
         inReflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
+        
+        Ray rightInReflectRay;
+        rightInReflectRay.dir = rightInRelectDir;
+        rightInReflectRay.p = pRight;
+        
+        Ray topInReflectRay;
+        topInReflectRay.dir = topInRelectDir;
+        topInReflectRay.p = pTop;
 
         Ray inRefractRay;
         inRefractRay.dir = inRefractDir;
-        inRefractRay.p = hInfo.p + (-1.0f) * N * INTERSECTION_BIAS;
+        inRefractRay.p = hInfo.p + (-2.0f) * N * INTERSECTION_BIAS;
+        
+        Ray rightInRefractRay;
+        rightInRefractRay.dir = rightInRefractDir;
+        rightInRefractRay.p = pRight;
+        
+        Ray topInRefractRay;
+        topInRefractRay.dir = topInRefractDir;
+        topInRefractRay.p = pTop;
 
         RayContext reflectRayContext;
         reflectRayContext.cameraRay = inReflectRay;
-        reflectRayContext.rightRay = inReflectRay;
-        reflectRayContext.topRay = inReflectRay;
+        reflectRayContext.rightRay = rightInReflectRay;
+        reflectRayContext.topRay = topInReflectRay;
         reflectRayContext.delta = RAY_DIFF_DELTA;
 
         RayContext refractRayContext;
         refractRayContext.cameraRay = inRefractRay;
-        refractRayContext.rightRay = inRefractRay;
-        refractRayContext.topRay = inRefractRay;
+        refractRayContext.rightRay = rightInRefractRay;
+        refractRayContext.topRay = topInRefractRay;
         refractRayContext.delta = RAY_DIFF_DELTA;
 
         // from air, has absortion. no internal reflection
@@ -156,7 +197,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
                 }
                 else
                 {
-                    result += Rs * environment.SampleEnvironment(inReflectRay.dir);
+                    result += refraction.GetColor() * Rs * environment.SampleEnvironment(inReflectRay.dir);
                 }
             }
         }
@@ -249,28 +290,27 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             assert(N.IsUnit());
             assert(ray.dir.IsUnit());
             
-            //                    Vec3f Rr = Reflect(rayContext.rightRay.dir, hInfoContext.rightHitInfo.N);
-            //                    Vec3f Rt = Reflect(rayContext.topRay.dir, hInfoContext.topHitInfo.N);
+            Vec3f Rr = Reflect(rayContext.rightRay.dir, N);
+            Vec3f Rt = Reflect(rayContext.topRay.dir, N);
             
             // world space
             Ray reflectRay;
             reflectRay.dir = R;
             reflectRay.p = hInfo.p;
             
-            //                    Ray rightReflectRay;
-            //                    rightReflectRay.dir = Rr;
-            //                    rightReflectRay.p = hInfoContext.rightHitInfo.p;
-            //
-            //                    Ray topReflectRay;
-            //                    topReflectRay.dir = Rt;
-            //                    topReflectRay.p = hInfoContext.topHitInfo.p;
+            Ray rightReflectRay;
+            rightReflectRay.dir = Rr;
+            rightReflectRay.p = rayContext.rightRay.p + rayContext.rightRay.dir * hInfo.z;
+
+            Ray topReflectRay;
+            topReflectRay.dir = Rt;
+            topReflectRay.p = rayContext.topRay.p + rayContext.topRay.dir * hInfo.z;
             
             RayContext reflectRayContext;
             reflectRayContext.cameraRay = reflectRay;
-            reflectRayContext.rightRay = reflectRay;
-            reflectRayContext.topRay = reflectRay;
+            reflectRayContext.rightRay = rightReflectRay;
+            reflectRayContext.topRay = topReflectRay;
             reflectRayContext.delta = RAY_DIFF_DELTA;
-            reflectRayContext.hasDiff = false;
             
             HitInfoContext reflectHitInfoContext;
             HitInfo& reflectHitInfo = reflectHitInfoContext.mainHitInfo;

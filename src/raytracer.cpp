@@ -272,8 +272,8 @@ void RayTracer::Run()
     float now = glfwGetTime();
     
     std::size_t cores =
-//    1;
-    std::thread::hardware_concurrency() - 1;
+    1;
+//    std::thread::hardware_concurrency() - 1;
     std::vector<std::future<void>> threads;
     
     std::size_t size = renderImage.GetWidth() * renderImage.GetHeight();
@@ -288,16 +288,25 @@ void RayTracer::Run()
                 int y = index / renderImage.GetWidth();
                 int x = index - y * renderImage.GetWidth();
                 
-                if(x == 399 && y == 150)
-                {
-                    int a = 1;
-                }
+//                if(x == 399 && y == 150)
+//                {
+//                    int a = 1;
+//                }
                 
                 RayContext rayContext = GenCameraRayContext(x, y);
                 HitInfoContext hitInfoContext;
                 HitInfo& hitInfo = hitInfoContext.mainHitInfo;
                 
                 bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode);
+                
+//                if(x <= 160 || y <= 259 || x >= 162 || y >= 261)
+//                {
+//                    sthTraced = false;
+//                }
+//                else
+//                {
+//                    int a = 1;
+//                }
                 
                 if(sthTraced)
                 {                
