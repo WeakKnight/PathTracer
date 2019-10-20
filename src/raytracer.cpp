@@ -17,6 +17,8 @@
 
 #include "application.h"
 
+#include "sampler.h"
+
 Node rootNode;
 Camera camera;
 RenderImage renderImage;
@@ -188,14 +190,14 @@ bool GenerateRayForNearestIntersection(RayContext& rayContext, HitInfoContext& h
     return result;
 }
 
-Ray GenCameraRay(int x, int y)
+Ray GenCameraRay(int x, int y, float xOffset, float yOffset)
 {
     Ray cameraRay;
     
     cameraRay.p = camera.pos;
     cameraRay.dir =
-    cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + 0.5f * texelWdith) +
-    cameraUp * (imgPlaneHeight * 0.5f - y * texelHeight - 0.5f * texelHeight) +
+    cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + xOffset * texelWdith) +
+    cameraUp * (imgPlaneHeight * 0.5f - y * texelHeight - yOffset * texelHeight) +
     cameraFront;
     
     cameraRay.Normalize();
@@ -260,6 +262,23 @@ void RayTracer::Init()
     texelHeight = imgPlaneHeight / static_cast<float>(camera.imgHeight);
 }
 
+Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, int y)
+{
+    HitInfo& hitInfo = hitInfoContext.mainHitInfo;
+    
+    bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode);
+    
+    if(sthTraced)
+    {
+        Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfoContext, lights, 4);
+        return shadingResult;
+    }
+    else
+    {
+        return background.Sample(Vec3f(x/(float)renderImage.GetWidth(), y/(float)renderImage.GetHeight(), 0.0f));
+    }
+}
+
 void RayTracer::Run()
 {
     if(normalPixels != nullptr)
@@ -280,9 +299,13 @@ void RayTracer::Run()
     
     renderImage.ResetNumRenderedPixels();
     
+    HaltonSampler haltonSampler;
+    // for test
+    haltonSampler.SetSampleCount(4);
+    
     for(std::size_t i = 0; i < cores; i++)
     {
-        threads.push_back(std::async([=](){
+        threads.push_back(std::async([=, &haltonSampler](){
             for(std::size_t index = i; index < size; index+= cores)
             {
                 int y = index / renderImage.GetWidth();
@@ -292,37 +315,21 @@ void RayTracer::Run()
 //                {
 //                    int a = 1;
 //                }
+                SampleResult sampleResult = haltonSampler.SamplePixel(x, y);
                 
-                RayContext rayContext = GenCameraRayContext(x, y);
-                HitInfoContext hitInfoContext;
-                HitInfo& hitInfo = hitInfoContext.mainHitInfo;
+                RenderImageHelper::SetPixel(renderImage, x, y, Color24(sampleResult.avgColor.r * 255.0f, sampleResult.avgColor.g * 255.0f, sampleResult.avgColor.b * 255.0f));
+                RenderImageHelper::SetDepth(renderImage, x, y, sampleResult.avgZ);
+                RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, sampleResult.avgN);
                 
-                bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode);
+//                RayContext rayContext = GenCameraRayContext(x, y);
+//                HitInfoContext hitInfoContext;
+//                HitInfo& hitInfo = hitInfoContext.mainHitInfo;
+//
+//                auto color = RootTrace(rayContext, hitInfoContext, x, y);
                 
-//                if(x <= 160 || y <= 259 || x >= 162 || y >= 261)
-//                {
-//                    sthTraced = false;
-//                }
-//                else
-//                {
-//                    int a = 1;
-//                }
-                
-                if(sthTraced)
-                {                
-                    Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfoContext, lights, 4);
-                    RenderImageHelper::SetPixel(renderImage, x, y, Color24(shadingResult.r * 255.0f, shadingResult.g * 255.0f, shadingResult.b * 255.0f));
-
-                    RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
-                    RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, hitInfo.N);
-                }
-                else
-                {
-                    
-                    RenderImageHelper::SetPixel(renderImage, x, y, Color24(background.Sample(Vec3f(x/(float)renderImage.GetWidth(), y/(float)renderImage.GetHeight(), 0.0f))));
-                    RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
-                    RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, Vec3f());
-                }
+//                RenderImageHelper::SetPixel(renderImage, x, y, Color24(color.r * 255.0f, color.g * 255.0f, color.b * 255.0f));
+//                RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
+//                RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, hitInfo.N);
                 
                 renderImage.IncrementNumRenderPixel(1);
                 // done
