@@ -47,6 +47,17 @@ using namespace cy;
 
 #define RAY_DIFF_DELTA 1.0f
 
+inline float Halton(int index, int base)
+{
+    float r = 0;
+    float f = 1.0f / (float)base;
+    for ( int i=index; i>0; i/=base ) {
+        r += f * (i%base);
+        f /= (float) base;
+    }
+    return r;
+}
+
 //-------------------------------------------------------------------------------
 class Ray
 {
@@ -162,7 +173,7 @@ struct RayContext
     Ray rightRay;
     Ray topRay;
     float delta;
-    bool hasDiff = true;
+    bool hasDiff = false;
     
     RayContext() {}
     RayContext( RayContext const &r ) :
@@ -337,9 +348,8 @@ public:
         Color c = Sample(uvw);
         if ( duvw[0].LengthSquared() + duvw[1].LengthSquared() == 0 ) return c;
         for ( int i=1; i<TEXTURE_SAMPLE_COUNT; i++ ) {
-            float x=0, y=0, fx=0.5f, fy=1.0f/3.0f;
-            for ( int ix=i; ix>0; ix/=2 ) { x+=fx*(ix%2); fx/=2; }   // Halton sequence (base 2)
-            for ( int iy=i; iy>0; iy/=3 ) { y+=fy*(iy%3); fy/=3; }   // Halton sequence (base 3)
+            float x = Halton(i,2);
+            float y = Halton(i,3);
             if ( elliptic ) {
                 float r = sqrtf(x)*0.5f;
                 x = r*sinf(y*(float)M_PI*2);
@@ -562,16 +572,20 @@ public:
 
 //-------------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------------
+
 class RenderImage
 {
 private:
     Color24 *img;
     float   *zbuffer;
     uint8_t *zbufferImg;
+    uint8_t *sampleCount;
+    uint8_t *sampleCountImg;
     int      width, height;
     std::atomic<int> numRenderedPixels;
 public:
-    RenderImage() : img(nullptr), zbuffer(nullptr), zbufferImg(nullptr), width(0), height(0), numRenderedPixels(0) {}
+    RenderImage() : img(nullptr), zbuffer(nullptr), zbufferImg(nullptr), sampleCount(nullptr), sampleCountImg(nullptr), width(0), height(0), numRenderedPixels(0) {}
     void Init(int w, int h)
     {
         width=w;
@@ -582,6 +596,10 @@ public:
         zbuffer = new float[width*height];
         if (zbufferImg) delete [] zbufferImg;
         zbufferImg = nullptr;
+        if ( sampleCount ) delete [] sampleCount;
+        sampleCount = new uint8_t[width*height];
+        if ( sampleCountImg ) delete [] sampleCountImg;
+        sampleCountImg = nullptr;
         ResetNumRenderedPixels();
     }
     
@@ -590,6 +608,8 @@ public:
     Color24* GetPixels ()       { return img; }
     float*   GetZBuffer()       { return zbuffer; }
     uint8_t* GetZBufferImage()  { return zbufferImg; }
+    uint8_t* GetSampleCount ()  { return sampleCount; }
+    uint8_t* GetSampleCountImage(){ return sampleCountImg; }
     
     void ResetNumRenderedPixels ()       { numRenderedPixels=0; }
     int  GetNumRenderedPixels   () const { return numRenderedPixels; }
@@ -620,8 +640,33 @@ public:
         }
     }
     
+    int ComputeSampleCountImage()
+    {
+        int size = width * height;
+        if (sampleCountImg) delete [] sampleCountImg;
+        sampleCountImg = new uint8_t[size];
+        
+        uint8_t smin=255, smax=0;
+        for ( int i=0; i<size; i++ ) {
+            if ( smin > sampleCount[i] ) smin = sampleCount[i];
+            if ( smax < sampleCount[i] ) smax = sampleCount[i];
+        }
+        if ( smax == smin ) {
+            for ( int i=0; i<size; i++ ) sampleCountImg[i] = 0;
+        } else {
+            for ( int i=0; i<size; i++ ) {
+                int c = (255*(sampleCount[i]-smin))/(smax-smin);
+                if ( c < 0 ) c = 0;
+                if ( c > 255 ) c = 255;
+                sampleCountImg[i] = c;
+            }
+        }
+        return smax;
+    }
+    
     bool SaveImage (char const *filename) const { return SavePNG(filename,&img[0].r,3); }
     bool SaveZImage(char const *filename) const { return SavePNG(filename,zbufferImg,1); }
+    bool SaveSampleCountImage(char const *filename) const { return SavePNG(filename,sampleCountImg,1); }
     
 private:
     bool SavePNG(char const *filename, uint8_t *data, int compCount) const
@@ -636,7 +681,6 @@ private:
         return error == 0;
     }
 };
-
 //-------------------------------------------------------------------------------
 
 #endif
