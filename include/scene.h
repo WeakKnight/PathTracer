@@ -173,7 +173,7 @@ struct RayContext
     Ray rightRay;
     Ray topRay;
     float delta;
-    bool hasDiff = false;
+    bool hasDiff = true;
     
     RayContext() {}
     RayContext( RayContext const &r ) :
@@ -665,6 +665,7 @@ public:
     }
     
     bool SaveImage (char const *filename) const { return SavePNG(filename,&img[0].r,3); }
+    bool SaveImage (char const *filename, Color24* data) const { return SavePNG(filename,&data[0].r,3); }
     bool SaveZImage(char const *filename) const { return SavePNG(filename,zbufferImg,1); }
     bool SaveSampleCountImage(char const *filename) const { return SavePNG(filename,sampleCountImg,1); }
     

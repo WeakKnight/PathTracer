@@ -34,11 +34,22 @@ public:
         sampleNum = count;
     }
     
+    void SetColorTolerance(float tolerance)
+    {
+        colorTolerance = tolerance;
+    }
+    
 private:
+    
+    bool ContinueSamplingCondition(std::vector<SampleResult>& sampleResult);
+    
+    float colorTolerance;
+    
     std::vector<SampleResult> results;
     // use for storing count info
     std::vector<int> sampleCountResult;
-    int sampleNum;
+    unsigned int sampleNum;
+    unsigned int minimumSampleNum;
     int haltonXBase = 2;
     int haltonYBase = 3;
     std::mt19937_64 rng;

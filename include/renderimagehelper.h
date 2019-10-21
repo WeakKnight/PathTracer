@@ -21,6 +21,13 @@ class RenderImageHelper
         pixels[x + y * width] = color;
     }
     
+    static void SetSampleNum(RenderImage& image, int x, int y, int num)
+    {
+        uint8_t* pixels = image.GetSampleCount();
+        int width = image.GetWidth();
+        pixels[x + y * width] = (uint8_t)num;
+    }
+    
     static void SetNormal(Color24* pixels, RenderImage& image, int x, int y, Vec3f normal)
     {
         int width = image.GetWidth();
@@ -32,6 +39,32 @@ class RenderImageHelper
         float* zBuffer = image.GetZBuffer();
         int width = image.GetWidth();
         zBuffer[x + y * width] = depth;
+    }
+    
+    static void CalculateMySampleImg(Color24* img, RenderImage& image)
+    {
+        auto width = image.GetWidth();
+        auto height = image.GetHeight();
+        
+        int size = width * height;
+        
+        uint8_t* sampleCount = image.GetSampleCount();
+        
+        uint8_t smin=255, smax=0;
+        for ( int i=0; i<size; i++ ) {
+            if ( smin > sampleCount[i] ) smin = sampleCount[i];
+            if ( smax < sampleCount[i] ) smax = sampleCount[i];
+        }
+        if ( smax == smin ) {
+            for ( int i=0; i<size; i++ ) img[i] = Color24(0.0f, 0.0f, 0.0f);
+        } else {
+            for ( int i=0; i<size; i++ ) {
+                int c = (255*(sampleCount[i]-smin))/(smax-smin);
+                if ( c < 0 ) c = 0;
+                if ( c > 255 ) c = 255;
+                img[i] = Color24(c, c, c);
+            }
+        }
     }
     
     static void CalculateMyDepthImg(Color24* img, RenderImage& image)

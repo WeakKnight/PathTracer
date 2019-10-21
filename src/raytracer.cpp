@@ -18,6 +18,7 @@
 #include "application.h"
 
 #include "sampler.h"
+#include "filter.h"
 
 Node rootNode;
 Camera camera;
@@ -43,7 +44,7 @@ cyVec3f cameraFront;
 cyVec3f cameraRight;
 
 Color24 *myZImg = nullptr;
-
+Color24 *mySampleImg = nullptr;
 Color24 *normalPixels = nullptr;
 
 float buildTime = 0.0f;
@@ -241,9 +242,16 @@ void RayTracer::Init()
     {
         normalTexture = std::make_shared<Texture2D>();
     }
+    if(!sampleTexture)
+    {
+        sampleTexture = std::make_shared<Texture2D>();
+    }
+    if(!filterTexture)
+    {
+        filterTexture = std::make_shared<Texture2D>();
+    }
     
 #endif
-    
     // scene load, ini global variables
     LoadScene(scene_path);
     
@@ -260,6 +268,16 @@ void RayTracer::Init()
     // pixel's world space size
     texelWdith = imgPlaneWidth / static_cast<float>(camera.imgWidth);
     texelHeight = imgPlaneHeight / static_cast<float>(camera.imgHeight);
+    
+    gaussianFilter = new GaussianFilter(renderImage.GetPixels(),
+                                        (unsigned int)renderImage.GetWidth(),
+                                        (unsigned int)renderImage.GetHeight(),
+                                        0.3f,
+                                        Vec2f(3.0f, 3.0f));
+    
+    colorShiftFilter = new ColorShiftFilter(gaussianFilter->GetOutput(),
+                                (unsigned int)renderImage.GetWidth(),
+                                (unsigned int)renderImage.GetHeight());
 }
 
 Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, int y)
@@ -301,7 +319,7 @@ void RayTracer::Run()
     
     HaltonSampler haltonSampler;
     // for test
-    haltonSampler.SetSampleCount(4);
+    haltonSampler.SetSampleCount(64);
     
     for(std::size_t i = 0; i < cores; i++)
     {
@@ -340,6 +358,11 @@ void RayTracer::Run()
                     spdlog::debug("bvh build time is {}", buildTime);
                     spdlog::debug("time is {}", finish - now);
                     renderImage.ComputeZBufferImage();
+                    renderImage.ComputeSampleCountImage();
+                    
+                    gaussianFilter->Compute();
+                    colorShiftFilter->Compute();
+                    
 #ifndef IMGUI_DEBUG
                     WriteToFile();
 #endif
@@ -354,19 +377,33 @@ void RayTracer::Run()
     }
     
     myZImg = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
+    
+    if(mySampleImg != nullptr)
+    {
+        delete [] mySampleImg;
+    }
+    
+    mySampleImg = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
 }
 
 void RayTracer::UpdateRenderResult()
 {
     RenderImageHelper::CalculateMyDepthImg(myZImg, renderImage);
-
+    RenderImageHelper::CalculateMySampleImg(mySampleImg, renderImage);
+    
+    sampleTexture->SetData((unsigned char *)mySampleImg, renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB);
     zbufferTexture->SetData((unsigned char *)myZImg, renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB);
     renderTexture->SetData((unsigned char *)renderImage.GetPixels(), renderImage.GetWidth(), renderImage.GetHeight());
     normalTexture->SetData((unsigned char *)normalPixels, renderImage.GetWidth(), renderImage.GetHeight());
+    
+    filterTexture->SetData((unsigned char *)colorShiftFilter->GetOutput(), renderImage.GetWidth(), renderImage.GetHeight());
 }
 
 void RayTracer::WriteToFile()
 {
     renderImage.SaveImage("colorbuffer.png");
     renderImage.SaveZImage("zbuffer.png");
+    renderImage.SaveSampleCountImage("samplecount.png");
+    renderImage.SaveImage("colorShiftFilter.png", colorShiftFilter->GetOutput());
+    renderImage.SaveImage("gaussianFilter.png", gaussianFilter->GetOutput());
 }

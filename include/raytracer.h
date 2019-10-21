@@ -11,7 +11,9 @@ RayContext GenRayContext(Ray ray, float delta = RAY_DIFF_DELTA);
 Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, int y);
 
 class Node;
-
+class Filter;
+class GaussianFilter;
+class ColorShiftFilter;
 class Texture2D;
 
 class RayTracer
@@ -26,12 +28,18 @@ class RayTracer
     std::shared_ptr<Texture2D> GetZBufferTexture(){return zbufferTexture;}
     std::shared_ptr<Texture2D> GetRenderTexture(){return renderTexture;}
     std::shared_ptr<Texture2D> GetNormalTexture(){return normalTexture;}
+    std::shared_ptr<Texture2D> GetSampleTexture(){return sampleTexture;}
+    std::shared_ptr<Texture2D> GetFilterTexture(){return filterTexture;}
     
     char scene_path[256] = "assets/project7.xml";
     
 private:
+    GaussianFilter* gaussianFilter;
+    ColorShiftFilter* colorShiftFilter;
     std::shared_ptr<Texture2D> zbufferTexture;
     std::shared_ptr<Texture2D> renderTexture;
     std::shared_ptr<Texture2D> normalTexture;
+    std::shared_ptr<Texture2D> sampleTexture;
+    std::shared_ptr<Texture2D> filterTexture;
 };
 

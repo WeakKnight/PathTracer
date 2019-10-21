@@ -105,6 +105,8 @@ void Window::StartUpdate()
     auto renderTexture = rayTracer.GetRenderTexture();
     auto zbufferTexture = rayTracer.GetZBufferTexture();
     auto normalTexture = rayTracer.GetNormalTexture();
+    auto sampleTexture = rayTracer.GetSampleTexture();
+    auto filterTexture = rayTracer.GetFilterTexture();
     
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
@@ -171,6 +173,40 @@ void Window::StartUpdate()
             (
              (ImTextureID)zbufferTexture->Id,
              ImVec2(zbufferTexture->Width,zbufferTexture->Height),
+             ImVec2(0,0),
+             ImVec2(1,1),
+             ImVec4(1.0, 1.0, 1.0, 1.0),
+             ImVec4(1.0, 1.0, 1.0, 1.0)
+             );
+            
+            ImGui::End();
+        }
+        
+        {
+            ImGui::Begin("Sample Buffer");
+            ImGui::SetWindowSize(ImVec2(sampleTexture->Width + 20, sampleTexture->Height + 40));
+            ImGui::Image
+            (
+             (ImTextureID)sampleTexture->Id,
+             ImVec2(sampleTexture->Width,
+                    sampleTexture->Height),
+             ImVec2(0,0),
+             ImVec2(1,1),
+             ImVec4(1.0, 1.0, 1.0, 1.0),
+             ImVec4(1.0, 1.0, 1.0, 1.0)
+             );
+            
+            ImGui::End();
+        }
+        
+        {
+            ImGui::Begin("Filter Buffer");
+            ImGui::SetWindowSize(ImVec2(filterTexture->Width + 20, filterTexture->Height + 40));
+            ImGui::Image
+            (
+             (ImTextureID)filterTexture->Id,
+             ImVec2(filterTexture->Width,
+                    filterTexture->Height),
              ImVec2(0,0),
              ImVec2(1,1),
              ImVec4(1.0, 1.0, 1.0, 1.0),
