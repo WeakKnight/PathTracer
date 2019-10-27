@@ -411,6 +411,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             result += (diffuseColor + specularColor);
         }
     }
+    assert(result.Max() <= 1.0f);
     result.ClampMax();
     return result;
 }
