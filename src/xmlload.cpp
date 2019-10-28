@@ -3,7 +3,7 @@
 ///
 /// \file       xmlload.cpp
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    7.0
+/// \version    9.0
 /// \date       August 21, 2019
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -116,6 +116,8 @@ int LoadScene(char const *filename)
         else if ( COMPARE( camChild->Value(), "target"    ) ) ReadVector(camChild,camera.dir);
         else if ( COMPARE( camChild->Value(), "up"        ) ) ReadVector(camChild,camera.up);
         else if ( COMPARE( camChild->Value(), "fov"       ) ) ReadFloat (camChild,camera.fov);
+        else if ( COMPARE( camChild->Value(), "focaldist" ) ) ReadFloat (camChild,camera.focaldist);
+        else if ( COMPARE( camChild->Value(), "dof"       ) ) ReadFloat (camChild,camera.dof);
         else if ( COMPARE( camChild->Value(), "width"     ) ) camChild->QueryIntAttribute("value", &camera.imgWidth);
         else if ( COMPARE( camChild->Value(), "height"    ) ) camChild->QueryIntAttribute("value", &camera.imgHeight);
         camChild = camChild->NextSiblingElement();

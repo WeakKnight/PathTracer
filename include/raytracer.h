@@ -4,11 +4,12 @@
 #include "cyVector.h"
 #include "scene.h"
 
-Ray GenCameraRay(int x, int y, float xOffset = 0.5f, float yOffset = 0.5f);
+Ray GenCameraRay(int x, int y, float xOffset = 0.5f, float yOffset = 0.5f, bool normalize = true);
 bool GenerateRayForAnyIntersection(Ray& ray, float t_max = BIGFLOAT);
 bool GenerateRayForNearestIntersection(RayContext& ray, HitInfoContext& hitinfoContext, int side, float& t);
-RayContext GenRayContext(Ray ray, float delta = RAY_DIFF_DELTA);
+//RayContext GenRayContext(Ray ray, float delta = RAY_DIFF_DELTA);
 Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, int y);
+RayContext GenCameraRayContext(int x, int y, float offsetX, float offsetY);
 
 class Node;
 class Filter;
@@ -31,11 +32,11 @@ class RayTracer
     std::shared_ptr<Texture2D> GetSampleTexture(){return sampleTexture;}
     std::shared_ptr<Texture2D> GetFilterTexture(){return filterTexture;}
     
-    char scene_path[256] = "assets/project7.xml";
+    char scene_path[256] = "assets/project8.xml";
     
 private:
     GaussianFilter* gaussianFilter;
-    ColorShiftFilter* colorShiftFilter;
+   // ColorShiftFilter* colorShiftFilter;
     std::shared_ptr<Texture2D> zbufferTexture;
     std::shared_ptr<Texture2D> renderTexture;
     std::shared_ptr<Texture2D> normalTexture;

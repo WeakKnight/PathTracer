@@ -199,22 +199,22 @@ void Window::StartUpdate()
             ImGui::End();
         }
         
-        {
-            ImGui::Begin("Filter Buffer");
-            ImGui::SetWindowSize(ImVec2(filterTexture->Width + 20, filterTexture->Height + 40));
-            ImGui::Image
-            (
-             (ImTextureID)filterTexture->Id,
-             ImVec2(filterTexture->Width,
-                    filterTexture->Height),
-             ImVec2(0,0),
-             ImVec2(1,1),
-             ImVec4(1.0, 1.0, 1.0, 1.0),
-             ImVec4(1.0, 1.0, 1.0, 1.0)
-             );
-            
-            ImGui::End();
-        }
+//        {
+//            ImGui::Begin("Filter Buffer");
+//            ImGui::SetWindowSize(ImVec2(filterTexture->Width + 20, filterTexture->Height + 40));
+//            ImGui::Image
+//            (
+//             (ImTextureID)filterTexture->Id,
+//             ImVec2(filterTexture->Width,
+//                    filterTexture->Height),
+//             ImVec2(0,0),
+//             ImVec2(1,1),
+//             ImVec4(1.0, 1.0, 1.0, 1.0),
+//             ImVec4(1.0, 1.0, 1.0, 1.0)
+//             );
+//            
+//            ImGui::End();
+//        }
         
         {
             ImGui::Begin("Normal Buffer");

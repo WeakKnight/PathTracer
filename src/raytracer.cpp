@@ -191,40 +191,74 @@ bool GenerateRayForNearestIntersection(RayContext& rayContext, HitInfoContext& h
     return result;
 }
 
-Ray GenCameraRay(int x, int y, float xOffset, float yOffset)
+Vec2f RandomPointInCircle(float radius)
 {
+//    float x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
+//    float y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
+//
+//    while((x * x + y * y) > (radius * radius))
+//    {
+//        x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
+//        y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
+//    }
+//
+//    return Vec2f(x, y);
+    // generate a random value between 0 to Radius as the value of Cumulative Distribution Function
+    float S = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+    // S = r2 / R2, choose r based on F
+    float r = sqrtf(S) * radius;
+    float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * Pi<float>() * 2;
+    
+    float x = r * cos(theta);
+    float y = r * sin(theta);
+    
+    return Vec2f(x, y);
+}
+
+Ray GenCameraRay(int x, int y, float xOffset, float yOffset, bool normalize)
+{
+    // random in a circle
+    Vec2f randomCirclePoint = RandomPointInCircle(camera.dof);
+    
     Ray cameraRay;
-    
-    cameraRay.p = camera.pos;
+    cameraRay.p = camera.pos + cameraRight * randomCirclePoint.x + cameraUp * randomCirclePoint.y;
     cameraRay.dir =
-    cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + xOffset * texelWdith) +
+    (cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + xOffset * texelWdith) +
     cameraUp * (imgPlaneHeight * 0.5f - y * texelHeight - yOffset * texelHeight) +
-    cameraFront;
+    cameraFront * camera.focaldist) - (cameraRight * randomCirclePoint.x + cameraUp * randomCirclePoint.y);
     
-    cameraRay.Normalize();
+    if(normalize)
+    {
+        cameraRay.Normalize();
+    }
     
     return cameraRay;
 }
 
-RayContext GenRayContext(Ray ray, float delta)
+
+RayContext GenCameraRayContext(int x, int y, float offsetX, float offsetY)
 {
+    float delta = RAY_DIFF_DELTA;
+    
+    auto ray = GenCameraRay(x, y, offsetX, offsetY, false);
+    
     RayContext result;
     result.cameraRay = ray;
     
     result.rightRay.p = ray.p;
     result.topRay.p = ray.p;
     
-    result.rightRay.dir = (result.cameraRay.dir + cameraRight * texelWdith * delta).GetNormalized();
-    result.topRay.dir = (result.cameraRay.dir + cameraUp * texelHeight * delta).GetNormalized();
+    auto rightOffset = ray.dir + cameraRight * texelWdith * delta;
+    result.rightRay.dir = rightOffset.GetNormalized();
+    
+    auto topOffset = ray.dir + cameraUp * texelHeight * delta;
+    result.topRay.dir = (topOffset).GetNormalized();
+    
+    result.cameraRay.Normalize();
     
     result.delta = delta;
     
     return result;
-}
-
-RayContext GenCameraRayContext(int x, int y)
-{
-    return GenRayContext(GenCameraRay(x, y));
 }
 
 void RayTracer::Init()
@@ -262,22 +296,22 @@ void RayTracer::Init()
     cameraFront = camera.dir;
     cameraRight = cameraFront.Cross(cameraUp);
     
-    imgPlaneHeight = 1.0f * tanf(camera.fov * 0.5f /180.0f * static_cast<float>(M_PI)) * 2.0f;
+    imgPlaneHeight = camera.focaldist * tanf(camera.fov * 0.5f /180.0f * static_cast<float>(M_PI)) * 2.0f;
     imgPlaneWidth = imgPlaneHeight * static_cast<float>(camera.imgWidth) / static_cast<float>(camera.imgHeight);
     
     // pixel's world space size
     texelWdith = imgPlaneWidth / static_cast<float>(camera.imgWidth);
     texelHeight = imgPlaneHeight / static_cast<float>(camera.imgHeight);
     
-    gaussianFilter = new GaussianFilter(renderImage.GetPixels(),
-                                        (unsigned int)renderImage.GetWidth(),
-                                        (unsigned int)renderImage.GetHeight(),
-                                        0.3f,
-                                        Vec2f(3.0f, 3.0f));
-    
-    colorShiftFilter = new ColorShiftFilter(gaussianFilter->GetOutput(),
-                                (unsigned int)renderImage.GetWidth(),
-                                (unsigned int)renderImage.GetHeight());
+//    gaussianFilter = new GaussianFilter(renderImage.GetPixels(),
+//                                        (unsigned int)renderImage.GetWidth(),
+//                                        (unsigned int)renderImage.GetHeight(),
+//                                        0.3f,
+//                                        Vec2f(3.0f, 3.0f));
+//    
+//    colorShiftFilter = new ColorShiftFilter(gaussianFilter->GetOutput(),
+//                                (unsigned int)renderImage.GetWidth(),
+//                                (unsigned int)renderImage.GetHeight());
 }
 
 Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, int y)
@@ -309,21 +343,22 @@ void RayTracer::Run()
     float now = glfwGetTime();
     
     std::size_t cores =
-    1;
-//    std::thread::hardware_concurrency() - 1;
+//    1;
+    std::thread::hardware_concurrency() - 1;
     std::vector<std::future<void>> threads;
     
     std::size_t size = renderImage.GetWidth() * renderImage.GetHeight();
     
     renderImage.ResetNumRenderedPixels();
     
-    HaltonSampler haltonSampler;
+    static HaltonSampler* haltonSampler = new HaltonSampler();
     // for test
-    haltonSampler.SetSampleCount(64);
+    haltonSampler->SetMinimumSampleCount(128);
+    haltonSampler->SetSampleCount(128);
     
     for(std::size_t i = 0; i < cores; i++)
     {
-        threads.push_back(std::async([=, &haltonSampler](){
+        threads.push_back(std::async([=](){
             for(std::size_t index = i; index < size; index+= cores)
             {
                 int y = index / renderImage.GetWidth();
@@ -333,7 +368,7 @@ void RayTracer::Run()
 //                {
 //                    int a = 1;
 //                }
-                SampleResult sampleResult = haltonSampler.SamplePixel(x, y);
+                SampleResult sampleResult = haltonSampler->SamplePixel(x, y);
                 
                 RenderImageHelper::SetPixel(renderImage, x, y, Color24(sampleResult.avgColor.r * 255.0f, sampleResult.avgColor.g * 255.0f, sampleResult.avgColor.b * 255.0f));
                 RenderImageHelper::SetDepth(renderImage, x, y, sampleResult.avgZ);
@@ -360,8 +395,8 @@ void RayTracer::Run()
                     renderImage.ComputeZBufferImage();
                     renderImage.ComputeSampleCountImage();
                     
-                    gaussianFilter->Compute();
-                    colorShiftFilter->Compute();
+//                    gaussianFilter->Compute();
+//                    colorShiftFilter->Compute();
                     
 #ifndef IMGUI_DEBUG
                     WriteToFile();
@@ -396,7 +431,7 @@ void RayTracer::UpdateRenderResult()
     renderTexture->SetData((unsigned char *)renderImage.GetPixels(), renderImage.GetWidth(), renderImage.GetHeight());
     normalTexture->SetData((unsigned char *)normalPixels, renderImage.GetWidth(), renderImage.GetHeight());
     
-    filterTexture->SetData((unsigned char *)colorShiftFilter->GetOutput(), renderImage.GetWidth(), renderImage.GetHeight());
+//    filterTexture->SetData((unsigned char *)colorShiftFilter->GetOutput(), renderImage.GetWidth(), renderImage.GetHeight());
 }
 
 void RayTracer::WriteToFile()
@@ -404,6 +439,6 @@ void RayTracer::WriteToFile()
     renderImage.SaveImage("colorbuffer.png");
     renderImage.SaveZImage("zbuffer.png");
     renderImage.SaveSampleCountImage("samplecount.png");
-    renderImage.SaveImage("colorShiftFilter.png", colorShiftFilter->GetOutput());
-    renderImage.SaveImage("gaussianFilter.png", gaussianFilter->GetOutput());
+//    renderImage.SaveImage("colorShiftFilter.png", colorShiftFilter->GetOutput());
+//    renderImage.SaveImage("gaussianFilter.png", gaussianFilter->GetOutput());
 }

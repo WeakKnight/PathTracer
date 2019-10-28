@@ -34,6 +34,11 @@ public:
         sampleNum = count;
     }
     
+    void SetMinimumSampleCount(int count)
+    {
+        minimumSampleNum = count;
+    }
+    
     void SetColorTolerance(float tolerance)
     {
         colorTolerance = tolerance;
@@ -45,7 +50,7 @@ private:
     
     float colorTolerance;
     
-    std::vector<SampleResult> results;
+    std::vector<SampleResult>* results;
     // use for storing count info
     std::vector<int> sampleCountResult;
     unsigned int sampleNum;

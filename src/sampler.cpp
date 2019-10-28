@@ -9,6 +9,7 @@ colorTolerance(0.01f),
 sampleNum(32),
 minimumSampleNum(4)
 {
+    results = new std::vector<SampleResult>();
     int64_t seed = 6000;
     std::seed_seq ss{uint32_t(seed & 0xffffffff), uint32_t(seed>>32)};
     rng.seed(ss);
@@ -40,7 +41,7 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
             finalY -= 1.0f;
         }
         
-        RayContext rayContext = GenRayContext(GenCameraRay(x, y, finalX, finalY));
+        RayContext rayContext = GenCameraRayContext(x, y, finalX, finalY);
         HitInfoContext hitInfoContext;
         
         Color sampleColor = RootTrace(rayContext, hitInfoContext, x, y);
@@ -66,7 +67,7 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
         result.avgZ = tempSampleResults[i].avgZ;
     }
     
-    results.push_back(result);
+    // results->push_back(result);
     
     return result;
 }

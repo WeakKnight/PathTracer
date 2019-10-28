@@ -556,7 +556,7 @@ class Camera
 {
 public:
     Vec3f pos, dir, up;
-    float fov;
+    float fov, focaldist, dof;
     int imgWidth, imgHeight;
     
     void Init()
@@ -565,6 +565,8 @@ public:
         dir.Set(0,0,-1);
         up.Set(0,1,0);
         fov = 40;
+        focaldist = 1;
+        dof = 0;
         imgWidth = 200;
         imgHeight = 150;
     }
