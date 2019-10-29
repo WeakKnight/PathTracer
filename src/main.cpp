@@ -6,8 +6,23 @@
 
 #include "application.h"
 
-int main(int, char**) 
+#include <direct.h>
+
+#include "string_utils.h"
+
+int main(int, char** args) 
 {
+	auto path = args[0];
+	auto tokens = StringUtils::Split(path, "\\");
+	std::string environmentPath = "";
+
+	for (int i = 0; i < tokens.size() - 1; i++)
+	{
+		environmentPath += (tokens[i] + "\\");
+	}
+
+	chdir(environmentPath.c_str());
+
     spdlog::set_pattern("[thread %t] %v");
     spdlog::set_level(spdlog::level::debug);
 
