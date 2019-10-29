@@ -10,6 +10,8 @@ bool GenerateRayForNearestIntersection(RayContext& ray, HitInfoContext& hitinfoC
 //RayContext GenRayContext(Ray ray, float delta = RAY_DIFF_DELTA);
 Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, int y);
 RayContext GenCameraRayContext(int x, int y, float offsetX, float offsetY);
+Vec2f RandomPointInCircle(float radius);
+Vec2f NonUniformRandomPointInCircle(float radius);
 
 class Node;
 class Filter;

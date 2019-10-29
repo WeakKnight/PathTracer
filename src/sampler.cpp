@@ -27,16 +27,17 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
     
     for(size_t i = 0; i < sampleNum; i++)
     {
-        Vec2f samplerPos = Vec2f(Halton(i, haltonXBase), Halton(i, haltonYBase));
-        
+		// -0.5 to 0.5
+        Vec2f samplerPos = Vec2f(Halton(i, haltonXBase) - 0.5f, Halton(i, haltonYBase) - 0.5f);
+      
         float finalX = samplerPos.x + randomOffset.x;
-        if(finalX >= 1.0f)
+        if(finalX >= 0.5f)
         {
             finalX -= 1.0f;
         }
         
         float finalY = samplerPos.y + randomOffset.y;
-        if(finalY >= 1.0f)
+        if(finalY >= 0.5f)
         {
             finalY -= 1.0f;
         }
@@ -64,7 +65,7 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
     {
         result.avgColor += (tempSampleResults[i].avgColor / (float)tempSampleResults.size());
         result.avgN += (tempSampleResults[i].avgN / (float)tempSampleResults.size());
-        result.avgZ = tempSampleResults[i].avgZ;
+        result.avgZ += (tempSampleResults[i].avgZ / (float)tempSampleResults.size());
     }
     
     // results->push_back(result);

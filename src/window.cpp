@@ -109,6 +109,8 @@ void Window::StartUpdate()
     auto filterTexture = rayTracer.GetFilterTexture();
     
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+	std::vector<ImVec2> circleSamplers;
     
     while (!glfwWindowShouldClose(MGLFWWindow))
     {
@@ -125,11 +127,55 @@ void Window::StartUpdate()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+		{
+			ImGui::SetNextWindowSize(ImVec2(300.0f, 300.0f));
+			ImGui::Begin("Sampler Test");
+			auto drawList = ImGui::GetWindowDrawList();
+			static int addingSamplerCount = 1;
+			static bool uniform = true;
+
+			auto windowPos = ImGui::GetWindowPos();
+
+			auto center = ImVec2(windowPos.x + 200.0f, windowPos.y + 200.0f);
+			auto radius = 90.0f;
+
+			ImGui::InputInt("Count", &addingSamplerCount);
+			ImGui::LabelText("Total Count", "%d" ,circleSamplers.size());
+			ImGui::Checkbox("Uniform Random", &uniform);
+
+			if (ImGui::Button("Add Sampler"))
+			{
+				for (int i = 0; i < addingSamplerCount; i++)
+				{
+					auto randomPoint = RandomPointInCircle(radius);
+					if (!uniform)
+					{
+						randomPoint = NonUniformRandomPointInCircle(radius);
+					}
+					circleSamplers.push_back(ImVec2(randomPoint.x, randomPoint.y));
+				}
+			}
+
+			if (ImGui::Button("Clear"))
+			{
+				circleSamplers.clear();
+			}
+			drawList->AddCircleFilled(center, radius, IM_COL32(70, 255, 255, 255), 100);
+
+			for (int i = 0; i < circleSamplers.size(); i++)
+			{
+				drawList->AddCircleFilled(ImVec2(center.x + circleSamplers[i].x, center.y + circleSamplers[i].y), 3.0f, IM_COL32(10, 10, 10, 255), 12);
+			}
+
+			ImGui::End();
+		}
+
         {
             ImGui::Begin("Toolbox");
             ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
             ImGui::SetWindowSize(ImVec2(240.0f, 400.0f));
             
+
             if(ImGui::Button("output buffer file"))
             {
                 rayTracer.WriteToFile();

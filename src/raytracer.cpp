@@ -191,6 +191,17 @@ bool GenerateRayForNearestIntersection(RayContext& rayContext, HitInfoContext& h
     return result;
 }
 
+Vec2f NonUniformRandomPointInCircle(float radius)
+{
+	float r = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius;
+	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* Pi<float>() * 2;
+
+	float x = r * cos(theta);
+	float y = r * sin(theta);
+
+	return Vec2f(x, y);
+}
+
 Vec2f RandomPointInCircle(float radius)
 {
 //    float x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
@@ -223,8 +234,8 @@ Ray GenCameraRay(int x, int y, float xOffset, float yOffset, bool normalize)
     Ray cameraRay;
     cameraRay.p = camera.pos + cameraRight * randomCirclePoint.x + cameraUp * randomCirclePoint.y;
     cameraRay.dir =
-    (cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + xOffset * texelWdith) +
-    cameraUp * (imgPlaneHeight * 0.5f - y * texelHeight - yOffset * texelHeight) +
+    (cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + 0.5f * texelWdith + xOffset * texelWdith) +
+    cameraUp * (imgPlaneHeight * 0.5f - y * texelHeight - 0.5f * texelHeight - yOffset * texelHeight) +
     cameraFront * camera.focaldist) - (cameraRight * randomCirclePoint.x + cameraUp * randomCirclePoint.y);
     
     if(normalize)
@@ -252,7 +263,7 @@ RayContext GenCameraRayContext(int x, int y, float offsetX, float offsetY)
     result.rightRay.dir = rightOffset.GetNormalized();
     
     auto topOffset = ray.dir + cameraUp * texelHeight * delta;
-    result.topRay.dir = (topOffset).GetNormalized();
+    result.topRay.dir = topOffset.GetNormalized();
     
     result.cameraRay.Normalize();
     
@@ -353,8 +364,8 @@ void RayTracer::Run()
     
     static HaltonSampler* haltonSampler = new HaltonSampler();
     // for test
-    haltonSampler->SetMinimumSampleCount(4);
-    haltonSampler->SetSampleCount(16);
+    haltonSampler->SetMinimumSampleCount(64);
+    haltonSampler->SetSampleCount(64);
     
     for(std::size_t i = 0; i < cores; i++)
     {
