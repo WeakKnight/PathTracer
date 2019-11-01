@@ -32,6 +32,9 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 
+std::mt19937_64 rng;
+std::uniform_real_distribution<float> unif = std::uniform_real_distribution<float>(0.0f, 1.0f);
+
 float imgPlaneHeight;
 float imgPlaneWidth;
 
@@ -215,10 +218,10 @@ Vec2f RandomPointInCircle(float radius)
 //
 //    return Vec2f(x, y);
     // generate a random value between 0 to Radius as the value of Cumulative Distribution Function
-    float S = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+    float S = unif(rng);
     // S = r2 / R2, choose r based on F
     float r = sqrtf(S) * radius;
-    float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * Pi<float>() * 2;
+    float theta = unif(rng) * Pi<float>() * 2.0f;
     
     float x = r * cos(theta);
     float y = r * sin(theta);
@@ -274,6 +277,10 @@ RayContext GenCameraRayContext(int x, int y, float offsetX, float offsetY)
 
 void RayTracer::Init()
 {
+	int64_t seed = 6001;
+	std::seed_seq ss{ uint32_t(seed & 0xffffffff), uint32_t(seed >> 32) };
+	rng.seed(ss);
+
 #ifdef IMGUI_DEBUG
     if(!renderTexture)
     {
