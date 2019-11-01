@@ -336,7 +336,7 @@ Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, i
 {
     HitInfo& hitInfo = hitInfoContext.mainHitInfo;
     
-    bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode);
+    bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode, HIT_FRONT_AND_BACK);
     
     if(sthTraced)
     {
@@ -371,8 +371,8 @@ void RayTracer::Run()
     
     static HaltonSampler* haltonSampler = new HaltonSampler();
     // for test
-    haltonSampler->SetMinimumSampleCount(64);
-    haltonSampler->SetSampleCount(64);
+    haltonSampler->SetMinimumSampleCount(4);
+    haltonSampler->SetSampleCount(32);
     
     for(std::size_t i = 0; i < cores; i++)
     {
