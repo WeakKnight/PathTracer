@@ -19,6 +19,7 @@
 //#include <stack>
 
 #include "raytracer.h"
+#include "utils.h"
 
 static void glfw_error_callback(int error, const char* description)
 {

@@ -20,6 +20,8 @@
 #include "sampler.h"
 #include "filter.h"
 
+#include "utils.h"
+
 Node rootNode;
 Camera camera;
 RenderImage renderImage;
@@ -194,41 +196,6 @@ bool GenerateRayForNearestIntersection(RayContext& rayContext, HitInfoContext& h
     return result;
 }
 
-Vec2f NonUniformRandomPointInCircle(float radius)
-{
-	float r = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius;
-	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* Pi<float>() * 2;
-
-	float x = r * cos(theta);
-	float y = r * sin(theta);
-
-	return Vec2f(x, y);
-}
-
-Vec2f RandomPointInCircle(float radius)
-{
-//    float x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
-//    float y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
-//
-//    while((x * x + y * y) > (radius * radius))
-//    {
-//        x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
-//        y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * radius * 2 - radius;
-//    }
-//
-//    return Vec2f(x, y);
-    // generate a random value between 0 to Radius as the value of Cumulative Distribution Function
-    float S = unif(rng);
-    // S = r2 / R2, choose r based on F
-    float r = sqrtf(S) * radius;
-    float theta = unif(rng) * Pi<float>() * 2.0f;
-    
-    float x = r * cos(theta);
-    float y = r * sin(theta);
-    
-    return Vec2f(x, y);
-}
-
 Ray GenCameraRay(int x, int y, float xOffset, float yOffset, bool normalize)
 {
     // random in a circle
@@ -371,8 +338,8 @@ void RayTracer::Run()
     
     static HaltonSampler* haltonSampler = new HaltonSampler();
     // for test
-    haltonSampler->SetMinimumSampleCount(4);
-    haltonSampler->SetSampleCount(32);
+    haltonSampler->SetMinimumSampleCount(64);
+    haltonSampler->SetSampleCount(256);
     
     for(std::size_t i = 0; i < cores; i++)
     {

@@ -5,6 +5,7 @@
 #include "cyColor.h"
 #include <assert.h>
 #include "raytracer.h"
+#include "utils.h"
 
 using namespace cy;
 
@@ -12,6 +13,37 @@ extern Node rootNode;
 extern TexturedColor environment;
 
 #define INTERSECTION_BIAS 0.0001f
+
+Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossinessInRad)
+{
+	assert(originalNormal.IsUnit());
+	
+	// glossiness is the maximum offset degree, uniformly from 0 to glossiness
+	float offset = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * glossinessInRad;
+	
+	Vec3f randomVector = RandomInUnitSphere().GetNormalized();
+	while (randomVector.Dot(originalNormal) >= (1.0f - RANDOM_THRESHOLD))
+	{
+		randomVector = RandomInUnitSphere().GetNormalized();
+	}
+
+	Vec3f right = randomVector.Cross(originalNormal).GetNormalized();
+	assert(right.IsUnit());
+
+	Vec3f forward = right.Cross(originalNormal).GetNormalized();
+	assert(forward.IsUnit());
+
+	float radius = 1.0f * sinf(offset);
+	float topComponent = 1.0f * cosf(offset);
+
+	// choose a direction from 0 to 2pi, uniformly
+	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 2.0f * M_PI;
+
+	Vec3f result = originalNormal * topComponent + radius * sinf(theta) * right + radius * cosf(theta) * forward;
+	assert(result.IsUnit());
+
+	return result;
+}
 
 Vec3f Reflect(Vec3f I, Vec3f N)
 {
@@ -97,63 +129,30 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
         Vec3f inRefractDir;
         Vec3f inRelectDir;
 
-        CalculateRefractDir(V, N, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
-        
-        bool rightHasInternalReflection = false;
-        
-        Vec3f rightInRefractDir;
-        Vec3f rightInRelectDir;
-        
-        bool topHasInternalReflection = false;
-        
-        Vec3f topInRefractDir;
-        Vec3f topInRelectDir;
-        
-        const Vec3f& Vright = -1.0f * rayContext.rightRay.dir;
-        assert(Vright.IsUnit());
-        const Vec3f& Vtop = -1.0f * rayContext.topRay.dir;
-        assert(Vtop.IsUnit());
-        
-        const Vec3f pRight = rayContext.rightRay.p + rayContext.rightRay.dir * hInfo.z;
-        const Vec3f pTop = rayContext.topRay.p + rayContext.topRay.dir * hInfo.z;
-        
-        CalculateRefractDir(Vright, N, n1, n2, rightInRefractDir, rightInRelectDir, rightHasInternalReflection);
-        CalculateRefractDir(Vtop, N, n1, n2, topInRefractDir, topInRelectDir, topHasInternalReflection);
+		Vec3f refractN = GenerateNormalWithGlossiness(N, refractionGlossiness);
+
+        CalculateRefractDir(V, refractN, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
 
         Ray inReflectRay;
         inReflectRay.dir = inRelectDir;
         inReflectRay.p = hInfo.p + N * INTERSECTION_BIAS;
-        
-        Ray rightInReflectRay;
-        rightInReflectRay.dir = rightInRelectDir;
-        rightInReflectRay.p = pRight;
-        
-        Ray topInReflectRay;
-        topInReflectRay.dir = topInRelectDir;
-        topInReflectRay.p = pTop;
 
         Ray inRefractRay;
         inRefractRay.dir = inRefractDir;
         inRefractRay.p = hInfo.p + (-2.0f) * N * INTERSECTION_BIAS;
-        
-        Ray rightInRefractRay;
-        rightInRefractRay.dir = rightInRefractDir;
-        rightInRefractRay.p = pRight;
-        
-        Ray topInRefractRay;
-        topInRefractRay.dir = topInRefractDir;
-        topInRefractRay.p = pTop;
 
         RayContext reflectRayContext;
         reflectRayContext.cameraRay = inReflectRay;
-        reflectRayContext.rightRay = rightInReflectRay;
-        reflectRayContext.topRay = topInReflectRay;
+        reflectRayContext.rightRay = inReflectRay;
+        reflectRayContext.topRay = inReflectRay;
+		reflectRayContext.hasDiff = false;
         reflectRayContext.delta = RAY_DIFF_DELTA;
 
         RayContext refractRayContext;
         refractRayContext.cameraRay = inRefractRay;
-        refractRayContext.rightRay = rightInRefractRay;
-        refractRayContext.topRay = topInRefractRay;
+        refractRayContext.rightRay = inRefractRay;
+        refractRayContext.topRay = inRefractRay;
+		reflectRayContext.hasDiff = false;
         refractRayContext.delta = RAY_DIFF_DELTA;
 
         // from air, has absortion. no internal reflection
@@ -282,35 +281,26 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
         // only consider front reflect
         if(hInfo.front)
         {
+			Vec3f reflectN = GenerateNormalWithGlossiness(N, reflectionGlossiness);
             
             // Generate Reflect Ray Check Target
-            Vec3f R = Reflect(ray.dir, N);
+            Vec3f R = Reflect(ray.dir, reflectN);
             
             assert(R.IsUnit());
-            assert(N.IsUnit());
+            assert(reflectN.IsUnit());
             assert(ray.dir.IsUnit());
-            
-            Vec3f Rr = Reflect(rayContext.rightRay.dir, N);
-            Vec3f Rt = Reflect(rayContext.topRay.dir, N);
             
             // world space
             Ray reflectRay;
             reflectRay.dir = R;
             reflectRay.p = hInfo.p;
             
-            Ray rightReflectRay;
-            rightReflectRay.dir = Rr;
-            rightReflectRay.p = rayContext.rightRay.p + rayContext.rightRay.dir * hInfo.z;
-
-            Ray topReflectRay;
-            topReflectRay.dir = Rt;
-            topReflectRay.p = rayContext.topRay.p + rayContext.topRay.dir * hInfo.z;
-            
             RayContext reflectRayContext;
             reflectRayContext.cameraRay = reflectRay;
-            reflectRayContext.rightRay = rightReflectRay;
-            reflectRayContext.topRay = topReflectRay;
+            reflectRayContext.rightRay = reflectRay;
+            reflectRayContext.topRay = reflectRay;
             reflectRayContext.delta = RAY_DIFF_DELTA;
+			reflectRayContext.hasDiff = false;
             
             HitInfoContext reflectHitInfoContext;
             HitInfo& reflectHitInfo = reflectHitInfoContext.mainHitInfo;
@@ -332,6 +322,8 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
         }
     }
     
+	Vec3f diffuseN = N;
+
     for(size_t index = 0; index < lights.size(); index++)
     {
         Light* light = lights[index];
@@ -340,7 +332,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
         
         if(light->IsAmbient())
         {
-            colorComing = light->Illuminate(hInfo.p + hInfo.N * INTERSECTION_BIAS, hInfo.N);
+            colorComing = light->Illuminate(hInfo.p + hInfo.N * INTERSECTION_BIAS, diffuseN);
             
             Color diffuseColor = colorComing * diffuse.GetColor();
             if(diffuse.GetTexture())
@@ -367,7 +359,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             Vec3f H = (V + L).GetNormalized();
             assert(H.IsUnit());
             
-            float cosTheta = L.Dot(N);
+            float cosTheta = L.Dot(diffuseN);
             if(cosTheta < 0.0f)
             {
                 cosTheta = 0.0f;
@@ -385,7 +377,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
                 continue;
             }
             
-            Color iComing = light->Illuminate(hInfo.p + N * INTERSECTION_BIAS, N);
+            Color iComing = light->Illuminate(hInfo.p + N * INTERSECTION_BIAS, diffuseN);
             colorComing = iComing * cosTheta;
             
             Color diffuseColor = colorComing * diffuse.GetColor();
