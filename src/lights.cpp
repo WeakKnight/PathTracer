@@ -18,6 +18,29 @@ float GenLight::Shadow(Ray ray, float t_max)
     return 1.0f;
 }
 
+Vec3f PointLight::Direction(Vec3f const& p) const 
+{ 
+	Vec3f top = (position - p).GetNormalized();
+
+	Vec3f randomVector = RandomInUnitSphere().GetNormalized();
+	while (randomVector.Dot(top) >= (1.0f - RANDOM_THRESHOLD))
+	{
+		randomVector = RandomInUnitSphere().GetNormalized();
+	}
+
+	Vec3f right = randomVector.Cross(top).GetNormalized();
+	assert(right.IsUnit());
+
+	Vec3f forward = right.Cross(top).GetNormalized();
+	assert(forward.IsUnit());
+
+	float radius = size;
+
+	Vec2f p2d = RandomPointInCircle(size);
+
+	Vec3f shadowRayDir = position - p + p2d.x * right + p2d.y * forward;
+	return (-shadowRayDir).GetNormalized();
+}
 
 Color PointLight::Illuminate(Vec3f const& p, Vec3f const& N) const
 {
