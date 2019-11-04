@@ -39,6 +39,29 @@ Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossiness
 	return result;
 }
 
+Vec3f GenerateNormalWithGlossinessAndNormalDistribution(const Vec3f& originalNormal, std::normal_distribution<float> dist, std::default_random_engine eng)
+{
+	assert(originalNormal.IsUnit());
+
+	// glossiness is the maximum offset degree, uniformly from 0 to glossiness
+	float offset = abs(dist(eng));
+
+	Vec3f right;
+	Vec3f forward;
+	branchlessONB(originalNormal, right, forward);
+
+	float radius = 1.0f * sinf(offset);
+	float topComponent = 1.0f * cosf(offset);
+
+	// choose a direction from 0 to 2pi, uniformly
+	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 2.0f * M_PI;
+
+	Vec3f result = originalNormal * topComponent + radius * sinf(theta) * right + radius * cosf(theta) * forward;
+	assert(result.IsUnit());
+
+	return result;
+}
+
 Vec3f Reflect(Vec3f I, Vec3f N)
 {
     return I - 2.0f * N.Dot(I) * N;
@@ -289,8 +312,16 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
         // only consider front reflect
         if(hInfo.front)
         {
-			Vec3f reflectN = GenerateNormalWithGlossiness(N, reflectionGlossiness);
-            
+			Vec3f reflectN;
+			if (reflectNormalDistribution)
+			{
+				reflectN = GenerateNormalWithGlossinessAndNormalDistribution(N, reflectNormalDist, eng);
+			}
+			else
+			{
+				reflectN = GenerateNormalWithGlossiness(N, reflectionGlossiness);
+			}
+
             // Generate Reflect Ray Check Target
             Vec3f R = Reflect(ray.dir, reflectN);
             

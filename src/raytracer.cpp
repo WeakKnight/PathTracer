@@ -290,8 +290,8 @@ void RayTracer::Run()
     
     static HaltonSampler* haltonSampler = new HaltonSampler();
     // for test
-    haltonSampler->SetMinimumSampleCount(32);
-    haltonSampler->SetSampleCount(128);
+    haltonSampler->SetMinimumSampleCount(16);
+    haltonSampler->SetSampleCount(64);
     
     for(std::size_t i = 0; i < cores; i++)
     {

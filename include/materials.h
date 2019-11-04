@@ -14,6 +14,7 @@
 #define _MATERIALS_H_INCLUDED_
  
 #include "scene.h"
+#include <random>
  
 //-------------------------------------------------------------------------------
  
@@ -27,7 +28,10 @@ public:
  
     void SetDiffuse     (Color dif)     { diffuse.SetColor(dif); }
     void SetSpecular    (Color spec)    { specular.SetColor(spec); }
-    void SetGlossiness  (float gloss)   { glossiness = gloss; }
+    void SetGlossiness  (float gloss)   
+	{ 
+		glossiness = gloss; 
+	}
  
     void SetReflection  (Color reflect) { reflection.SetColor(reflect); }
     void SetRefraction  (Color refract) { refraction.SetColor(refract); }
@@ -42,9 +46,42 @@ public:
 	void SetNormalTexture(TextureMap* map) { normal = map; }
 	void SetAOTexture(TextureMap* map) { ao = map; }
 
-    void SetReflectionGlossiness(float gloss)   { reflectionGlossiness=gloss; }
-    void SetRefractionGlossiness(float gloss)   { refractionGlossiness=gloss; }
+    void SetReflectionGlossiness(float gloss)   
+	{ 
+		reflectionGlossiness=gloss; 
+		reflectNormalDist = std::normal_distribution<float>(0.0f, 0.39f * gloss);
+	}
+
+    void SetRefractionGlossiness(float gloss)   
+	{ 
+		refractionGlossiness=gloss; 
+		refractNormalDist = std::normal_distribution<float>(0.0f, 3.0f * gloss);
+	}
  
+	void SetReflectNormalDistribution(float value)
+	{
+		if (value > 0.0f)
+		{
+			reflectNormalDistribution = true;
+		}
+		else
+		{
+			reflectNormalDistribution = false;
+		}
+	}
+
+	void SetRefractNormalDistribution(float value)
+	{
+		if (value > 0.0f)
+		{
+			refractNormalDistribution = true;
+		}
+		else
+		{
+			refractNormalDistribution = false;
+		}
+	}
+
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
  
 private:
@@ -55,6 +92,11 @@ private:
     Color absorption;
     float ior;  // index of refraction
     float reflectionGlossiness, refractionGlossiness;
+	std::default_random_engine eng; 
+	std::normal_distribution<float> reflectNormalDist; 
+	std::normal_distribution<float> refractNormalDist;
+	bool reflectNormalDistribution = false;
+	bool refractNormalDistribution = false;
 };
  
 //-------------------------------------------------------------------------------
