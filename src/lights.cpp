@@ -21,18 +21,23 @@ float GenLight::Shadow(Ray ray, float t_max)
 Vec3f PointLight::Direction(Vec3f const& p) const 
 { 
 	Vec3f top = (position - p).GetNormalized();
+	
+	Vec3f right;
+	Vec3f forward;
 
-	Vec3f randomVector = RandomInUnitSphere().GetNormalized();
-	while (randomVector.Dot(top) >= (1.0f - RANDOM_THRESHOLD))
-	{
-		randomVector = RandomInUnitSphere().GetNormalized();
-	}
+	branchlessONB(top, right, forward);
 
-	Vec3f right = randomVector.Cross(top).GetNormalized();
-	assert(right.IsUnit());
+	//Vec3f randomVector = RandomInUnitSphere().GetNormalized();
+	//while (randomVector.Dot(top) >= (1.0f - RANDOM_THRESHOLD))
+	//{
+	//	randomVector = RandomInUnitSphere().GetNormalized();
+	//}
 
-	Vec3f forward = right.Cross(top).GetNormalized();
-	assert(forward.IsUnit());
+	//Vec3f right = randomVector.Cross(top).GetNormalized();
+	//assert(right.IsUnit());
+
+	//Vec3f forward = right.Cross(top).GetNormalized();
+	//assert(forward.IsUnit());
 
 	float radius = size;
 
@@ -46,17 +51,22 @@ Color PointLight::Illuminate(Vec3f const& p, Vec3f const& N) const
 {
 	Vec3f top = (position - p).GetNormalized();
 
-	Vec3f randomVector = RandomInUnitSphere().GetNormalized();
-	while (randomVector.Dot(top) >= (1.0f - RANDOM_THRESHOLD))
-	{
-		randomVector = RandomInUnitSphere().GetNormalized();
-	}
+	Vec3f right;
+	Vec3f forward;
 
-	Vec3f right = randomVector.Cross(top).GetNormalized();
-	assert(right.IsUnit());
+	branchlessONB(top, right, forward);
 
-	Vec3f forward = right.Cross(top).GetNormalized();
-	assert(forward.IsUnit());
+	//Vec3f randomVector = RandomInUnitSphere().GetNormalized();
+	//while (randomVector.Dot(top) >= (1.0f - RANDOM_THRESHOLD))
+	//{
+	//	randomVector = RandomInUnitSphere().GetNormalized();
+	//}
+
+	//Vec3f right = randomVector.Cross(top).GetNormalized();
+	//assert(right.IsUnit());
+
+	//Vec3f forward = right.Cross(top).GetNormalized();
+	//assert(forward.IsUnit());
 	
 	float radius = size;
 

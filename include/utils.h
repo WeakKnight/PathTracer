@@ -12,3 +12,5 @@ Vec3f RandomInUnitSphere();
 Vec2f NonUniformRandomPointInCircle(float radius);
 
 Vec2f RandomPointInCircle(float radius);
+
+void branchlessONB(const Vec3f& n, Vec3f& b1, Vec3f& b2);

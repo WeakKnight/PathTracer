@@ -38,6 +38,10 @@ public:
     void SetSpecularTexture  (TextureMap *map)  { specular.SetTexture(map); }
     void SetReflectionTexture(TextureMap *map)  { reflection.SetTexture(map); }
     void SetRefractionTexture(TextureMap *map)  { refraction.SetTexture(map); }
+	
+	void SetNormalTexture(TextureMap* map) { normal = map; }
+	void SetAOTexture(TextureMap* map) { ao = map; }
+
     void SetReflectionGlossiness(float gloss)   { reflectionGlossiness=gloss; }
     void SetRefractionGlossiness(float gloss)   { refractionGlossiness=gloss; }
  
@@ -45,6 +49,8 @@ public:
  
 private:
     TexturedColor diffuse, specular, reflection, refraction;
+	TextureMap* normal = nullptr;
+	TextureMap* ao = nullptr;
     float glossiness;
     Color absorption;
     float ior;  // index of refraction

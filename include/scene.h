@@ -142,6 +142,8 @@ struct HitInfo
     float       z;      // the distance from the ray center to the hit point
     Vec3f       p;      // position of the hit point
     Vec3f       N;      // surface normal at the hit point
+	Vec3f	    Tangent;
+	Vec3f       Bitangent;
     Vec3f       uvw;    // texture coordinate at the hit point
     Vec3f       duvw[2];// derivatives of the texture coordinate
     Node const *node;   // the object node that was hit
@@ -150,6 +152,28 @@ struct HitInfo
     
     HitInfo() { Init(); }
     void Init() { z=BIGFLOAT; node=nullptr; front=true; uvw.Set(0.5f,0.5f,0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID=0; }
+	
+	void Copy(const HitInfo& other)
+	{
+		z = other.z;
+		p = other.p;
+		N = other.N;
+		Tangent = other.Tangent;
+		Bitangent = other.Bitangent;
+		uvw = other.uvw;
+		duvw[0] = other.duvw[0];
+		duvw[1] = other.duvw[1];
+		node = other.node;
+		front = other.front;
+		mtlID = other.mtlID;
+	}
+
+	void CopyForDiffRay(const HitInfo& other)
+	{
+		z = other.z;
+		p = other.p;
+		N = other.N;
+	}
 };
 
 struct HitInfoContext
@@ -296,6 +320,19 @@ public:
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide= HIT_FRONT) const=0;
     virtual Box  GetBoundBox() const=0;
     virtual void ViewportDisplay(const Material *mtl) const {}  // used for OpenGL display
+
+	bool HasNormalMap() const
+	{
+		return normalMap.size() != 0;
+	}
+
+	bool HasHeightMap() const
+	{
+		return heightMap.size() != 0;
+	}
+
+	std::string normalMap = "";
+	std::string heightMap = "";
 };
 
 typedef ItemFileList<Object> ObjFileList;
@@ -405,6 +442,22 @@ public:
         d[1] = TransformTo(duvw[1]+uvw)-u;
         return texture->Sample(u,d,elliptic);
     }
+
+	virtual Vec3f SampleVector(Vec3f const& uvw) const
+	{
+		Color color = Sample(uvw);
+		// 0.5 * normal + 0.5 = color
+		// (color - 0.5) * 2
+		return Vec3f(2.0f * color.r - 1.0f, 2.0f * color.g - 1.0f, 2.0f * color.b - 1.0f);
+	}
+
+	virtual Vec3f SampleVector(Vec3f const& uvw, Vec3f const duvw[2]) const
+	{
+		Color color = Sample(uvw, duvw);
+		// 0.5 * normal + 0.5 = color
+		// (color - 0.5) * 2
+		return Vec3f(2.0f * color.r - 1.0f, 2.0f * color.g - 1.0f, 2.0f * color.b - 1.0f);
+	}
     
     bool SetViewportTexture() const { if ( texture ) return texture->SetViewportTexture(); return false; }   // used for OpenGL display
     
@@ -538,6 +591,8 @@ public:
     {
         hInfo.p = TransformFrom(hInfo.p);
         hInfo.N = VectorTransformFrom(hInfo.N).GetNormalized();
+		hInfo.Tangent = VectorTransformFrom(hInfo.Tangent).GetNormalized();
+		hInfo.Bitangent = VectorTransformFrom(hInfo.Bitangent).GetNormalized();
     }
     
     void FromNodeCoords( HitInfoContext &hInfoContext ) const

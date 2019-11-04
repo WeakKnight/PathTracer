@@ -25,17 +25,12 @@
 Node rootNode;
 Camera camera;
 RenderImage renderImage;
-Sphere theSphere;
-Plane thePlane;
 MaterialList materials;
 LightList lights;
 ObjFileList objList;
 TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
-
-std::mt19937_64 rng;
-std::uniform_real_distribution<float> unif = std::uniform_real_distribution<float>(0.0f, 1.0f);
 
 float imgPlaneHeight;
 float imgPlaneWidth;
@@ -110,27 +105,11 @@ bool TraceNode(HitInfoContext& hitInfoContext, RayContext& rayContext, Node* nod
         
         if(currentHitInfo.z < hitInfo.z)
         {
-            // world space
-            hitInfo.z = currentHitInfo.z;
-            // node space
-            hitInfo.p = currentHitInfo.p;
-            // node space
-            hitInfo.N = currentHitInfo.N;
+			hitInfo.Copy(currentHitInfo);
             hitInfo.node = node;
-            hitInfo.front = currentHitInfo.front;
             
-            hitInfo.uvw = currentHitInfo.uvw;
-            hitInfo.mtlID = currentHitInfo.mtlID;
-            hitInfo.duvw[0] = currentHitInfo.duvw[0];
-            hitInfo.duvw[1] = currentHitInfo.duvw[1];
-            
-            rightInfo.N = currentHitInfoContext.rightHitInfo.N;
-            rightInfo.z = currentHitInfoContext.rightHitInfo.z;
-            rightInfo.p = currentHitInfoContext.rightHitInfo.p;
-            
-            topInfo.N = currentHitInfoContext.topHitInfo.N;
-            topInfo.z = currentHitInfoContext.topHitInfo.z;
-            topInfo.p = currentHitInfoContext.topHitInfo.p;
+			rightInfo.CopyForDiffRay(currentHitInfoContext.rightHitInfo);
+			topInfo.CopyForDiffRay(currentHitInfoContext.topHitInfo);
             
             assert(!isnan(rightInfo.N.Sum()));
             assert(!isnan(topInfo.N.Sum()));
@@ -153,23 +132,10 @@ bool TraceNode(HitInfoContext& hitInfoContext, RayContext& rayContext, Node* nod
             
             if(currentHitInfo.z < hitInfo.z)
             {
-                hitInfo.z = currentHitInfo.z;
-                hitInfo.p = currentHitInfo.p;
-                hitInfo.N = currentHitInfo.N;
-                hitInfo.node = currentHitInfo.node;
-                hitInfo.front = currentHitInfo.front;
-                hitInfo.uvw = currentHitInfo.uvw;
-                hitInfo.mtlID = currentHitInfo.mtlID;
-                hitInfo.duvw[0] = currentHitInfo.duvw[0];
-                hitInfo.duvw[1] = currentHitInfo.duvw[1];
-                
-                rightInfo.N = currentHitInfoContext.rightHitInfo.N;
-                rightInfo.z = currentHitInfoContext.rightHitInfo.z;
-                rightInfo.p = currentHitInfoContext.rightHitInfo.p;
-                
-                topInfo.N = currentHitInfoContext.topHitInfo.N;
-                topInfo.z = currentHitInfoContext.topHitInfo.z;
-                topInfo.p = currentHitInfoContext.topHitInfo.p;
+				hitInfo.Copy(currentHitInfo);
+
+				rightInfo.CopyForDiffRay(currentHitInfoContext.rightHitInfo);
+				topInfo.CopyForDiffRay(currentHitInfoContext.topHitInfo);
                 
                 assert(!isnan(rightInfo.N.Sum()));
                 assert(!isnan(topInfo.N.Sum()));
@@ -244,10 +210,6 @@ RayContext GenCameraRayContext(int x, int y, float offsetX, float offsetY)
 
 void RayTracer::Init()
 {
-	int64_t seed = 6001;
-	std::seed_seq ss{ uint32_t(seed & 0xffffffff), uint32_t(seed >> 32) };
-	rng.seed(ss);
-
 #ifdef IMGUI_DEBUG
     if(!renderTexture)
     {
@@ -287,16 +249,6 @@ void RayTracer::Init()
     // pixel's world space size
     texelWdith = imgPlaneWidth / static_cast<float>(camera.imgWidth);
     texelHeight = imgPlaneHeight / static_cast<float>(camera.imgHeight);
-    
-//    gaussianFilter = new GaussianFilter(renderImage.GetPixels(),
-//                                        (unsigned int)renderImage.GetWidth(),
-//                                        (unsigned int)renderImage.GetHeight(),
-//                                        0.3f,
-//                                        Vec2f(3.0f, 3.0f));
-//    
-//    colorShiftFilter = new ColorShiftFilter(gaussianFilter->GetOutput(),
-//                                (unsigned int)renderImage.GetWidth(),
-//                                (unsigned int)renderImage.GetHeight());
 }
 
 Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, int y)
@@ -338,8 +290,8 @@ void RayTracer::Run()
     
     static HaltonSampler* haltonSampler = new HaltonSampler();
     // for test
-    haltonSampler->SetMinimumSampleCount(64);
-    haltonSampler->SetSampleCount(256);
+    haltonSampler->SetMinimumSampleCount(32);
+    haltonSampler->SetSampleCount(128);
     
     for(std::size_t i = 0; i < cores; i++)
     {

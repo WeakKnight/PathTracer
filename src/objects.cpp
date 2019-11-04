@@ -23,14 +23,7 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
                 {
                     result = true;
                     
-                    hInfo.N = currentHitInfo.N;
-                    hInfo.p = currentHitInfo.p;
-                    hInfo.z = currentHitInfo.z;
-                    hInfo.front = currentHitInfo.front;
-                    hInfo.uvw = currentHitInfo.uvw;
-                    hInfo.mtlID = currentHitInfo.mtlID;
-                    hInfo.duvw[0] = currentHitInfo.duvw[0];
-                    hInfo.duvw[1] = currentHitInfo.duvw[1];
+                    hInfo.Copy(currentHitInfo);
                 }
             }
         }
@@ -48,50 +41,22 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, BVHNode*
             if (hitLeft && hitRight) {
                 if (leftHitInfo.z < rightHitInfo.z)
                 {
-                    hInfo.N = leftHitInfo.N;
-                    hInfo.p = leftHitInfo.p;
-                    hInfo.z = leftHitInfo.z;
-                    hInfo.front = leftHitInfo.front;
-                    hInfo.uvw = leftHitInfo.uvw;
-                    hInfo.mtlID = leftHitInfo.mtlID;
-                    hInfo.duvw[0] = leftHitInfo.duvw[0];
-                    hInfo.duvw[1] = leftHitInfo.duvw[1];
+                    hInfo.Copy(leftHitInfo);
                 }
                 else
                 {
-                    hInfo.N = rightHitInfo.N;
-                    hInfo.p = rightHitInfo.p;
-                    hInfo.z = rightHitInfo.z;
-                    hInfo.front = rightHitInfo.front;
-                    hInfo.uvw = rightHitInfo.uvw;
-                    hInfo.mtlID = rightHitInfo.mtlID;
-                    hInfo.duvw[0] = rightHitInfo.duvw[0];
-                    hInfo.duvw[1] = rightHitInfo.duvw[1];
+                    hInfo.Copy(rightHitInfo);
                 }
                 return true;
             }
             else if (hitLeft)
             {
-                hInfo.N = leftHitInfo.N;
-                hInfo.p = leftHitInfo.p;
-                hInfo.z = leftHitInfo.z;
-                hInfo.front = leftHitInfo.front;
-                hInfo.uvw = leftHitInfo.uvw;
-                hInfo.mtlID = leftHitInfo.mtlID;
-                hInfo.duvw[0] = leftHitInfo.duvw[0];
-                hInfo.duvw[1] = leftHitInfo.duvw[1];
+                hInfo.Copy(leftHitInfo);
                 return true;
             }
             else if (hitRight)
             {
-                hInfo.N = rightHitInfo.N;
-                hInfo.p = rightHitInfo.p;
-                hInfo.z = rightHitInfo.z;
-                hInfo.front = rightHitInfo.front;
-                hInfo.uvw = rightHitInfo.uvw;
-                hInfo.mtlID = rightHitInfo.mtlID;
-                hInfo.duvw[0] = rightHitInfo.duvw[0];
-                hInfo.duvw[1] = rightHitInfo.duvw[1];
+                hInfo.Copy(rightHitInfo);
                 return true;
             }
             else
@@ -128,22 +93,10 @@ bool TriObj::TraceBVHNode( RayContext &rayContext, HitInfoContext& hInfoContext,
                 {
                     result = true;
                     
-                    hInfo.N = currentHitInfo.N;
-                    hInfo.p = currentHitInfo.p;
-                    hInfo.z = currentHitInfo.z;
-                    hInfo.front = currentHitInfo.front;
-                    hInfo.uvw = currentHitInfo.uvw;
-                    hInfo.mtlID = currentHitInfo.mtlID;
-                    hInfo.duvw[0] = currentHitInfo.duvw[0];
-                    hInfo.duvw[1] = currentHitInfo.duvw[1];
+                    hInfo.Copy(currentHitInfo);
                     
-                    hInfoRight.N = currentHitInfoContext.rightHitInfo.N;
-                    hInfoRight.z = currentHitInfoContext.rightHitInfo.z;
-                    hInfoRight.p = currentHitInfoContext.rightHitInfo.p;
-                    
-                    hInfoTop.N = currentHitInfoContext.topHitInfo.N;
-                    hInfoTop.z = currentHitInfoContext.topHitInfo.z;
-                    hInfoTop.p = currentHitInfoContext.topHitInfo.p;
+                    hInfoRight.CopyForDiffRay(currentHitInfoContext.rightHitInfo);
+                    hInfoTop.CopyForDiffRay(currentHitInfoContext.topHitInfo);
                 }
             }
         }
@@ -171,83 +124,35 @@ bool TriObj::TraceBVHNode( RayContext &rayContext, HitInfoContext& hInfoContext,
             if (hitLeft && hitRight) {
                 if (leftHitInfo.z < rightHitInfo.z)
                 {
-                    hInfo.N = leftHitInfo.N;
-                    hInfo.p = leftHitInfo.p;
-                    hInfo.z = leftHitInfo.z;
-                    hInfo.front = leftHitInfo.front;
-                    hInfo.uvw = leftHitInfo.uvw;
-                    hInfo.mtlID = leftHitInfo.mtlID;
-                    hInfo.duvw[0] = leftHitInfo.duvw[0];
-                    hInfo.duvw[1] = leftHitInfo.duvw[1];
-                    
-                    hInfoRight.N = left_RightHitInfo.N;
-                    hInfoRight.z = left_RightHitInfo.z;
-                    hInfoRight.p = left_RightHitInfo.p;
-                    
-                    hInfoTop.N = left_TopHitInfo.N;
-                    hInfoTop.z = left_TopHitInfo.z;
-                    hInfoTop.p = left_TopHitInfo.p;
+                    hInfo.Copy(leftHitInfo);
+
+                    hInfoRight.CopyForDiffRay(left_RightHitInfo);
+                    hInfoTop.CopyForDiffRay(left_TopHitInfo);
                 }
                 else
                 {
-                    hInfo.N = rightHitInfo.N;
-                    hInfo.p = rightHitInfo.p;
-                    hInfo.z = rightHitInfo.z;
-                    hInfo.front = rightHitInfo.front;
-                    hInfo.uvw = rightHitInfo.uvw;
-                    hInfo.mtlID = rightHitInfo.mtlID;
-                    hInfo.duvw[0] = rightHitInfo.duvw[0];
-                    hInfo.duvw[1] = rightHitInfo.duvw[1];
-                    
-                    hInfoRight.N = right_RightHitInfo.N;
-                    hInfoRight.z = right_RightHitInfo.z;
-                    hInfoRight.p = right_RightHitInfo.p;
-                    
-                    hInfoTop.N = right_TopHitInfo.N;
-                    hInfoTop.z = right_TopHitInfo.z;
-                    hInfoTop.p = right_TopHitInfo.p;
+                    hInfo.Copy(rightHitInfo);
+
+                    hInfoRight.CopyForDiffRay(right_RightHitInfo);
+                    hInfoTop.CopyForDiffRay(right_TopHitInfo);
                 }
                 return true;
             }
             else if (hitLeft)
             {
-                hInfo.N = leftHitInfo.N;
-                hInfo.p = leftHitInfo.p;
-                hInfo.z = leftHitInfo.z;
-                hInfo.front = leftHitInfo.front;
-                hInfo.uvw = leftHitInfo.uvw;
-                hInfo.mtlID = leftHitInfo.mtlID;
-                hInfo.duvw[0] = leftHitInfo.duvw[0];
-                hInfo.duvw[1] = leftHitInfo.duvw[1];
-                
-                hInfoRight.N = left_RightHitInfo.N;
-                hInfoRight.z = left_RightHitInfo.z;
-                hInfoRight.p = left_RightHitInfo.p;
-                
-                hInfoTop.N = left_TopHitInfo.N;
-                hInfoTop.z = left_TopHitInfo.z;
-                hInfoTop.p = left_TopHitInfo.p;
+                hInfo.Copy(leftHitInfo);
+
+                hInfoRight.CopyForDiffRay(left_RightHitInfo);
+                hInfoTop.CopyForDiffRay(left_TopHitInfo);
                 
                 return true;
             }
             else if (hitRight)
             {
-                hInfo.N = rightHitInfo.N;
-                hInfo.p = rightHitInfo.p;
-                hInfo.z = rightHitInfo.z;
-                hInfo.front = rightHitInfo.front;
-                hInfo.uvw = rightHitInfo.uvw;
-                hInfo.mtlID = rightHitInfo.mtlID;
-                hInfo.duvw[0] = rightHitInfo.duvw[0];
-                hInfo.duvw[1] = rightHitInfo.duvw[1];
-                
-                hInfoRight.N = right_RightHitInfo.N;
-                hInfoRight.z = right_RightHitInfo.z;
-                hInfoRight.p = right_RightHitInfo.p;
-                
-                hInfoTop.N = right_TopHitInfo.N;
-                hInfoTop.z = right_TopHitInfo.z;
-                hInfoTop.p = right_TopHitInfo.p;
+                hInfo.Copy(rightHitInfo);
+
+                hInfoRight.CopyForDiffRay(right_RightHitInfo);
+                hInfoTop.CopyForDiffRay(right_TopHitInfo);
                 
                 return true;
             }
@@ -569,7 +474,7 @@ Vec3f PlaneCalculatePlaneTexCoord(const Vec3f &p)
 bool Plane::IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide) const
 {
     HitInfo& hInfo = hInfoContext.mainHitInfo;
-    
+
     if(IntersectRay(rayContext.cameraRay, hInfo, hitSide))
     {
         // RAY DIFF
@@ -612,7 +517,7 @@ bool Plane::IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, i
             hInfo.duvw[0] = Vec3f(0.0f, 0.0f, 0.0f);
             hInfo.duvw[1] = Vec3f(0.0f, 0.0f, 0.0f);
         }
-        
+
         return true;
     }
     else
@@ -667,8 +572,12 @@ bool Plane::IntersectRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
     hInfo.N = isFront? n : -1.0f * n;
     hInfo.p = p;
     hInfo.z = t;
+
+	// calculate tangent
+	hInfo.Tangent = Vec3f(1.0f, 0.0f, 0.0f);
+	hInfo.Bitangent = Vec3f(0.0f, 1.0f, 0.0f);
     
-    hInfo.uvw = PlaneCalculatePlaneTexCoord(p);
+	hInfo.uvw = PlaneCalculatePlaneTexCoord(p);
 
     return true;
 }

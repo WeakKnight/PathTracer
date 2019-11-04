@@ -28,8 +28,6 @@ public:
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const;
 };
 
-extern Sphere theSphere;
-
 //-------------------------------------------------------------------------------
 
 class Plane : public Object
@@ -40,8 +38,6 @@ public:
     virtual void ViewportDisplay(const Material *mtl) const;
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const;
 };
-
-extern Plane thePlane;
 
 //-------------------------------------------------------------------------------
 class MeshBVH;

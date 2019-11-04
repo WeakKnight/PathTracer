@@ -7,6 +7,15 @@
 
 using namespace cy;
 
+void branchlessONB(const Vec3f& n, Vec3f& b1, Vec3f& b2)
+{
+	float sign = copysignf(1.0f, n.z);
+	const float a = -1.0f / (sign + n.z);
+	const float b = n.x * n.y * a;
+	b1 = Vec3f(1.0f + sign * n.x * n.x * a, sign * b, -sign * n.x);
+	b2 = Vec3f(b, sign + n.y * n.y * a, -n.y);
+}
+
 Vec3f RandomInUnitSphere()
 {
 	Vec3f result;

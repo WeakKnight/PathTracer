@@ -6,11 +6,13 @@
 #include <assert.h>
 #include "raytracer.h"
 #include "utils.h"
+#include <unordered_map>
 
 using namespace cy;
 
 extern Node rootNode;
 extern TexturedColor environment;
+extern std::unordered_map<std::string, TextureMap> textureMap;
 
 #define INTERSECTION_BIAS 0.0001f
 
@@ -21,17 +23,9 @@ Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossiness
 	// glossiness is the maximum offset degree, uniformly from 0 to glossiness
 	float offset = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * glossinessInRad;
 	
-	Vec3f randomVector = RandomInUnitSphere().GetNormalized();
-	while (randomVector.Dot(originalNormal) >= (1.0f - RANDOM_THRESHOLD))
-	{
-		randomVector = RandomInUnitSphere().GetNormalized();
-	}
-
-	Vec3f right = randomVector.Cross(originalNormal).GetNormalized();
-	assert(right.IsUnit());
-
-	Vec3f forward = right.Cross(originalNormal).GetNormalized();
-	assert(forward.IsUnit());
+	Vec3f right;
+	Vec3f forward;
+	branchlessONB(originalNormal, right, forward);
 
 	float radius = 1.0f * sinf(offset);
 	float topComponent = 1.0f * cosf(offset);
@@ -93,8 +87,22 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     Vec3f V = -1.0f * ray.dir;
     assert(V.IsUnit());
     
-    Vec3f N = hInfo.N;
-    assert(N.IsUnit());
+	Vec3f N = hInfo.N;
+	assert(N.IsUnit());
+
+	if (this->normal)
+	{
+		Vec3f texNormal = this->normal->SampleVector(hInfo.uvw, hInfo.duvw);
+		
+		// Vec3f right;
+		// Vec3f forward;
+		// branchlessONB(N, right, forward);
+
+		// N = hInfo.N * texNormal.z + right * texNormal.y + forward * texNormal.x;
+		N = hInfo.N * texNormal.z + hInfo.Bitangent.GetNormalized() * texNormal.y + hInfo.Tangent.GetNormalized() * texNormal.x;
+		
+		N.Normalize();
+	}
     
     float cosBeta = V.Dot(N);
     if(cosBeta < 0.0f)
@@ -400,7 +408,16 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
 //                specularColor.SetBlack();
 //            }
             
-            result += (diffuseColor + specularColor);
+			float aoFactor = 1.0f;
+
+			if (this->ao)
+			{
+				Vec3f texAo = this->ao->SampleVector(hInfo.uvw, hInfo.duvw);
+
+				aoFactor = (texAo.x / 1.0f);
+			}
+
+            result += (aoFactor * (diffuseColor + specularColor));
         }
     }
     // assert(result.Max() <= 1.0f);

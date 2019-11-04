@@ -17,6 +17,8 @@
 #include "texture.h"
 #include "tinyxml/tinyxml.h"
 #include "xmlload.h"
+#include <unordered_map>
+
 //-------------------------------------------------------------------------------
  
 extern Node rootNode;
@@ -28,7 +30,6 @@ extern ObjFileList objList;
 extern TexturedColor background;
 extern TexturedColor environment;
 extern TextureList textureList;
- 
 //-------------------------------------------------------------------------------
  
 #ifdef WIN32
@@ -192,10 +193,12 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
     char const* type = element->Attribute("type");
     if ( type ) {
         if ( COMPARE(type,"sphere") ) {
-            node->SetNodeObj( &theSphere );
+			Sphere* sphere = new Sphere;
+            node->SetNodeObj( sphere);
             printf(" - Sphere");
         } else if ( COMPARE(type,"plane") ) {
-            node->SetNodeObj( &thePlane );
+			Plane* plane = new Plane;
+            node->SetNodeObj( plane);
             printf(" - Plane");
         } else if ( COMPARE(type,"obj") ) {
             printf(" - OBJ");
@@ -319,7 +322,14 @@ void LoadMaterial(TiXmlElement *element)
                     m->SetDiffuse(c);
                     printf("   diffuse %f %f %f\n",c.r,c.g,c.b);
                     m->SetDiffuseTexture( ReadTexture(child) );
-                } else if ( COMPARE( child->Value(), "specular" ) ) {
+                }
+				else if (COMPARE(child->Value(), "normal")) {
+					m->SetNormalTexture(ReadTexture(child));
+				}
+				else if (COMPARE(child->Value(), "ao")) {
+					m->SetAOTexture(ReadTexture(child));
+				}
+				else if ( COMPARE( child->Value(), "specular" ) ) {
                     ReadColor( child, c );
                     m->SetSpecular(c);
                     printf("   specular %f %f %f\n",c.r,c.g,c.b);
