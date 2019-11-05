@@ -46,24 +46,24 @@
      <diffuse texture="assets/rock_albedo.png">
         <scale value="0.01"/>
       </diffuse>
-      <!-- <normal texture="rock_normal.png">
+      <normal texture="assets/rock_normal.png">
         <scale value="0.01"/>
       </normal>
-      <ao texture="rock_ao.png">
+      <ao texture="assets/rock_ao.png">
         <scale value="0.01"/>
-      </ao> -->
+      </ao>
       <specular value="0"/>
     </material>
     <material type="blinn" name="bricks">
      <diffuse texture="assets/ground_albedo.png">
         <scale value="0.06"/>
       </diffuse>
-      <!-- <normal texture="ground_normal.png">
+      <normal texture="assets/ground_normal.png">
         <scale value="0.06"/>
       </normal>
-      <ao texture="ground_ao.png">
+      <ao texture="assets/ground_ao.png">
         <scale value="0.06"/>
-      </ao> -->
+      </ao>
       <specular value="0.3"/>
       <glossiness value="10"/>
     </material>
