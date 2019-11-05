@@ -46,7 +46,7 @@ file(GLOB SOURCES src/*.cpp)
 # file(GLOB TINYXML_SOURCES thirdparty/tinyxml/*.cpp)
 
 add_executable(RayTracer ${SOURCES} ${HEADERS})
-target_link_libraries(RayTracer lodepng spdlog glfw glad imgui ${GLFW_LIBRARIES} tinyxml)
+target_link_libraries(RayTracer lodepng spdlog glfw ${GLFW_LIBRARIES} glad imgui tinyxml)
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 # set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 # include(CPack)
