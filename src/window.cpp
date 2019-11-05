@@ -97,12 +97,25 @@ int xInputMax;
 int yInputMin;
 int yInputMax;
 
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
+
+float updateTimer = 0.0f;
+
+RayTracer rayTracer;
+
+void RayTracing()
+{
+	rayTracer.Run();
+}
+
 void Window::StartUpdate()
 {
-    RayTracer rayTracer;
-    rayTracer.Init();
-    rayTracer.Run();
     
+    rayTracer.Init();
+
+	std::thread tracingThread(RayTracing);
+
     auto renderTexture = rayTracer.GetRenderTexture();
     auto zbufferTexture = rayTracer.GetZBufferTexture();
     auto normalTexture = rayTracer.GetNormalTexture();
@@ -115,9 +128,17 @@ void Window::StartUpdate()
     
     while (!glfwWindowShouldClose(MGLFWWindow))
     {
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		updateTimer += deltaTime;
+
         glfwPollEvents();
 
+		if(updateTimer > 0.2f)
         {
+			updateTimer = 0.0f;
             rayTracer.UpdateRenderResult();
         }
         
