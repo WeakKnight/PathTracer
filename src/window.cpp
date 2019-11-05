@@ -26,6 +26,34 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+void TestOrdinalSpeed()
+{
+	std::vector<Vec3f> testCase;
+
+	for (int i = 0; i <= 10000; i++)
+	{
+		testCase.push_back(RandomInUnitSphere());
+	}
+
+	auto t1 = glfwGetTime();
+	for (int i = 0; i <= 10000; i++)
+	{
+		Vec3f b1;
+		Vec3f b2;
+		CommonOrthonormalBasis(testCase[i], b1, b2);
+	}
+	auto t2 = glfwGetTime();
+	for (int i = 0; i <= 10000; i++)
+	{
+		Vec3f b1;
+		Vec3f b2;
+		BranchlessONB(testCase[i], b1, b2);
+	}
+	auto t3 = glfwGetTime();
+
+	spdlog::debug("common is {} branchless is {}", t2-t1, t3-t2);
+}
+
 Window::Window(const WindowProperties& InProperties)
 {
     glfwSetErrorCallback(glfw_error_callback);
@@ -34,6 +62,8 @@ Window::Window(const WindowProperties& InProperties)
     {
         return;
     }
+
+	//TestOrdinalSpeed();
 
     // Decide GL+GLSL versions
 #if __APPLE__

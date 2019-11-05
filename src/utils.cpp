@@ -16,6 +16,26 @@ void BranchlessONB(const Vec3f& n, Vec3f& b1, Vec3f& b2)
 	b2 = Vec3f(b, sign + n.y * n.y * a, -n.y);
 }
 
+void CommonOrthonormalBasis(const Vec3f& n, Vec3f& b1, Vec3f& b2)
+{
+	Vec3f randomVector = Vec3f(
+		(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)),
+		(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)),
+		(static_cast <float> (rand()) / static_cast <float> (RAND_MAX))).GetNormalized();
+
+	while (randomVector.Dot(n) >= (1.0f - RANDOM_THRESHOLD))
+	{
+		randomVector = Vec3f(
+			(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)),
+			(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)),
+			(static_cast <float> (rand()) / static_cast <float> (RAND_MAX))).GetNormalized();
+	}
+
+	b1 = randomVector.Cross(n).GetNormalized();
+	b2 = b1.Cross(n).GetNormalized();
+}
+
+
 Vec3f RandomInUnitSphere()
 {
 	Vec3f result;

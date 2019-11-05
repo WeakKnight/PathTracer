@@ -351,12 +351,6 @@ void LoadMaterial(TiXmlElement *element)
 					f = 0.0f;
 					ReadFloat(child, f, "distribution");
 					m->SetReflectNormalDistribution(f);
-					f = -1.0f;
-					ReadFloat(child, f, "angleDistribution");
-					if (f >= 0.0f)
-					{
-						m->SetReflectAngelDistributioon(f);
-					}
                 } else if ( COMPARE( child->Value(), "refraction" ) ) {
                     ReadColor( child, c );
                     m->SetRefraction(c);

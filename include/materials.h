@@ -83,13 +83,6 @@ public:
 		}
 	}
 
-	void SetReflectAngelDistributioon(float angle)
-	{
-		reflectDistributionAngel = angle;
-		hasReflectAngelDistribution = true;
-		reflectAngelDist = std::normal_distribution<float>(reflectDistributionAngel, 0.39f * (reflectionGlossiness + 0.0000001f));
-	}
-
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
  
 private:
@@ -108,10 +101,6 @@ private:
 	std::normal_distribution<float> refractNormalDist;
 	bool reflectNormalDistribution = false;
 	bool refractNormalDistribution = false;
-
-	bool hasReflectAngelDistribution = false;
-	float reflectDistributionAngel = 0.0f;
-	std::normal_distribution<float> reflectAngelDist;
 
 	static QuasyMonteCarloCircleSampler* normalSampler;
 };

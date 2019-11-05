@@ -63,16 +63,6 @@ Vec3f MtlBlinn::GenerateNormalWithGlossiness(const Vec3f& originalNormal, int ty
 
 	// choose a direction from 0 to 2pi, uniformly
 	float theta = normalSampler->RandomTheta();
-	//if (hasReflectAngelDistribution && type == ENUM_RELFECTION)
-	//{
-	//	auto dist = reflectAngelDist;
-	//	auto e = eng;
-	//	theta = dist(e);
-	//}
-	//else
-	//{
-	//	theta = normalSampler->RandomTheta();
-	//}
 
 	Vec3f result = originalNormal * topComponent + radius * sinf(theta) * right + radius * cosf(theta) * forward;
 	assert(result.IsUnit());
