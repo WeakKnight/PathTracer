@@ -18,12 +18,41 @@ QuasyMonteCarloCircleSampler* MtlBlinn::normalSampler = new QuasyMonteCarloCircl
 
 #define INTERSECTION_BIAS 0.0001f
 
-Vec3f MtlBlinn::GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossinessInRad) const
+#define ENUM_RELFECTION 1
+#define ENUM_REFRACTIN 2
+
+Vec3f MtlBlinn::GenerateNormalWithGlossiness(const Vec3f& originalNormal, int type) const
 {
 	assert(originalNormal.IsUnit());
 	
-	// glossiness is the maximum offset degree, uniformly from 0 to glossiness
-	float offset = normalSampler->RandomGlossAngleFactor() * glossinessInRad;
+	float offset;
+
+	if (type == ENUM_RELFECTION)
+	{
+		if (reflectNormalDistribution)
+		{
+			auto dist = reflectNormalDist;
+			auto e = eng;
+			offset = abs(dist(e));
+		}
+		else
+		{
+			offset = normalSampler->RandomGlossAngleFactor() * reflectionGlossiness;
+		}
+	}
+	else
+	{
+		if (refractNormalDistribution)
+		{
+			auto dist = refractNormalDist;
+			auto e = eng;
+			offset = abs(dist(e));
+		}
+		else
+		{
+			offset = normalSampler->RandomGlossAngleFactor() * refractionGlossiness;
+		}
+	}
 	
 	Vec3f right;
 	Vec3f forward;
@@ -34,29 +63,16 @@ Vec3f MtlBlinn::GenerateNormalWithGlossiness(const Vec3f& originalNormal, float 
 
 	// choose a direction from 0 to 2pi, uniformly
 	float theta = normalSampler->RandomTheta();
-
-	Vec3f result = originalNormal * topComponent + radius * sinf(theta) * right + radius * cosf(theta) * forward;
-	assert(result.IsUnit());
-
-	return result;
-}
-
-Vec3f MtlBlinn::GenerateNormalWithGlossinessAndNormalDistribution(const Vec3f& originalNormal, std::normal_distribution<float> dist, std::default_random_engine eng) const
-{
-	assert(originalNormal.IsUnit());
-
-	// glossiness is the maximum offset degree, uniformly from 0 to glossiness
-	float offset = abs(dist(eng));
-
-	Vec3f right;
-	Vec3f forward;
-	BranchlessONB(originalNormal, right, forward);
-
-	float radius = 1.0f * sinf(offset);
-	float topComponent = 1.0f * cosf(offset);
-
-	// choose a direction from 0 to 2pi, uniformly
-	float theta = normalSampler->RandomTheta();
+	//if (hasReflectAngelDistribution && type == ENUM_RELFECTION)
+	//{
+	//	auto dist = reflectAngelDist;
+	//	auto e = eng;
+	//	theta = dist(e);
+	//}
+	//else
+	//{
+	//	theta = normalSampler->RandomTheta();
+	//}
 
 	Vec3f result = originalNormal * topComponent + radius * sinf(theta) * right + radius * cosf(theta) * forward;
 	assert(result.IsUnit());
@@ -162,7 +178,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
         Vec3f inRefractDir;
         Vec3f inRelectDir;
 
-		Vec3f refractN = GenerateNormalWithGlossiness(N, refractionGlossiness);
+		Vec3f refractN = GenerateNormalWithGlossiness(N, ENUM_REFRACTIN);
 
         CalculateRefractDir(V, refractN, n1, n2, inRefractDir, inRelectDir, hasInternalReflection);
 
@@ -314,15 +330,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
         // only consider front reflect
         if(hInfo.front)
         {
-			Vec3f reflectN;
-			if (reflectNormalDistribution)
-			{
-				reflectN = GenerateNormalWithGlossinessAndNormalDistribution(N, reflectNormalDist, eng);
-			}
-			else
-			{
-				reflectN = GenerateNormalWithGlossiness(N, reflectionGlossiness);
-			}
+			Vec3f reflectN = GenerateNormalWithGlossiness(N, ENUM_RELFECTION);
 
             // Generate Reflect Ray Check Target
             Vec3f R = Reflect(ray.dir, reflectN);

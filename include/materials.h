@@ -83,15 +83,22 @@ public:
 		}
 	}
 
+	void SetReflectAngelDistributioon(float angle)
+	{
+		reflectDistributionAngel = angle;
+		hasReflectAngelDistribution = true;
+		reflectAngelDist = std::normal_distribution<float>(reflectDistributionAngel, 0.39f * (reflectionGlossiness + 0.0000001f));
+	}
+
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
  
 private:
-	Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossinessInRad) const;
-	Vec3f GenerateNormalWithGlossinessAndNormalDistribution(const Vec3f& originalNormal, std::normal_distribution<float> dist, std::default_random_engine eng) const;
+	Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, int type) const;
 
     TexturedColor diffuse, specular, reflection, refraction;
 	TextureMap* normal = nullptr;
 	TextureMap* ao = nullptr;
+
     float glossiness;
     Color absorption;
     float ior;  // index of refraction
@@ -101,6 +108,10 @@ private:
 	std::normal_distribution<float> refractNormalDist;
 	bool reflectNormalDistribution = false;
 	bool refractNormalDistribution = false;
+
+	bool hasReflectAngelDistribution = false;
+	float reflectDistributionAngel = 0.0f;
+	std::normal_distribution<float> reflectAngelDist;
 
 	static QuasyMonteCarloCircleSampler* normalSampler;
 };
