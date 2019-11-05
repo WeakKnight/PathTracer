@@ -1,10 +1,10 @@
 <xml>
   <scene>
-    <background r="1" g="1" b="1" texture="clouds.png">
+    <background r="1" g="1" b="1" texture="assets/clouds.png">
       <scale y="0.4"/>
       <translate y="-0.1"/>
     </background>
-    <environment value="0.7" texture="clouds.png"/>
+    <environment value="0.7" texture="assets/clouds.png"/>
      
     <!-- Objects -->
     <object type="plane" name="groundPlane" material="ground">
@@ -31,11 +31,7 @@
       <scale value="6"/>
       <translate x="14" y="0" z="6"/>
     </object>
-    <object type="sphere" name="sphere4" material="glossy5">
-      <scale value="6"/>
-      <translate x="28" y="0" z="6"/>
-    </object>
-    <object type="obj" name="teapot.obj" material="red">
+    <object type="obj" name="assets/teapot.obj" material="red">
       <scale value="0.5"/>
       <rotate angle="-50" z="1"/>
       <translate x="13" y="-21" z="0"/>
@@ -47,27 +43,27 @@
  
     <!-- Materials -->
     <material type="blinn" name="ground">
-     <diffuse texture="rock_albedo.png">
+     <diffuse texture="assets/rock_albedo.png">
         <scale value="0.01"/>
       </diffuse>
-      <normal texture="rock_normal.png">
+      <!-- <normal texture="rock_normal.png">
         <scale value="0.01"/>
       </normal>
       <ao texture="rock_ao.png">
         <scale value="0.01"/>
-      </ao>
+      </ao> -->
       <specular value="0"/>
     </material>
     <material type="blinn" name="bricks">
-     <diffuse texture="ground_albedo.png">
+     <diffuse texture="assets/ground_albedo.png">
         <scale value="0.06"/>
       </diffuse>
-      <normal texture="ground_normal.png">
+      <!-- <normal texture="ground_normal.png">
         <scale value="0.06"/>
       </normal>
       <ao texture="ground_ao.png">
         <scale value="0.06"/>
-      </ao>
+      </ao> -->
       <specular value="0.3"/>
       <glossiness value="10"/>
     </material>
@@ -95,12 +91,6 @@
       <glossiness value="10"/>
       <reflection value="0.8" glossiness="0.2"/>
     </material>
-    <material type="blinn" name="glossy5">
-      <diffuse value="0"/>
-      <specular value="0.8"/>
-      <glossiness value="10"/>
-      <reflection value="0.8" glossiness="0.2" distribution="1"/>
-    </material>
     <material type="blinn" name="red">
       <diffuse r="0.8" g="0.2" b="0.2"/>
       <specular value="0.8"/>
@@ -112,6 +102,25 @@
       <specular value="0.8"/>
       <glossiness value="50"/>
       <refraction index="2.0" value="0.8" glossiness="0.05"/>
+    </material>
+
+    <material type="blinn" name="glossy5">
+      <diffuse value="0"/>
+      <specular value="0.8"/>
+      <glossiness value="50"/>
+      <reflection value="0.8" glossiness="0.15" distribution="1"/>
+    </material>
+    <material type="blinn" name="glossy6">
+      <diffuse value="0"/>
+      <specular value="0.8"/>
+      <glossiness value="20"/>
+      <reflection value="0.8" glossiness="0.3" distribution="1"/>
+    </material>
+    <material type="blinn" name="glossy7">
+      <diffuse value="0"/>
+      <specular value="0.8"/>
+      <glossiness value="10"/>
+      <reflection value="0.8" glossiness="0.6" distribution="1"/>
     </material>
  
     <!-- Lights -->
