@@ -7,7 +7,7 @@
 
 using namespace cy;
 
-void branchlessONB(const Vec3f& n, Vec3f& b1, Vec3f& b2)
+void BranchlessONB(const Vec3f& n, Vec3f& b1, Vec3f& b2)
 {
 	float sign = copysignf(1.0f, n.z);
 	const float a = -1.0f / (sign + n.z);
@@ -55,3 +55,6 @@ Vec2f RandomPointInCircle(float radius)
 
 	return Vec2f(x, y);
 }
+
+
+

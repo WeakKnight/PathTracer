@@ -14,6 +14,7 @@
 #define _LIGHTS_H_INCLUDED_
  
 #include "scene.h"
+#include "sampler.h"
  
 //-------------------------------------------------------------------------------
  
@@ -22,6 +23,7 @@ class GenLight : public Light
 protected:
     void SetViewportParam(int lightID, ColorA ambient, ColorA intensity, Vec4f pos ) const;
     static float Shadow(Ray ray, float t_max=BIGFLOAT);
+	static QuasyMonteCarloCircleSampler* CircleAreaLightSampler;
 };
  
 //-------------------------------------------------------------------------------

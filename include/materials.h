@@ -15,6 +15,7 @@
  
 #include "scene.h"
 #include <random>
+#include "sampler.h"
  
 //-------------------------------------------------------------------------------
  
@@ -85,6 +86,9 @@ public:
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
  
 private:
+	Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossinessInRad) const;
+	Vec3f GenerateNormalWithGlossinessAndNormalDistribution(const Vec3f& originalNormal, std::normal_distribution<float> dist, std::default_random_engine eng) const;
+
     TexturedColor diffuse, specular, reflection, refraction;
 	TextureMap* normal = nullptr;
 	TextureMap* ao = nullptr;
@@ -97,6 +101,8 @@ private:
 	std::normal_distribution<float> refractNormalDist;
 	bool reflectNormalDistribution = false;
 	bool refractNormalDistribution = false;
+
+	static QuasyMonteCarloCircleSampler* normalSampler;
 };
  
 //-------------------------------------------------------------------------------

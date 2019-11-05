@@ -4,6 +4,12 @@
 
 extern Node rootNode;
 
+constexpr int MinShadowSampleCount = 4;
+constexpr int MaxShadowSampleCount = 16;
+constexpr float ShadowTolerance = 0.01f;
+
+QuasyMonteCarloCircleSampler* GenLight::CircleAreaLightSampler = new QuasyMonteCarloCircleSampler;
+
 void GenLight::SetViewportParam(int lightID, ColorA ambient, ColorA intensity, Vec4f pos ) const
 {
     
@@ -25,23 +31,10 @@ Vec3f PointLight::Direction(Vec3f const& p) const
 	Vec3f right;
 	Vec3f forward;
 
-	branchlessONB(top, right, forward);
-
-	//Vec3f randomVector = RandomInUnitSphere().GetNormalized();
-	//while (randomVector.Dot(top) >= (1.0f - RANDOM_THRESHOLD))
-	//{
-	//	randomVector = RandomInUnitSphere().GetNormalized();
-	//}
-
-	//Vec3f right = randomVector.Cross(top).GetNormalized();
-	//assert(right.IsUnit());
-
-	//Vec3f forward = right.Cross(top).GetNormalized();
-	//assert(forward.IsUnit());
+	BranchlessONB(top, right, forward);
 
 	float radius = size;
-
-	Vec2f p2d = RandomPointInCircle(size);
+	Vec2f p2d = CircleAreaLightSampler->RandomPointInCircle(size);
 
 	Vec3f shadowRayDir = position - p + p2d.x * right + p2d.y * forward;
 	return (-shadowRayDir).GetNormalized();
@@ -54,27 +47,30 @@ Color PointLight::Illuminate(Vec3f const& p, Vec3f const& N) const
 	Vec3f right;
 	Vec3f forward;
 
-	branchlessONB(top, right, forward);
-
-	//Vec3f randomVector = RandomInUnitSphere().GetNormalized();
-	//while (randomVector.Dot(top) >= (1.0f - RANDOM_THRESHOLD))
-	//{
-	//	randomVector = RandomInUnitSphere().GetNormalized();
-	//}
-
-	//Vec3f right = randomVector.Cross(top).GetNormalized();
-	//assert(right.IsUnit());
-
-	//Vec3f forward = right.Cross(top).GetNormalized();
-	//assert(forward.IsUnit());
+	BranchlessONB(top, right, forward);
 	
 	float radius = size;
+	
+	QuasyMonteCarloCircleSampler sampler;
 
-	Vec2f p2d = RandomPointInCircle(size);
+	float factorSum = 0.0f;
+	float avgFactor = 0.0f;
+	for (int index = 0; index < MaxShadowSampleCount; index++)
+	{
+		Vec2f p2d = sampler.RandomPointInCircle(size);
 
-	Vec3f shadowRayDir = position - p + p2d.x * right + p2d.y * forward;
-	// shadowRayDir.Normalize();
+		Vec3f shadowRayDir = position - p + p2d.x * right + p2d.y * forward;
+		// shadowRayDir.Normalize();
 
-	return Shadow(Ray(p, shadowRayDir), 1) * intensity;
-	// return Shadow(Ray(p, position - p), 1) * intensity;
+		float shadowFactor = Shadow(Ray(p, shadowRayDir), 1);
+		factorSum += shadowFactor;
+
+		avgFactor = factorSum / (float)(index + 1);
+		if (abs(avgFactor - shadowFactor) < ShadowTolerance && (index + 1) >= MinShadowSampleCount)
+		{
+			break;
+		}
+	}
+	
+	return avgFactor * intensity;
 }

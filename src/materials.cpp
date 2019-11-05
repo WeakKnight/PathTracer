@@ -14,24 +14,26 @@ extern Node rootNode;
 extern TexturedColor environment;
 extern std::unordered_map<std::string, TextureMap> textureMap;
 
+QuasyMonteCarloCircleSampler* MtlBlinn::normalSampler = new QuasyMonteCarloCircleSampler;
+
 #define INTERSECTION_BIAS 0.0001f
 
-Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossinessInRad)
+Vec3f MtlBlinn::GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossinessInRad) const
 {
 	assert(originalNormal.IsUnit());
 	
 	// glossiness is the maximum offset degree, uniformly from 0 to glossiness
-	float offset = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * glossinessInRad;
+	float offset = normalSampler->RandomGlossAngleFactor() * glossinessInRad;
 	
 	Vec3f right;
 	Vec3f forward;
-	branchlessONB(originalNormal, right, forward);
+	BranchlessONB(originalNormal, right, forward);
 
 	float radius = 1.0f * sinf(offset);
 	float topComponent = 1.0f * cosf(offset);
 
 	// choose a direction from 0 to 2pi, uniformly
-	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 2.0f * M_PI;
+	float theta = normalSampler->RandomTheta();
 
 	Vec3f result = originalNormal * topComponent + radius * sinf(theta) * right + radius * cosf(theta) * forward;
 	assert(result.IsUnit());
@@ -39,7 +41,7 @@ Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, float glossiness
 	return result;
 }
 
-Vec3f GenerateNormalWithGlossinessAndNormalDistribution(const Vec3f& originalNormal, std::normal_distribution<float> dist, std::default_random_engine eng)
+Vec3f MtlBlinn::GenerateNormalWithGlossinessAndNormalDistribution(const Vec3f& originalNormal, std::normal_distribution<float> dist, std::default_random_engine eng) const
 {
 	assert(originalNormal.IsUnit());
 
@@ -48,13 +50,13 @@ Vec3f GenerateNormalWithGlossinessAndNormalDistribution(const Vec3f& originalNor
 
 	Vec3f right;
 	Vec3f forward;
-	branchlessONB(originalNormal, right, forward);
+	BranchlessONB(originalNormal, right, forward);
 
 	float radius = 1.0f * sinf(offset);
 	float topComponent = 1.0f * cosf(offset);
 
 	// choose a direction from 0 to 2pi, uniformly
-	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 2.0f * M_PI;
+	float theta = normalSampler->RandomTheta();
 
 	Vec3f result = originalNormal * topComponent + radius * sinf(theta) * right + radius * cosf(theta) * forward;
 	assert(result.IsUnit());
