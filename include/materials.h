@@ -49,14 +49,14 @@ public:
 
     void SetReflectionGlossiness(float gloss)   
 	{ 
-		reflectionGlossiness=gloss; 
-		reflectNormalDist = std::normal_distribution<float>(0.0f, 0.39f * gloss);
+		reflectionGlossiness = gloss; 
+		reflectNormalDist = std::normal_distribution<float>(0.0f, 0.39f * (gloss + 0.0000001f));
 	}
 
     void SetRefractionGlossiness(float gloss)   
 	{ 
-		refractionGlossiness=gloss; 
-		refractNormalDist = std::normal_distribution<float>(0.0f, 3.0f * gloss);
+		refractionGlossiness = gloss; 
+		refractNormalDist = std::normal_distribution<float>(0.0f, 3.0f * (gloss + 0.0000001f));
 	}
  
 	void SetReflectNormalDistribution(float value)

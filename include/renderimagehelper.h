@@ -30,6 +30,10 @@ class RenderImageHelper
     
     static void SetNormal(Color24* pixels, RenderImage& image, int x, int y, Vec3f normal)
     {
+		if (pixels == nullptr)
+		{
+			return;
+		}
         int width = image.GetWidth();
         pixels[x + y * width] = Color24((0.5f + normal.x * 0.5f) * 255.0f, (0.5f + normal.y * 0.5f) * 255.0f, (0.5f + normal.z * 0.5f) * 255.0f);
     }
@@ -43,6 +47,10 @@ class RenderImageHelper
     
     static void CalculateMySampleImg(Color24* img, RenderImage& image)
     {
+		if (img == nullptr)
+		{
+			return;
+		}
         auto width = image.GetWidth();
         auto height = image.GetHeight();
         
@@ -69,6 +77,10 @@ class RenderImageHelper
     
     static void CalculateMyDepthImg(Color24* img, RenderImage& image)
     {
+		if (img == nullptr)
+		{
+			return;
+		}
         int width = image.GetWidth();
         int height = image.GetHeight();
         

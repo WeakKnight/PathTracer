@@ -136,7 +136,7 @@ void Window::StartUpdate()
 
         glfwPollEvents();
 
-		if(updateTimer > 0.2f)
+		if(updateTimer > 0.3f)
         {
 			updateTimer = 0.0f;
             rayTracer.UpdateRenderResult();
@@ -192,11 +192,21 @@ void Window::StartUpdate()
 			ImGui::End();
 		}
 
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Open"))
+				{
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
+		}
+
         {
             ImGui::Begin("Toolbox");
-            ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
             ImGui::SetWindowSize(ImVec2(240.0f, 400.0f));
-            
 
             if(ImGui::Button("output buffer file"))
             {
@@ -219,87 +229,74 @@ void Window::StartUpdate()
         }
         
         {
-            ImGui::Begin("Color Buffer");
-            ImGui::SetWindowSize(ImVec2(renderTexture->Width + 20, renderTexture->Height + 40));
-            ImGui::Image
-                (
-                    (ImTextureID)renderTexture->Id,
-                    ImVec2(renderTexture->Width,renderTexture->Height),
-                    ImVec2(0,0),
-                    ImVec2(1,1),
-                    ImVec4(1.0, 1.0, 1.0, 1.0),
-                    ImVec4(1.0, 1.0, 1.0, 1.0)
-                );
+            ImGui::Begin("ViewPort");
+            ImGui::SetWindowSize(ImVec2(renderTexture->Width + 20, renderTexture->Height + 60));
+			if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
+			{
+				if (ImGui::BeginTabItem("Result"))
+				{
+					ImGui::Image
+					(
+						(ImTextureID)renderTexture->Id,
+						ImVec2(renderTexture->Width, renderTexture->Height),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						ImVec4(1.0, 1.0, 1.0, 1.0),
+						ImVec4(1.0, 1.0, 1.0, 1.0)
+					);
 
-            ImGui::End();
-        }
-        
-        {
-            ImGui::Begin("Z Buffer");
-            ImGui::SetWindowSize(ImVec2(zbufferTexture->Width + 20, zbufferTexture->Height + 40));
-            ImGui::Image
-            (
-             (ImTextureID)zbufferTexture->Id,
-             ImVec2(zbufferTexture->Width,zbufferTexture->Height),
-             ImVec2(0,0),
-             ImVec2(1,1),
-             ImVec4(1.0, 1.0, 1.0, 1.0),
-             ImVec4(1.0, 1.0, 1.0, 1.0)
-             );
-            
-            ImGui::End();
-        }
-        
-        {
-            ImGui::Begin("Sample Buffer");
-            ImGui::SetWindowSize(ImVec2(sampleTexture->Width + 20, sampleTexture->Height + 40));
-            ImGui::Image
-            (
-             (ImTextureID)sampleTexture->Id,
-             ImVec2(sampleTexture->Width,
-                    sampleTexture->Height),
-             ImVec2(0,0),
-             ImVec2(1,1),
-             ImVec4(1.0, 1.0, 1.0, 1.0),
-             ImVec4(1.0, 1.0, 1.0, 1.0)
-             );
-            
-            ImGui::End();
-        }
-        
-//        {
-//            ImGui::Begin("Filter Buffer");
-//            ImGui::SetWindowSize(ImVec2(filterTexture->Width + 20, filterTexture->Height + 40));
-//            ImGui::Image
-//            (
-//             (ImTextureID)filterTexture->Id,
-//             ImVec2(filterTexture->Width,
-//                    filterTexture->Height),
-//             ImVec2(0,0),
-//             ImVec2(1,1),
-//             ImVec4(1.0, 1.0, 1.0, 1.0),
-//             ImVec4(1.0, 1.0, 1.0, 1.0)
-//             );
-//            
-//            ImGui::End();
-//        }
-        
-        {
-            ImGui::Begin("Normal Buffer");
-            ImGui::SetWindowSize(ImVec2(normalTexture->Width + 20, normalTexture->Height + 40));
-            ImGui::Image
-            (
-             (ImTextureID)normalTexture->Id,
-             ImVec2(normalTexture->Width,normalTexture->Height),
-             ImVec2(0,0),
-             ImVec2(1,1),
-             ImVec4(1.0, 1.0, 1.0, 1.0),
-             ImVec4(1.0, 1.0, 1.0, 1.0)
-             );
-            
-            ImGui::End();
-        }
+					ImGui::EndTabItem();
+				}
 
+				if (ImGui::BeginTabItem("Depth"))
+				{
+					ImGui::Image
+					(
+						(ImTextureID)zbufferTexture->Id,
+						ImVec2(zbufferTexture->Width, zbufferTexture->Height),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						ImVec4(1.0, 1.0, 1.0, 1.0),
+						ImVec4(1.0, 1.0, 1.0, 1.0)
+					);
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Sample Count"))
+				{
+					ImGui::Image
+					(
+						(ImTextureID)sampleTexture->Id,
+						ImVec2(sampleTexture->Width,
+							sampleTexture->Height),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						ImVec4(1.0, 1.0, 1.0, 1.0),
+						ImVec4(1.0, 1.0, 1.0, 1.0)
+					);
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Normal"))
+				{
+					ImGui::Image
+					(
+						(ImTextureID)normalTexture->Id,
+						ImVec2(normalTexture->Width, normalTexture->Height),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						ImVec4(1.0, 1.0, 1.0, 1.0),
+						ImVec4(1.0, 1.0, 1.0, 1.0)
+					);
+					ImGui::EndTabItem();
+				}
+
+				ImGui::EndTabBar();
+			}
+           
+            ImGui::End();
+        }
+        
         // Rendering
         ImGui::Render();
 
