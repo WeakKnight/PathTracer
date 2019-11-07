@@ -320,19 +320,6 @@ public:
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide= HIT_FRONT) const=0;
     virtual Box  GetBoundBox() const=0;
     virtual void ViewportDisplay(const Material *mtl) const {}  // used for OpenGL display
-
-	bool HasNormalMap() const
-	{
-		return normalMap.size() != 0;
-	}
-
-	bool HasHeightMap() const
-	{
-		return heightMap.size() != 0;
-	}
-
-	std::string normalMap = "";
-	std::string heightMap = "";
 };
 
 typedef ItemFileList<Object> ObjFileList;

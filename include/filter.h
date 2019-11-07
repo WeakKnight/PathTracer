@@ -208,7 +208,12 @@ private:
     
     float Gaussian(float x, float contantComponent)
     {
-        return max(-0.0f, std::exp(-alpha * x * x) + contantComponent);
+        float result = std::exp(-alpha * x * x) + contantComponent;
+		if (result < 0)
+		{
+			result = 0;
+		}
+		return result;
     }
     
     float* factorArray;

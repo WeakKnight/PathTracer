@@ -16,7 +16,6 @@
 #include "scene.h"
 #include "cyTriMesh.h"
 #include "string_utils.h"
-
 //-------------------------------------------------------------------------------
 
 class Sphere : public Object
@@ -38,7 +37,6 @@ public:
     virtual void ViewportDisplay(const Material *mtl) const;
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const;
 };
-
 //-------------------------------------------------------------------------------
 class MeshBVH;
 class BVHNode;

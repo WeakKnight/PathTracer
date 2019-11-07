@@ -22,7 +22,9 @@ include_directories(include/
                     thirdparty/imgui/
                     thirdparty/tinyxml/include/
                     thirdparty/lodepng/include/
-                    thirdparty/cybase/include/)
+                    thirdparty/cybase/include/
+                    thirdparty/glm/
+                    thirdparty/assimp/)
 
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
@@ -39,6 +41,10 @@ add_subdirectory(thirdparty/lodepng)
 
 add_subdirectory(thirdparty/imgui)
 
+add_subdirectory(thirdparty/glm)
+
+add_subdirectory(thirdparty/assimp)
+
 file(GLOB HEADERS include/*.h)
 file(GLOB SOURCES src/*.cpp)
 
@@ -46,7 +52,7 @@ file(GLOB SOURCES src/*.cpp)
 # file(GLOB TINYXML_SOURCES thirdparty/tinyxml/*.cpp)
 
 add_executable(RayTracer ${SOURCES} ${HEADERS})
-target_link_libraries(RayTracer lodepng spdlog glfw ${GLFW_LIBRARIES} glad imgui tinyxml)
+target_link_libraries(RayTracer lodepng spdlog glfw ${GLFW_LIBRARIES} glad imgui tinyxml assimp)
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 # set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 # include(CPack)
