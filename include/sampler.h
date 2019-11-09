@@ -61,6 +61,29 @@ private:
     std::mt19937_64 rng;
 };
 
+class QuasyMonteCarloHemiSphereSampler
+{
+public:
+	QuasyMonteCarloHemiSphereSampler() 
+	{
+
+	}
+
+	Vec3f RandomPointInUnitHemiSphere()
+	{
+
+	}
+
+private:
+	int haltonThetaBase = 3;
+	int haltonBetaBase = 2;
+
+	int thetaIndex = 0;
+	int betaIndex = 0;
+
+	std::mutex mtx;
+};
+
 class QuasyMonteCarloCircleSampler 
 {
 public:
