@@ -32,7 +32,7 @@ class RayTracer
     std::shared_ptr<Texture2D> GetSampleTexture(){return sampleTexture;}
     std::shared_ptr<Texture2D> GetFilterTexture(){return filterTexture;}
     
-    char scene_path[256] = "assets/project9.xml";
+    char scene_path[256] = "assets/project11.xml";
     
 private:
     GaussianFilter* gaussianFilter;

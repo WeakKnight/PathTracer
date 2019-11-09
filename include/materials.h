@@ -23,7 +23,7 @@ class MtlBlinn : public Material
 {
 public:
     MtlBlinn() : diffuse(0.5f,0.5f,0.5f), specular(0.7f,0.7f,0.7f), glossiness(20.0f), 
-                 reflection(0,0,0), refraction(0,0,0), absorption(0,0,0), ior(1),
+                 reflection(0,0,0), refraction(0,0,0), emission(0, 0, 0), absorption(0,0,0), ior(1),
                  reflectionGlossiness(0), refractionGlossiness(0) {}
     virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount) const;
  
@@ -33,6 +33,7 @@ public:
 	{ 
 		glossiness = gloss; 
 	}
+	void SetEmission(Color e) { emission.SetColor(e); }
  
     void SetReflection  (Color reflect) { reflection.SetColor(reflect); }
     void SetRefraction  (Color refract) { refraction.SetColor(refract); }
@@ -43,7 +44,8 @@ public:
     void SetSpecularTexture  (TextureMap *map)  { specular.SetTexture(map); }
     void SetReflectionTexture(TextureMap *map)  { reflection.SetTexture(map); }
     void SetRefractionTexture(TextureMap *map)  { refraction.SetTexture(map); }
-	
+	void SetEmissionTexture(TextureMap* map) { emission.SetTexture(map); }
+
 	void SetNormalTexture(TextureMap* map) { normal = map; }
 	void SetAOTexture(TextureMap* map) { ao = map; }
 
@@ -88,7 +90,7 @@ public:
 private:
 	Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, int type) const;
 
-    TexturedColor diffuse, specular, reflection, refraction;
+    TexturedColor diffuse, specular, reflection, refraction, emission;
 	TextureMap* normal = nullptr;
 	TextureMap* ao = nullptr;
 
