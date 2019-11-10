@@ -84,7 +84,7 @@ bool GenerateRayForAnyIntersection(Ray& ray, float t_max)
     return InternalGenerateRayForAnyIntersection(&rootNode, ray, t_max);
 }
 
-bool TraceNode(HitInfoContext& hitInfoContext, RayContext& rayContext, Node* node, int side = HIT_FRONT)
+bool TraceNode(HitInfoContext& hitInfoContext, RayContext& rayContext, Node* node, int side)
 {
     bool result = false;
     
@@ -259,7 +259,7 @@ Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, i
     
     if(sthTraced)
     {
-        Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfoContext, lights, 4);
+        Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfoContext, lights, 1);
         return shadingResult;
     }
     else

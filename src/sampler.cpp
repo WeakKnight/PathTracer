@@ -41,6 +41,9 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
         {
             finalY -= 1.0f;
         }
+
+		finalX = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.5f;
+		finalY = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.5f;
         
         RayContext rayContext = GenCameraRayContext(x, y, finalX, finalY);
         HitInfoContext hitInfoContext;
@@ -68,8 +71,10 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
         result.avgZ += (tempSampleResults[i].avgZ / (float)tempSampleResults.size());
     }
     
-    // results->push_back(result);
-    
+	// gamma correction
+	auto resultColor = result.avgColor;
+	result.avgColor = Color(powf(resultColor.r, 0.4545f), powf(resultColor.g, 0.4545f), powf(resultColor.b, 0.4545f));
+
     return result;
 }
 

@@ -76,5 +76,18 @@ Vec2f RandomPointInCircle(float radius)
 	return Vec2f(x, y);
 }
 
+Vec3f UniformRandomPointOnHemiSphere()
+{
+	float cosTheta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+	float sinTheta = std::sqrt(1 - (cosTheta * cosTheta));
+	if (sinTheta < 0.0f)
+	{
+		sinTheta = 0.0f;
+	}
 
+	float beta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * Pi<float>() * 2.0f;
+
+	// z = 1 * cosTheta, r = 1 * sinTheta, x = cosBeta * sinTheta, y = sinBeta * sinTheta
+	return Vec3f(sinTheta * cos(beta), sinTheta * sin(beta), cosTheta);
+}
 

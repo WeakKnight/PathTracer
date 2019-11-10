@@ -453,15 +453,102 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     }
 
 	// indirect part
-
+	Color indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
+	result += indirectResult;
 
     // assert(result.Max() <= 1.0f);
     result.ClampMax();
     return result;
 }
 
+constexpr unsigned int IndirectLightSampleCount = 8;
 
+Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
+{
+	Color result = Color::Black();
 
+	if (bounceCount <= 0)
+	{
+		return result;
+	}
+
+	auto N = hInfoContext.mainHitInfo.N.GetNormalized();
+	const auto& p = hInfoContext.mainHitInfo.p + N * INTERSECTION_BIAS;
+	const auto node = hInfoContext.mainHitInfo.node;
+
+	Vec3f xBasis, yBasis;
+	BranchlessONB(N, xBasis, yBasis);
+
+	float constantFactor = (2.0f * Pi<float>()) / (float)IndirectLightSampleCount;
+
+	for (int i = 0; i < IndirectLightSampleCount; i++)
+	{
+		Color singleResult = Color::Black();
+		Color indirectLightIntencity = Color::Black();
+
+		Vec3f randomPoint = UniformRandomPointOnHemiSphere();
+		Vec3f rayDir = randomPoint.z * N + randomPoint.x * xBasis + randomPoint.y * yBasis;
+		Ray indirectRay(p, rayDir);
+		indirectRay.Normalize();
+
+		RayContext indirectRayContext;
+		indirectRayContext.cameraRay = indirectRay;
+		indirectRayContext.rightRay = indirectRay;
+		indirectRayContext.topRay = indirectRay;
+		indirectRayContext.hasDiff = false;
+
+		HitInfoContext indirectHitInfoContext;
+
+		bool hit = TraceNode(indirectHitInfoContext, indirectRayContext, &rootNode, HIT_FRONT);
+		if (hit)
+		{
+			float distance = indirectHitInfoContext.mainHitInfo.z;
+			auto inDirectNode = indirectHitInfoContext.mainHitInfo.node;
+			
+			if (inDirectNode == node && distance < 0.001f)
+			{
+				indirectLightIntencity = Color::Black();
+			}
+			else
+			{
+				indirectLightIntencity = indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount - 1);
+			}
+		}
+		else
+		{
+			indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir);
+		}
+
+		float cosTheta = N.Dot(indirectRay.dir);
+		if (cosTheta < 0.0f)
+		{
+			cosTheta = 0.0f;
+		}
+
+		Color diffuseColor;
+		if (diffuse.GetTexture())
+		{
+			if (!rayContext.hasDiff)
+			{
+				diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw);
+			}
+			else
+			{
+				diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
+			}
+		}
+		else
+		{
+			diffuseColor = diffuse.GetColor();
+		}
+
+		singleResult = indirectLightIntencity * cosTheta * diffuseColor;
+
+		result = result + (constantFactor * singleResult);
+	}
+
+	return result;
+}
 
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
