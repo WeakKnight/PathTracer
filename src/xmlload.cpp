@@ -197,8 +197,8 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
             node->SetNodeObj( sphere);
             printf(" - Sphere");
         } else if ( COMPARE(type,"plane") ) {
-			auto plane = MeshBuilder::BuildUnitPlane();
-			// Plane* plane = new Plane;
+			// auto plane = MeshBuilder::BuildUnitPlane();
+			Plane* plane = new Plane;
             node->SetNodeObj( plane);
             printf(" - Plane");
         } else if ( COMPARE(type,"obj") ) {
