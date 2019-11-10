@@ -80,8 +80,6 @@ private:
 
 	int thetaIndex = 0;
 	int betaIndex = 0;
-
-	std::mutex mtx;
 };
 
 class QuasyMonteCarloCircleSampler 
