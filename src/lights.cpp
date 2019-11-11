@@ -71,6 +71,10 @@ Color PointLight::Illuminate(Vec3f const& p, Vec3f const& N) const
 			break;
 		}
 	}
-	
-	return avgFactor * intensity;
+
+	// distance square
+	float distanceSquare = (position - p).LengthSquared();
+	float distance = sqrt(distanceSquare);
+	float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
+	return avgFactor * fallFactor * intensity;
 }
