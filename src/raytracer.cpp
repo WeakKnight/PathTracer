@@ -174,8 +174,8 @@ Ray GenCameraRay(int x, int y, float xOffset, float yOffset, bool normalize)
     Ray cameraRay;
     cameraRay.p = camera.pos + cameraRight * randomCirclePoint.x + cameraUp * randomCirclePoint.y;
     cameraRay.dir =
-    (cameraRight * (-1.0f * imgPlaneWidth * 0.5f + x * texelWdith + 0.5f * texelWdith + xOffset * texelWdith) +
-    cameraUp * (imgPlaneHeight * 0.5f - y * texelHeight - 0.5f * texelHeight - yOffset * texelHeight) +
+    (cameraRight * (-1.0f * imgPlaneWidth * 0.5f + (float)x * texelWdith + 0.5f * texelWdith + xOffset * texelWdith) +
+    cameraUp * (imgPlaneHeight * 0.5f - (float)y * texelHeight - 0.5f * texelHeight - yOffset * texelHeight) +
     cameraFront * camera.focaldist) - (cameraRight * randomCirclePoint.x + cameraUp * randomCirclePoint.y);
     
     if(normalize)
