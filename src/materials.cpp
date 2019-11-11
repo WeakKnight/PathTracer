@@ -507,16 +507,12 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 		if (hit)
 		{
 			float distance = indirectHitInfoContext.mainHitInfo.z;
+			float distanceSquare = distance * distance;
+
 			auto inDirectNode = indirectHitInfoContext.mainHitInfo.node;
-			
-//            if (inDirectNode == node && distance < 0.001f)
-//            {
-//                indirectLightIntencity = Color::Black();
-//            }
-//            else
-			{
-				indirectLightIntencity = indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount - 1);
-			}
+			float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
+
+			indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount - 1);
 		}
 		else
 		{
