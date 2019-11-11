@@ -20,7 +20,7 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
     SampleResult result;
     result.x = x;
     result.y = y;
-    std::uniform_real_distribution<float> unif(0, ONE_MINUS_EPSILON);
+    std::uniform_real_distribution<float> unif(0.0f, ONE_MINUS_EPSILON);
     Vec2f randomOffset = Vec2f(unif(rng), unif(rng));
     
     std::vector<SampleResult> tempSampleResults;
@@ -41,9 +41,6 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
         {
             finalY -= 1.0f;
         }
-
-		finalX = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.5f;
-		finalY = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.5f;
         
         RayContext rayContext = GenCameraRayContext(x, y, finalX, finalY);
         HitInfoContext hitInfoContext;

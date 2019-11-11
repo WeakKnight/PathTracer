@@ -54,7 +54,7 @@ Vec3f RandomInUnitSphere()
 Vec2f NonUniformRandomPointInCircle(float radius)
 {
 	float r = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* radius;
-	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* Pi<float>() * 2;
+	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* Pi<float>() * 2.0f;
 
 	float x = r * cos(theta);
 	float y = r * sin(theta);
@@ -79,7 +79,7 @@ Vec2f RandomPointInCircle(float radius)
 Vec3f UniformRandomPointOnHemiSphere()
 {
 	float cosTheta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
-	float sinTheta = std::sqrt(1 - (cosTheta * cosTheta));
+	float sinTheta = std::sqrt(1.0f - (cosTheta * cosTheta));
 	if (sinTheta < 0.0f)
 	{
 		sinTheta = 0.0f;
