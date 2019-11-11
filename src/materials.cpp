@@ -456,12 +456,22 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     Color indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
     result += indirectResult;
 
+	// emission part
+	if (rayContext.hasDiff)
+	{
+		result += emission.Sample(hInfo.uvw, hInfo.duvw);
+	}
+	else
+	{
+		result += emission.Sample(hInfo.uvw);
+	}
+
     assert(!isnan(result.r + result.g + result.b));
     result.ClampMax();
     return result;
 }
 
-constexpr unsigned int IndirectLightSampleCount = 64;
+constexpr unsigned int IndirectLightSampleCount = 8;
 
 Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
 {

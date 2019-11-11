@@ -263,7 +263,7 @@ Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, i
     
     if(sthTraced)
     {
-        Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfoContext, lights, 2);
+        Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfoContext, lights, 1);
         return shadingResult;
     }
     else
