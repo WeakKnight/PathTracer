@@ -61,27 +61,6 @@ private:
     std::mt19937_64 rng;
 };
 
-class QuasyMonteCarloHemiSphereSampler
-{
-public:
-	QuasyMonteCarloHemiSphereSampler() 
-	{
-
-	}
-
-	Vec3f RandomPointInUnitHemiSphere()
-	{
-
-	}
-
-private:
-	int haltonThetaBase = 3;
-	int haltonBetaBase = 2;
-
-	int thetaIndex = 0;
-	int betaIndex = 0;
-};
-
 class QuasyMonteCarloCircleSampler 
 {
 public:
@@ -163,4 +142,47 @@ public:
 	int thetaIndex = 0;
 
 	std::mutex mtx;
+};
+
+class QuasyMonteCarloHemiSphereSampler
+{
+public:
+	QuasyMonteCarloHemiSphereSampler()
+	{
+		BetaOffset = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* Pi<float>() * 2.0f;
+		FOffset = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+	}
+
+	Vec3f CosineWeightedSample()
+	{
+		float F = Halton(FIndex, FBase) + FOffset;
+		FIndex++;
+		if (F > 1.0f)
+		{
+			F -= 1.0f;
+		}
+
+		float cosine2Theta = 1.0f - 2.0f * F;
+		float theta = 0.5f * acos(cosine2Theta);
+		float cosTheta = cos(theta);
+		float sinTheta = sin(theta);
+
+		float beta = Halton(BetaIndex, BetaBase) * Pi<float>() * 2.0f + BetaOffset;
+		BetaIndex++;
+		if (beta > Pi<float>() * 2.0f)
+		{
+			beta -= Pi<float>() * 2.0f;
+		}
+
+		// z = 1 * cosTheta, r = 1 * sinTheta, x = cosBeta * sinTheta, y = sinBeta * sinTheta
+		return Vec3f(sinTheta * cos(beta), sinTheta * sin(beta), cosTheta);
+	}
+
+private:
+	float FOffset = 0.0f;
+	float BetaOffset = 0.0f;
+	int FIndex = 0;
+	int BetaIndex = 0;
+	int FBase = 2;
+	int BetaBase = 3;
 };

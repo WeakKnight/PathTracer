@@ -492,12 +492,14 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 	// float constantFactor = (2.0f * Pi<float>()) / (float)IndirectLightSampleCount;
     float constantFactor = (1.0f * Pi<float>()) / (float)IndirectLightSampleCount;
     
+	QuasyMonteCarloHemiSphereSampler sampler;
+
 	for (int i = 0; i < IndirectLightSampleCount; i++)
 	{
 		Color singleResult = Color::Black();
 		Color indirectLightIntencity = Color::Black();
 
-        Vec3f randomPoint = CosineWeightedRandomPointOnHemiSphere();
+		Vec3f randomPoint = sampler.CosineWeightedSample();
 		// Vec3f randomPoint = UniformRandomPointOnHemiSphere();
 		Vec3f rayDir = randomPoint.z * N + randomPoint.x * xBasis + randomPoint.y * yBasis;
 		Ray indirectRay(p, rayDir);
