@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mesh.h"
+#include <float.h>
 
 class Model : public Object
 {
