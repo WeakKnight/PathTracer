@@ -471,7 +471,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     return result;
 }
 
-constexpr unsigned int IndirectLightSampleCount = 8;
+constexpr unsigned int IndirectLightSampleCount = 16;
 
 Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
 {
@@ -528,7 +528,7 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 		}
 		else
 		{
-			indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir);
+			indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir) * rayDir.z * sqrt(1.0f - rayDir.z * rayDir.z);
 		}
 
 		float cosTheta = N.Dot(indirectRay.dir);
