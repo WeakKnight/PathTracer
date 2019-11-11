@@ -563,6 +563,22 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 	return result;
 }
 
+Color MtlBlinn::SpecularPart(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& p) const
+{
+	Color result = Color::Black();
+	return result;
+}
+
+float MtlBlinn::NDF(const Vec3f& n, const Vec3f& h, float roughness) const
+{
+	return 0.0f;
+}
+
+float MtlBlinn::GeometrySmith(const Vec3f& n, const Vec3f& v, const Vec3f& l, float k) const
+{
+	return 0.0f;
+}
+
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
 }

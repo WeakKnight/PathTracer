@@ -90,9 +90,14 @@ public:
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
  
 private:
+	Color SpecularPart(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& p) const;
+	float NDF(const Vec3f& n, const Vec3f& h, float roughness) const;
+	float GeometrySmith(const Vec3f& n, const Vec3f& v, const Vec3f& l, float k) const;
+
+private:
 	Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, int type) const;
 
-    TexturedColor diffuse, specular, reflection, refraction, emission;
+    TexturedColor diffuse, specular, reflection, refraction, emission, metalic, roughness;
 	TextureMap* normal = nullptr;
 	TextureMap* ao = nullptr;
 
