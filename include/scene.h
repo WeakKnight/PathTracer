@@ -570,6 +570,7 @@ public:
         result.rightRay = ToNodeCoords(rayContext.rightRay);
         result.topRay = ToNodeCoords(rayContext.topRay);
         result.delta = rayContext.delta;
+        result.hasDiff = rayContext.hasDiff;
         
         return result;
     }
@@ -586,9 +587,9 @@ public:
     {
         FromNodeCoords(hInfoContext.mainHitInfo);
         FromNodeCoords(hInfoContext.rightHitInfo);
-        assert(!isnan(hInfoContext.rightHitInfo.N.x));
+        // assert(!isnan(hInfoContext.rightHitInfo.N.x));
         FromNodeCoords(hInfoContext.topHitInfo);
-        assert(!isnan(hInfoContext.topHitInfo.N.x));
+        // assert(!isnan(hInfoContext.topHitInfo.N.x));
     }
 };
 

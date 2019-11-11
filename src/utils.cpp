@@ -91,3 +91,16 @@ Vec3f UniformRandomPointOnHemiSphere()
 	return Vec3f(sinTheta * cos(beta), sinTheta * sin(beta), cosTheta);
 }
 
+Vec3f CosineWeightedRandomPointOnHemiSphere()
+{
+    float F = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+    float cosine2Theta = 1.0f  - 2.0f * F;
+    float theta = 0.5f * acos(cosine2Theta);
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    
+    float beta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * Pi<float>() * 2.0f;
+    
+    // z = 1 * cosTheta, r = 1 * sinTheta, x = cosBeta * sinTheta, y = sinBeta * sinTheta
+    return Vec3f(sinTheta * cos(beta), sinTheta * sin(beta), cosTheta);
+}

@@ -111,9 +111,11 @@ bool TraceNode(HitInfoContext& hitInfoContext, RayContext& rayContext, Node* nod
 			rightInfo.CopyForDiffRay(currentHitInfoContext.rightHitInfo);
 			topInfo.CopyForDiffRay(currentHitInfoContext.topHitInfo);
             
-            assert(!isnan(rightInfo.N.Sum()));
-            assert(!isnan(topInfo.N.Sum()));
-            
+            if(rayContextInNodeSpace.hasDiff)
+            {
+                assert(!isnan(rightInfo.N.Sum()));
+                assert(!isnan(topInfo.N.Sum()));
+            }
             node->FromNodeCoords(hitInfoContext);
             
             assert(hitInfo.node != nullptr);
@@ -137,9 +139,11 @@ bool TraceNode(HitInfoContext& hitInfoContext, RayContext& rayContext, Node* nod
 				rightInfo.CopyForDiffRay(currentHitInfoContext.rightHitInfo);
 				topInfo.CopyForDiffRay(currentHitInfoContext.topHitInfo);
                 
-                assert(!isnan(rightInfo.N.Sum()));
-                assert(!isnan(topInfo.N.Sum()));
-                
+                if(rayContextInNodeSpace.hasDiff)
+                {
+                    assert(!isnan(rightInfo.N.Sum()));
+                    assert(!isnan(topInfo.N.Sum()));
+                }
                 node->FromNodeCoords(hitInfoContext);
                 
                 assert(hitInfo.node != nullptr);

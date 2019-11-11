@@ -453,15 +453,15 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     }
 
 	// indirect part
-	Color indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
-	result += indirectResult;
+    Color indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
+    result += indirectResult;
 
-    // assert(result.Max() <= 1.0f);
+    assert(!isnan(result.r + result.g + result.b));
     result.ClampMax();
     return result;
 }
 
-constexpr unsigned int IndirectLightSampleCount = 8;
+constexpr unsigned int IndirectLightSampleCount = 64;
 
 Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
 {
@@ -473,23 +473,27 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 	}
 
 	auto N = hInfoContext.mainHitInfo.N.GetNormalized();
-	const auto& p = hInfoContext.mainHitInfo.p + N * INTERSECTION_BIAS;
+	const auto& p = hInfoContext.mainHitInfo.p + N * 10.0f * INTERSECTION_BIAS;
 	const auto node = hInfoContext.mainHitInfo.node;
 
 	Vec3f xBasis, yBasis;
 	BranchlessONB(N, xBasis, yBasis);
 
-	float constantFactor = (2.0f * Pi<float>()) / (float)IndirectLightSampleCount;
-
+	// float constantFactor = (2.0f * Pi<float>()) / (float)IndirectLightSampleCount;
+    float constantFactor = (1.0f * Pi<float>()) / (float)IndirectLightSampleCount;
+    
 	for (int i = 0; i < IndirectLightSampleCount; i++)
 	{
 		Color singleResult = Color::Black();
 		Color indirectLightIntencity = Color::Black();
 
-		Vec3f randomPoint = UniformRandomPointOnHemiSphere();
+        Vec3f randomPoint = CosineWeightedRandomPointOnHemiSphere();
+		// Vec3f randomPoint = UniformRandomPointOnHemiSphere();
 		Vec3f rayDir = randomPoint.z * N + randomPoint.x * xBasis + randomPoint.y * yBasis;
 		Ray indirectRay(p, rayDir);
 		indirectRay.Normalize();
+        
+        assert(!isnan(rayDir.x + rayDir.y + rayDir.z));
 
 		RayContext indirectRayContext;
 		indirectRayContext.cameraRay = indirectRay;
@@ -505,11 +509,11 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 			float distance = indirectHitInfoContext.mainHitInfo.z;
 			auto inDirectNode = indirectHitInfoContext.mainHitInfo.node;
 			
-			if (inDirectNode == node && distance < 0.001f)
-			{
-				indirectLightIntencity = Color::Black();
-			}
-			else
+//            if (inDirectNode == node && distance < 0.001f)
+//            {
+//                indirectLightIntencity = Color::Black();
+//            }
+//            else
 			{
 				indirectLightIntencity = indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount - 1);
 			}
@@ -543,10 +547,11 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 		}
 
 		singleResult = indirectLightIntencity * cosTheta * diffuseColor;
-
+        assert(!isnan(singleResult.r + singleResult.g + singleResult.b));
 		result = result + (constantFactor * singleResult);
 	}
-
+    assert(!isnan(result.r + result.g + result.b));
+    // assert()
 	return result;
 }
 

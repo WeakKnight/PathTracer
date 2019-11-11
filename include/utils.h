@@ -18,3 +18,5 @@ void BranchlessONB(const Vec3f& n, Vec3f& b1, Vec3f& b2);
 void CommonOrthonormalBasis(const Vec3f& n, Vec3f& b1, Vec3f& b2);
 
 Vec3f UniformRandomPointOnHemiSphere();
+
+Vec3f CosineWeightedRandomPointOnHemiSphere();

@@ -219,122 +219,122 @@ bool TriObj::IntersectTriangle( RayContext &rayContext, HitInfoContext &hInfoCon
     
     if(IntersectTriangle(rayContext.cameraRay, hInfo, hitSide, faceID))
     {
-        const TriFace& face = F(faceID);
-        
-        const Vec3f& v0 = V(face.v[0]);
-        const Vec3f& v1 = V(face.v[1]);
-        const Vec3f& v2 = V(face.v[2]);
-        
-        Vec3f v01 = v1 - v0;
-        Vec3f v02 = v2 - v0;
-        
-        const Ray& rightRay = rayContext.rightRay;
-        const Ray& topRay = rayContext.topRay;
-        
-        HitInfo& rightInfo = hInfoContext.rightHitInfo;
-        HitInfo& topInfo = hInfoContext.topHitInfo;
-        
-        const auto N = hInfo.N.GetNormalized();
-        
-        const auto zRight = (rightRay.p - hInfo.p).Dot(N);
-        const auto tRight = zRight / (rightRay.dir.Dot(N));
-        const auto pRight = rightRay.p + tRight * rightRay.dir;
-        const auto nRight = N;
-        
-        const auto zTop = (topRay.p - hInfo.p).Dot(N);
-        const auto tTop = zTop / (topRay.dir.Dot(N));
-        const auto pTop = topRay.p + tTop * topRay.dir;
-        const auto nTop = N;
-        
-        assert(!isnan(nTop.x));
-        assert(!isnan(nRight.x));
-        
-        rightInfo.N = nRight;
-        rightInfo.z = tRight;
-        rightInfo.p = pRight;
-        
-        topInfo.N = nTop;
-        topInfo.z = tTop;
-        topInfo.p = pTop;
-        
-        Vec3f texRight;
-        {
-            Matrix3<float> mmRight = Matrix3<float>(-rightRay.dir, v01, v02);
-            mmRight.Invert();
-            
-            Vec3f vv0 = mmRight * v0;
-            Vec3f vv1 = mmRight * v1;
-            Vec3f vv2 = mmRight * v2;
-            Vec3f pp = mmRight * pRight;
-            
-            Vec2f v0_2d = Vec2f(vv0.y, vv0.z);
-            Vec2f v1_2d = Vec2f(vv1.y, vv1.z);
-            Vec2f v2_2d = Vec2f(vv2.y, vv2.z);
-            Vec2f p_2d = Vec2f(pp.y, pp.z);
-            
-            Vec2f pv0 = v0_2d - p_2d;
-            Vec2f pv1 = v1_2d - p_2d;
-            Vec2f pv2 = v2_2d - p_2d;
-            
-            float two_a0 = pv1.Cross(pv2);
-            float two_a1 = pv2.Cross(pv0);
-            float two_a2 = pv0.Cross(pv1);
-            
-            float two_a = (v1_2d - v0_2d).Cross(v2_2d - v0_2d);
-            
-            float beta0 = two_a0 / two_a;
-            float beta1 = two_a1 / two_a;
-            float beta2 = two_a2 / two_a;
-            
-            const TriFace& texFace = FT(faceID);
-            
-            const Vec3f& t0 = VT(texFace.v[0]);
-            const Vec3f& t1 = VT(texFace.v[1]);
-            const Vec3f& t2 = VT(texFace.v[2]);
-            
-            texRight = beta0 * t0 + beta1 * t1 + beta2 * t2;
-        }
-        
-        Vec3f texTop;
-        {
-            Matrix3<float> mmTop = Matrix3<float>(-topRay.dir, v01, v02);
-            mmTop.Invert();
-            
-            Vec3f vv0 = mmTop * v0;
-            Vec3f vv1 = mmTop * v1;
-            Vec3f vv2 = mmTop * v2;
-            Vec3f pp = mmTop * pTop;
-            
-            Vec2f v0_2d = Vec2f(vv0.y, vv0.z);
-            Vec2f v1_2d = Vec2f(vv1.y, vv1.z);
-            Vec2f v2_2d = Vec2f(vv2.y, vv2.z);
-            Vec2f p_2d = Vec2f(pp.y, pp.z);
-            
-            Vec2f pv0 = v0_2d - p_2d;
-            Vec2f pv1 = v1_2d - p_2d;
-            Vec2f pv2 = v2_2d - p_2d;
-            
-            float two_a0 = pv1.Cross(pv2);
-            float two_a1 = pv2.Cross(pv0);
-            float two_a2 = pv0.Cross(pv1);
-            
-            float two_a = (v1_2d - v0_2d).Cross(v2_2d - v0_2d);
-            
-            float beta0 = two_a0 / two_a;
-            float beta1 = two_a1 / two_a;
-            float beta2 = two_a2 / two_a;
-            
-            const TriFace& texFace = FT(faceID);
-            
-            const Vec3f& t0 = VT(texFace.v[0]);
-            const Vec3f& t1 = VT(texFace.v[1]);
-            const Vec3f& t2 = VT(texFace.v[2]);
-            
-            texTop = beta0 * t0 + beta1 * t1 + beta2 * t2;
-        }
-        
         if(rayContext.hasDiff)
         {
+            const TriFace& face = F(faceID);
+            
+            const Vec3f& v0 = V(face.v[0]);
+            const Vec3f& v1 = V(face.v[1]);
+            const Vec3f& v2 = V(face.v[2]);
+            
+            Vec3f v01 = v1 - v0;
+            Vec3f v02 = v2 - v0;
+            
+            const Ray& rightRay = rayContext.rightRay;
+            const Ray& topRay = rayContext.topRay;
+            
+            HitInfo& rightInfo = hInfoContext.rightHitInfo;
+            HitInfo& topInfo = hInfoContext.topHitInfo;
+            
+            const auto N = hInfo.N.GetNormalized();
+            
+            const auto zRight = (rightRay.p - hInfo.p).Dot(N);
+            const auto tRight = zRight / (rightRay.dir.Dot(N));
+            const auto pRight = rightRay.p + tRight * rightRay.dir;
+            const auto nRight = N;
+            
+            const auto zTop = (topRay.p - hInfo.p).Dot(N);
+            const auto tTop = zTop / (topRay.dir.Dot(N));
+            const auto pTop = topRay.p + tTop * topRay.dir;
+            const auto nTop = N;
+            
+            assert(!isnan(nTop.x));
+            assert(!isnan(nRight.x));
+            
+            rightInfo.N = nRight;
+            rightInfo.z = tRight;
+            rightInfo.p = pRight;
+            
+            topInfo.N = nTop;
+            topInfo.z = tTop;
+            topInfo.p = pTop;
+            
+            Vec3f texRight;
+            {
+                Matrix3<float> mmRight = Matrix3<float>(-rightRay.dir, v01, v02);
+                mmRight.Invert();
+                
+                Vec3f vv0 = mmRight * v0;
+                Vec3f vv1 = mmRight * v1;
+                Vec3f vv2 = mmRight * v2;
+                Vec3f pp = mmRight * pRight;
+                
+                Vec2f v0_2d = Vec2f(vv0.y, vv0.z);
+                Vec2f v1_2d = Vec2f(vv1.y, vv1.z);
+                Vec2f v2_2d = Vec2f(vv2.y, vv2.z);
+                Vec2f p_2d = Vec2f(pp.y, pp.z);
+                
+                Vec2f pv0 = v0_2d - p_2d;
+                Vec2f pv1 = v1_2d - p_2d;
+                Vec2f pv2 = v2_2d - p_2d;
+                
+                float two_a0 = pv1.Cross(pv2);
+                float two_a1 = pv2.Cross(pv0);
+                float two_a2 = pv0.Cross(pv1);
+                
+                float two_a = (v1_2d - v0_2d).Cross(v2_2d - v0_2d);
+                
+                float beta0 = two_a0 / two_a;
+                float beta1 = two_a1 / two_a;
+                float beta2 = two_a2 / two_a;
+                
+                const TriFace& texFace = FT(faceID);
+                
+                const Vec3f& t0 = VT(texFace.v[0]);
+                const Vec3f& t1 = VT(texFace.v[1]);
+                const Vec3f& t2 = VT(texFace.v[2]);
+                
+                texRight = beta0 * t0 + beta1 * t1 + beta2 * t2;
+            }
+            
+            Vec3f texTop;
+            {
+                Matrix3<float> mmTop = Matrix3<float>(-topRay.dir, v01, v02);
+                mmTop.Invert();
+                
+                Vec3f vv0 = mmTop * v0;
+                Vec3f vv1 = mmTop * v1;
+                Vec3f vv2 = mmTop * v2;
+                Vec3f pp = mmTop * pTop;
+                
+                Vec2f v0_2d = Vec2f(vv0.y, vv0.z);
+                Vec2f v1_2d = Vec2f(vv1.y, vv1.z);
+                Vec2f v2_2d = Vec2f(vv2.y, vv2.z);
+                Vec2f p_2d = Vec2f(pp.y, pp.z);
+                
+                Vec2f pv0 = v0_2d - p_2d;
+                Vec2f pv1 = v1_2d - p_2d;
+                Vec2f pv2 = v2_2d - p_2d;
+                
+                float two_a0 = pv1.Cross(pv2);
+                float two_a1 = pv2.Cross(pv0);
+                float two_a2 = pv0.Cross(pv1);
+                
+                float two_a = (v1_2d - v0_2d).Cross(v2_2d - v0_2d);
+                
+                float beta0 = two_a0 / two_a;
+                float beta1 = two_a1 / two_a;
+                float beta2 = two_a2 / two_a;
+                
+                const TriFace& texFace = FT(faceID);
+                
+                const Vec3f& t0 = VT(texFace.v[0]);
+                const Vec3f& t1 = VT(texFace.v[1]);
+                const Vec3f& t2 = VT(texFace.v[2]);
+                
+                texTop = beta0 * t0 + beta1 * t1 + beta2 * t2;
+            }
+        
             hInfo.duvw[0] = (texRight - hInfo.uvw) / rayContext.delta;
             hInfo.duvw[1] = (texTop - hInfo.uvw) / rayContext.delta;
         }
@@ -477,38 +477,38 @@ bool Plane::IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, i
 
     if(IntersectRay(rayContext.cameraRay, hInfo, hitSide))
     {
-        // RAY DIFF
-        const Ray& rightRay = rayContext.rightRay;
-        const Ray& topRay = rayContext.topRay;
-        
-        HitInfo& rightInfo = hInfoContext.rightHitInfo;
-        HitInfo& topInfo = hInfoContext.topHitInfo;
-        
-        const auto N = hInfo.N.GetNormalized();
-        
-        const auto zRight = rightRay.p.Dot(N);
-        const auto tRight = -1.0f * zRight / (rightRay.dir.Dot(N));
-        const auto pRight = rightRay.p + tRight * rightRay.dir;
-        const auto nRight = N;
-        
-        const auto zTop = topRay.p.Dot(N);
-        const auto tTop = -1.0f * zTop / (topRay.dir.Dot(N));
-        const auto pTop = topRay.p + tTop * topRay.dir;
-        const auto nTop = N;
-        
-        assert(!isnan(nTop.x));
-        assert(!isnan(nRight.x));
-        
-        hInfoContext.rightHitInfo.p = pRight;
-        hInfoContext.rightHitInfo.N = nRight;
-        hInfoContext.rightHitInfo.z = tRight;
-        
-        hInfoContext.topHitInfo.p = pTop;
-        hInfoContext.topHitInfo.N = nTop;
-        hInfoContext.topHitInfo.z = tTop;
-        
         if(rayContext.hasDiff)
         {
+            // RAY DIFF
+            const Ray& rightRay = rayContext.rightRay;
+            const Ray& topRay = rayContext.topRay;
+            
+            HitInfo& rightInfo = hInfoContext.rightHitInfo;
+            HitInfo& topInfo = hInfoContext.topHitInfo;
+            
+            const auto N = hInfo.N.GetNormalized();
+            
+            const auto zRight = rightRay.p.Dot(N);
+            const auto tRight = -1.0f * zRight / (rightRay.dir.Dot(N));
+            const auto pRight = rightRay.p + tRight * rightRay.dir;
+            const auto nRight = N;
+            
+            const auto zTop = topRay.p.Dot(N);
+            const auto tTop = -1.0f * zTop / (topRay.dir.Dot(N));
+            const auto pTop = topRay.p + tTop * topRay.dir;
+            const auto nTop = N;
+            
+            assert(!isnan(nTop.x));
+            assert(!isnan(nRight.x));
+            
+            hInfoContext.rightHitInfo.p = pRight;
+            hInfoContext.rightHitInfo.N = nRight;
+            hInfoContext.rightHitInfo.z = tRight;
+            
+            hInfoContext.topHitInfo.p = pTop;
+            hInfoContext.topHitInfo.N = nTop;
+            hInfoContext.topHitInfo.z = tTop;
+        
             hInfo.duvw[0] = (PlaneCalculatePlaneTexCoord(hInfoContext.rightHitInfo.p) - hInfo.uvw) / rayContext.delta;
             hInfo.duvw[1] = (PlaneCalculatePlaneTexCoord(hInfoContext.topHitInfo.p) - hInfo.uvw) / rayContext.delta;
         }
@@ -602,45 +602,45 @@ bool Sphere::IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, 
     
     if(IntersectRay(rayContext.cameraRay, hInfo, hitSide))
     {
-        // RAY DIFF
-        const Ray& rightRay = rayContext.rightRay;
-        const Ray& topRay = rayContext.topRay;
-        
-        HitInfo& rightHitInfo = hInfoContext.rightHitInfo;
-        HitInfo& topHitInfo = hInfoContext.topHitInfo;
-        
-        const auto N = hInfo.N.GetNormalized();
-        
-        const auto zRight = (rightRay.p - hInfo.p).Dot(N);
-        const auto tRight = -1.0f * zRight / (rightRay.dir.Dot(N));
-        const auto pRight = rightRay.p + tRight * rightRay.dir;
-        const auto nRight = pRight.GetNormalized();
-        
-        const auto zTop = (topRay.p - hInfo.p).Dot(N);
-        const auto tTop = -1.0f * zTop / (topRay.dir.Dot(N));
-        const auto pTop = topRay.p + tTop * topRay.dir;
-        const auto nTop = pTop.GetNormalized();
-        
-        assert(!isnan(nTop.x));
-        assert(!isnan(nRight.x));
-        
-        rightHitInfo.p = pRight;
-        rightHitInfo.N = nRight;
-        rightHitInfo.z = tRight;
-        
-        topHitInfo.p = pTop;
-        topHitInfo.N = nTop;
-        topHitInfo.z = tTop;
-        
-        if(rayContext.hasDiff)
-        {
-            hInfo.duvw[0] = (SphereCalculateCoord(rightHitInfo.p, 1.0f/ rightHitInfo.p.Length()) - hInfo.uvw) / rayContext.delta;
-            hInfo.duvw[1] = (SphereCalculateCoord(topHitInfo.p, 1.0f/ topHitInfo.p.Length()) - hInfo.uvw) / rayContext.delta;
-        }
-        else
+        if(!rayContext.hasDiff)
         {
             hInfo.duvw[0] = Vec3f(0.0f, 0.0f, 0.0f);
             hInfo.duvw[1] = Vec3f(0.0f, 0.0f, 0.0f);
+        }
+        // RAY DIFF
+        else
+        {
+            const Ray& rightRay = rayContext.rightRay;
+            const Ray& topRay = rayContext.topRay;
+            
+            HitInfo& rightHitInfo = hInfoContext.rightHitInfo;
+            HitInfo& topHitInfo = hInfoContext.topHitInfo;
+            
+            const auto N = hInfo.N.GetNormalized();
+            
+            const auto zRight = (rightRay.p - hInfo.p).Dot(N);
+            const auto tRight = -1.0f * zRight / (rightRay.dir.Dot(N));
+            const auto pRight = rightRay.p + tRight * rightRay.dir;
+            const auto nRight = pRight.GetNormalized();
+            
+            const auto zTop = (topRay.p - hInfo.p).Dot(N);
+            const auto tTop = -1.0f * zTop / (topRay.dir.Dot(N));
+            const auto pTop = topRay.p + tTop * topRay.dir;
+            const auto nTop = pTop.GetNormalized();
+            
+            assert(!isnan(nTop.x));
+            assert(!isnan(nRight.x));
+            
+            rightHitInfo.p = pRight;
+            rightHitInfo.N = nRight;
+            rightHitInfo.z = tRight;
+            
+            topHitInfo.p = pTop;
+            topHitInfo.N = nTop;
+            topHitInfo.z = tTop;
+        
+            hInfo.duvw[0] = (SphereCalculateCoord(rightHitInfo.p, 1.0f/ rightHitInfo.p.Length()) - hInfo.uvw) / rayContext.delta;
+            hInfo.duvw[1] = (SphereCalculateCoord(topHitInfo.p, 1.0f/ topHitInfo.p.Length()) - hInfo.uvw) / rayContext.delta;
         }
         
         return true;
