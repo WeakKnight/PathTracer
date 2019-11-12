@@ -472,6 +472,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
 }
 
 constexpr unsigned int IndirectLightSampleCount = 16;
+constexpr float InversePi = 1.0f / M_PI;
 
 Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
 {
@@ -515,7 +516,7 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 
 		HitInfoContext indirectHitInfoContext;
 
-		bool hit = TraceNode(indirectHitInfoContext, indirectRayContext, &rootNode, HIT_FRONT);
+		bool hit = TraceNode(indirectHitInfoContext, indirectRayContext, &rootNode, HIT_FRONT_AND_BACK);
 		if (hit)
 		{
 			float distance = indirectHitInfoContext.mainHitInfo.z;
@@ -523,12 +524,13 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 
 			auto inDirectNode = indirectHitInfoContext.mainHitInfo.node;
 			float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
+			// float fallFactor = 1.0f;
 
 			indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount - 1);
 		}
 		else
 		{
-			indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir) * rayDir.z * sqrt(1.0f - rayDir.z * rayDir.z);
+			indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir);
 		}
 
 		float cosTheta = N.Dot(indirectRay.dir);
@@ -554,7 +556,7 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 			diffuseColor = diffuse.GetColor();
 		}
 
-		singleResult = indirectLightIntencity * cosTheta * diffuseColor;
+		singleResult = InversePi * indirectLightIntencity * cosTheta * diffuseColor;
         assert(!isnan(singleResult.r + singleResult.g + singleResult.b));
 		result = result + (constantFactor * singleResult);
 	}
