@@ -373,7 +373,7 @@ struct ColorZNormal
 class IrradianceMapColorZNormal : public IrradianceMap<ColorZNormal>
 {
 public:
-    IrradianceMapColorZNormal(float _thresholdColor=1.0e30f, float _thresholdZ=1.0e30f, float _thresholdN=0.7f) : thresholdZ(_thresholdZ), thresholdN(_thresholdN) { SetColorThreshold(_thresholdColor); }
+    IrradianceMapColorZNormal(float _thresholdColor=0.05, float _thresholdZ=5, float _thresholdN=0.7f) : thresholdZ(_thresholdZ), thresholdN(_thresholdN) { SetColorThreshold(_thresholdColor); }
     IrradianceMapColorZNormal(Color _thresholdColor, float _thresholdZ=1.0e30f, float _thresholdN=0.7f) : thresholdColor(_thresholdColor), thresholdZ(_thresholdZ), thresholdN(_thresholdN) {}
     void SetColorThreshold(float t) { thresholdColor.Set(t,t,t); }
     void SetColorThreshold(Color const &t) { thresholdColor=t; }

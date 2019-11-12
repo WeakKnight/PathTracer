@@ -8,6 +8,7 @@
 #include "utils.h"
 #include <unordered_map>
 #include "irradiancemap.h"
+#include "config.h"
 
 using namespace cy;
 
@@ -455,9 +456,16 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     }
 
 	// indirect part
-	
-	Color indirectResult = irradianceCacheMap.Sample(hInfoContext.screenX, hInfoContext.screenY).c;
-    // Color indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
+	Color indirectResult;
+	if (IrradianceCache)
+	{
+		indirectResult = irradianceCacheMap.Sample(hInfoContext.screenX, hInfoContext.screenY).c;
+	}
+	else
+	{
+		indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
+	}
+
     result += indirectResult;
 
 	// emission part
@@ -475,7 +483,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     return result;
 }
 
-constexpr unsigned int IndirectLightSampleCount = 16;
+
 constexpr float InversePi = 1.0f / M_PI;
 
 Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
@@ -487,6 +495,8 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 		return result;
 	}
 
+	Vec3f V = -1.0f * rayContext.cameraRay.dir;
+
 	auto N = hInfoContext.mainHitInfo.N.GetNormalized();
 	const auto& p = hInfoContext.mainHitInfo.p + N * 10.0f * INTERSECTION_BIAS;
 	const auto node = hInfoContext.mainHitInfo.node;
@@ -495,7 +505,7 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 	BranchlessONB(N, xBasis, yBasis);
 
 	// float constantFactor = (2.0f * Pi<float>()) / (float)IndirectLightSampleCount;
-    float constantFactor = (1.0f * Pi<float>()) / (float)IndirectLightSampleCount;
+    float constantFactor = 1.0f / (float)IndirectLightSampleCount;
     
 	QuasyMonteCarloHemiSphereSampler sampler;
 
@@ -510,6 +520,8 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 		Ray indirectRay(p, rayDir);
 		indirectRay.Normalize();
         
+		Vec3f H = (V + indirectRay.dir).GetNormalized();
+
         assert(!isnan(rayDir.x + rayDir.y + rayDir.z));
 
 		RayContext indirectRayContext;
@@ -529,6 +541,10 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 			auto inDirectNode = indirectHitInfoContext.mainHitInfo.node;
 			float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
 			// float fallFactor = 1.0f;
+			if (!LightFallOff)
+			{
+				fallFactor = 1.0f;
+			}
 
 			indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount - 1);
 		}
@@ -544,23 +560,25 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 		}
 
 		Color diffuseColor;
-		if (diffuse.GetTexture())
+		Color specularColor;
+		if (!rayContext.hasDiff)
 		{
-			if (!rayContext.hasDiff)
-			{
-				diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw);
-			}
-			else
-			{
-				diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
-			}
+			diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw);
+			specularColor = specular.Sample(hInfoContext.mainHitInfo.uvw);
 		}
 		else
 		{
-			diffuseColor = diffuse.GetColor();
+			diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
+			specularColor = specular.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
 		}
 
-		singleResult = InversePi * indirectLightIntencity * cosTheta * diffuseColor;
+		float cosNH = H.Dot(N);
+		if (cosNH < 0.0f)
+		{
+			cosNH = 0.0f;
+		}
+
+		singleResult = (indirectLightIntencity * diffuseColor) + (indirectLightIntencity * cosTheta * specularColor * pow(cosNH, glossiness));
         assert(!isnan(singleResult.r + singleResult.g + singleResult.b));
 		result = result + (constantFactor * singleResult);
 	}

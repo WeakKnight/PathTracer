@@ -45,7 +45,11 @@ class RenderImageHelper
 			return;
 		}
 		int width = image.GetWidth();
-		pixels[x + y * width] = Color24(255.0f, 255.0f, 255.0f);
+		int height = image.GetHeight();
+		if (x < width && y < height)
+		{
+			pixels[x + y * width] = Color24(255.0f, 255.0f, 255.0f);
+		}
 	}
     
     static void SetDepth(RenderImage& image, int x, int y, float depth)

@@ -1,12 +1,9 @@
 #include "lights.h"
 #include "raytracer.h"
 #include "utils.h"
+#include "config.h"
 
 extern Node rootNode;
-
-constexpr int MinShadowSampleCount = 4;
-constexpr int MaxShadowSampleCount = 16;
-constexpr float ShadowTolerance = 0.01f;
 
 QuasyMonteCarloCircleSampler* GenLight::CircleAreaLightSampler = new QuasyMonteCarloCircleSampler;
 
@@ -76,5 +73,9 @@ Color PointLight::Illuminate(Vec3f const& p, Vec3f const& N) const
 	float distanceSquare = (position - p).LengthSquared();
 	float distance = sqrt(distanceSquare);
 	float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
+	if (!LightFallOff)
+	{
+		fallFactor = 1.0f;
+	}
 	return avgFactor * fallFactor * intensity;
 }

@@ -23,6 +23,7 @@
 #include "utils.h"
 
 #include "irradiancemap.h"
+#include "config.h"
 
 Node rootNode;
 Camera camera;
@@ -314,22 +315,24 @@ void RayTracer::Run()
     std::size_t size = renderImage.GetWidth() * renderImage.GetHeight();
     
     renderImage.ResetNumRenderedPixels();
-    
-	irradianceCacheMap.Initialize(renderImage.GetWidth(), renderImage.GetHeight());
+	if (IrradianceCache)
+	{
+		irradianceCacheMap.Initialize(renderImage.GetWidth(), renderImage.GetHeight());
 
-	std::thread irradianceThread1(ComputeIrradianceCacheMap);
-	std::thread irradianceThread2(ComputeIrradianceCacheMap);
-	std::thread irradianceThread3(ComputeIrradianceCacheMap);
-	std::thread irradianceThread4(ComputeIrradianceCacheMap);
-	irradianceThread1.join();
-	irradianceThread2.join();
-	irradianceThread3.join();
-	irradianceThread4.join();
+		std::thread irradianceThread1(ComputeIrradianceCacheMap);
+		std::thread irradianceThread2(ComputeIrradianceCacheMap);
+		std::thread irradianceThread3(ComputeIrradianceCacheMap);
+		std::thread irradianceThread4(ComputeIrradianceCacheMap);
+		irradianceThread1.join();
+		irradianceThread2.join();
+		irradianceThread3.join();
+		irradianceThread4.join();
+	}
 
     static HaltonSampler* haltonSampler = new HaltonSampler();
     // for test
-    haltonSampler->SetMinimumSampleCount(4);
-    haltonSampler->SetSampleCount(32);
+    haltonSampler->SetMinimumSampleCount(MinPixelSampleCount);
+    haltonSampler->SetSampleCount(MaxPixelSampleCount);
     
     for(std::size_t i = 0; i < cores; i++)
     {

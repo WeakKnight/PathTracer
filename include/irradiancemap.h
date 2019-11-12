@@ -5,9 +5,9 @@
 #include "sampler.h"
 #include "renderimagehelper.h"
 #include "spdlog/spdlog.h"
+#include "config.h"
 
 extern Node rootNode;
-constexpr int IrradianceGISampleCount = 4;
 extern LightList lights;
 extern TexturedColor background;
 extern TexturedColor environment;
@@ -17,9 +17,14 @@ extern RenderImage renderImage;
 class IrradianceCacheMap : public IrradianceMapColorZNormal
 {
 public:
+	IrradianceCacheMap(float _thresholdColor = 0.05, float _thresholdZ = 4.0f, float _thresholdN = 0.9f) :IrradianceMapColorZNormal(_thresholdColor, _thresholdZ, _thresholdN)
+	{
+
+	}
+
 	virtual void ComputePoint(ColorZNormal& data, float x, float y, int threadID)
 	{
-		spdlog::debug("compute point {}, {}", x, y);
+		// spdlog::debug("compute point {}, {}", x, y);
 		Quasy2DSampler sampler;
 		Color result = Color::Black();
 		float resultZ = 0.0f;
@@ -51,29 +56,17 @@ public:
 				hasCached = true;
 			}
 
-			if (!firstZ)
-			{
-				firstZ = true;
-				resultZ = hitInfoContext.mainHitInfo.z;
-			}
-
-			if (!firstN)
-			{
-				firstN = true;
-				resultN = hitInfoContext.mainHitInfo.N;
-			}
+			resultZ += factor * hitInfoContext.mainHitInfo.z;
+			resultN += hitInfoContext.mainHitInfo.N;
 		}
+
+		resultN.Normalize();
 
 		if (hasCached)
 		{
 			if (irradianceCachePixels != nullptr)
 			{
-				int width = renderImage.GetWidth();
-				int height = renderImage.GetHeight();
-				if (x < width && y < height)
-				{
-					irradianceCachePixels[(int)(x)+(int)(y)*width] = Color24(255.0f, 255.0f, 255.0f);
-				}
+				RenderImageHelper::SetIrradianceCache(irradianceCachePixels, renderImage, x, y);
 			}
 		}
 
