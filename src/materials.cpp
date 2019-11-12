@@ -7,12 +7,14 @@
 #include "raytracer.h"
 #include "utils.h"
 #include <unordered_map>
+#include "irradiancemap.h"
 
 using namespace cy;
 
 extern Node rootNode;
 extern TexturedColor environment;
 extern std::unordered_map<std::string, TextureMap> textureMap;
+extern IrradianceCacheMap irradianceCacheMap;
 
 QuasyMonteCarloCircleSampler* MtlBlinn::normalSampler = new QuasyMonteCarloCircleSampler;
 
@@ -453,7 +455,9 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     }
 
 	// indirect part
-    Color indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
+	
+	Color indirectResult = irradianceCacheMap.Sample(hInfoContext.screenX, hInfoContext.screenY).c;
+    // Color indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
     result += indirectResult;
 
 	// emission part

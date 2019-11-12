@@ -27,7 +27,7 @@ public:
                  reflectionGlossiness(0), refractionGlossiness(0) {}
     virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount) const;
  
-	Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const;
+	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const;
 
     void SetDiffuse     (Color dif)     { diffuse.SetColor(dif); }
     void SetSpecular    (Color spec)    { specular.SetColor(spec); }
@@ -124,6 +124,11 @@ public:
     virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount) const { 
         return hInfoContext.mainHitInfo.mtlID<(int)mtls.size() ? mtls[hInfoContext.mainHitInfo.mtlID]->Shade(rayContext,hInfoContext,lights,bounceCount) : Color(1,1,1); 
         }
+	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
+	{
+		Color result;
+		return result;
+	}
  
     virtual void SetViewportMaterial(int subMtlID=0) const { if ( subMtlID<(int)mtls.size() ) mtls[subMtlID]->SetViewportMaterial(); }
  

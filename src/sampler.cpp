@@ -44,7 +44,8 @@ SampleResult HaltonSampler::SamplePixel(int x, int y)
         
         RayContext rayContext = GenCameraRayContext(x, y, finalX, finalY);
         HitInfoContext hitInfoContext;
-        
+		hitInfoContext.SetAsScreenInfo(x, y);
+
         Color sampleColor = RootTrace(rayContext, hitInfoContext, x, y);
         SampleResult tempSampleResult;
         tempSampleResult.avgColor = sampleColor;

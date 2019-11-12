@@ -61,6 +61,47 @@ private:
     std::mt19937_64 rng;
 };
 
+// 0 to 1
+class Quasy2DSampler
+{
+public:
+	Quasy2DSampler()
+	{
+		xOffset = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+		yOffset = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+	}
+	Vec2f GenRandom2DVector()
+	{
+		float x = Halton(xIndex, haltonXBase) + xOffset;
+		mtx.lock();
+		xIndex++;
+		mtx.unlock();
+		if (x > 1.0f)
+		{
+			x -= 1.0f;
+		}
+
+		float y = Halton(yIndex, haltonYBase) + yOffset;
+		mtx.lock();
+		yIndex++;
+		mtx.unlock();
+		if (y > 1.0f)
+		{
+			y -= 1.0f;
+		}
+
+		return Vec2f(x, y);
+	}
+private:
+	float xOffset = 0.0f;
+	float yOffset = 0.0f;
+	int xIndex = 0;
+	int yIndex = 0;
+	int haltonXBase = 2;
+	int haltonYBase = 3;
+	std::mutex mtx;
+};
+
 class QuasyMonteCarloCircleSampler 
 {
 public:

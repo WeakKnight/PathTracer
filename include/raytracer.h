@@ -31,8 +31,9 @@ class RayTracer
     std::shared_ptr<Texture2D> GetNormalTexture(){return normalTexture;}
     std::shared_ptr<Texture2D> GetSampleTexture(){return sampleTexture;}
     std::shared_ptr<Texture2D> GetFilterTexture(){return filterTexture;}
+	std::shared_ptr<Texture2D> GetIrradianceTexture() { return irradianceTexture; }
     
-    char scene_path[256] = "assets/project11b.xml";
+    char scene_path[256] = "assets/project11.xml";
     
 private:
     GaussianFilter* gaussianFilter;
@@ -41,6 +42,7 @@ private:
     std::shared_ptr<Texture2D> renderTexture;
     std::shared_ptr<Texture2D> normalTexture;
     std::shared_ptr<Texture2D> sampleTexture;
-    std::shared_ptr<Texture2D> filterTexture;
+	std::shared_ptr<Texture2D> filterTexture;
+    std::shared_ptr<Texture2D> irradianceTexture;
 };
 

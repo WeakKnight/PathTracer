@@ -22,6 +22,8 @@
 
 #include "utils.h"
 
+#include "irradiancemap.h"
+
 Node rootNode;
 Camera camera;
 RenderImage renderImage;
@@ -46,8 +48,11 @@ cyVec3f cameraRight;
 Color24 *myZImg = nullptr;
 Color24 *mySampleImg = nullptr;
 Color24 *normalPixels = nullptr;
+Color24 *irradianceCachePixels = nullptr;
 
 float buildTime = 0.0f;
+
+IrradianceCacheMap irradianceCacheMap;
 
 bool InternalGenerateRayForAnyIntersection(Node* node, Ray& ray, float t_max)
 {
@@ -235,6 +240,10 @@ void RayTracer::Init()
     {
         filterTexture = std::make_shared<Texture2D>();
     }
+	if (!irradianceTexture)
+	{
+		irradianceTexture = std::make_shared<Texture2D>();
+	}
     
 #endif
     // scene load, ini global variables
@@ -272,6 +281,13 @@ Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, i
     }
 }
 
+void ComputeIrradianceCacheMap()
+{
+	while (irradianceCacheMap.ComputeNextPoint())
+	{
+	}
+}
+
 void RayTracer::Run()
 {
     if(normalPixels != nullptr)
@@ -280,6 +296,13 @@ void RayTracer::Run()
     }
     
     normalPixels = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
+
+	if (irradianceCachePixels != nullptr)
+	{
+		delete[] irradianceCachePixels;
+	}
+
+	irradianceCachePixels = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
     
     float now = glfwGetTime();
     
@@ -292,6 +315,17 @@ void RayTracer::Run()
     
     renderImage.ResetNumRenderedPixels();
     
+	irradianceCacheMap.Initialize(renderImage.GetWidth(), renderImage.GetHeight());
+
+	std::thread irradianceThread1(ComputeIrradianceCacheMap);
+	std::thread irradianceThread2(ComputeIrradianceCacheMap);
+	std::thread irradianceThread3(ComputeIrradianceCacheMap);
+	std::thread irradianceThread4(ComputeIrradianceCacheMap);
+	irradianceThread1.join();
+	irradianceThread2.join();
+	irradianceThread3.join();
+	irradianceThread4.join();
+
     static HaltonSampler* haltonSampler = new HaltonSampler();
     // for test
     haltonSampler->SetMinimumSampleCount(4);
@@ -371,7 +405,7 @@ void RayTracer::UpdateRenderResult()
     zbufferTexture->SetData((unsigned char *)myZImg, renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB);
     renderTexture->SetData((unsigned char *)renderImage.GetPixels(), renderImage.GetWidth(), renderImage.GetHeight());
     normalTexture->SetData((unsigned char *)normalPixels, renderImage.GetWidth(), renderImage.GetHeight());
-    
+	irradianceTexture->SetData((unsigned char*)irradianceCachePixels, renderImage.GetWidth(), renderImage.GetHeight());
 //    filterTexture->SetData((unsigned char *)colorShiftFilter->GetOutput(), renderImage.GetWidth(), renderImage.GetHeight());
 }
 

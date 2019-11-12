@@ -37,6 +37,16 @@ class RenderImageHelper
         int width = image.GetWidth();
         pixels[x + y * width] = Color24((0.5f + normal.x * 0.5f) * 255.0f, (0.5f + normal.y * 0.5f) * 255.0f, (0.5f + normal.z * 0.5f) * 255.0f);
     }
+
+	static void SetIrradianceCache(Color24* pixels, RenderImage& image, int x, int y)
+	{
+		if (pixels == nullptr)
+		{
+			return;
+		}
+		int width = image.GetWidth();
+		pixels[x + y * width] = Color24(255.0f, 255.0f, 255.0f);
+	}
     
     static void SetDepth(RenderImage& image, int x, int y, float depth)
     {

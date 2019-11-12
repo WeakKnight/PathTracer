@@ -154,7 +154,7 @@ void Window::StartUpdate()
     auto normalTexture = rayTracer.GetNormalTexture();
     auto sampleTexture = rayTracer.GetSampleTexture();
     auto filterTexture = rayTracer.GetFilterTexture();
-    
+	auto irradianceTexture = rayTracer.GetIrradianceTexture();
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
     while (!glfwWindowShouldClose(MGLFWWindow))
@@ -276,6 +276,20 @@ void Window::StartUpdate()
 					(
 						(ImTextureID)normalTexture->Id,
 						ImVec2(normalTexture->Width, normalTexture->Height),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						ImVec4(1.0, 1.0, 1.0, 1.0),
+						ImVec4(1.0, 1.0, 1.0, 1.0)
+					);
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Irradiance"))
+				{
+					ImGui::Image
+					(
+						(ImTextureID)irradianceTexture->Id,
+						ImVec2(irradianceTexture->Width, irradianceTexture->Height),
 						ImVec2(0, 0),
 						ImVec2(1, 1),
 						ImVec4(1.0, 1.0, 1.0, 1.0),
