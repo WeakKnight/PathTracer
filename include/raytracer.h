@@ -3,6 +3,7 @@
 #include <string>
 #include "cyVector.h"
 #include "scene.h"
+#include "config.h"
 
 Ray GenCameraRay(int x, int y, float xOffset = 0.5f, float yOffset = 0.5f, bool normalize = true);
 bool GenerateRayForAnyIntersection(Ray& ray, float t_max = BIGFLOAT);
@@ -33,7 +34,7 @@ class RayTracer
     std::shared_ptr<Texture2D> GetFilterTexture(){return filterTexture;}
 	std::shared_ptr<Texture2D> GetIrradianceTexture() { return irradianceTexture; }
     
-    char scene_path[256] = "assets/project11.xml";
+    char* scene_path = ScenePath;
     
 private:
     GaussianFilter* gaussianFilter;

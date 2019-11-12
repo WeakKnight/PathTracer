@@ -206,18 +206,6 @@ void Window::StartUpdate()
                 rayTracer.WriteToFile();
             }
             
-            if(ImGui::Button("Run Tracing"))
-            {
-                rayTracer.Run();
-            }
-            
-            ImGui::InputText("SceneName", rayTracer.scene_path, 256);
-            if(ImGui::Button("Reinit Scene"))
-            {
-                rayTracer.Init();
-            }
-            //rayTracer.scene_path = ImGui::inputt
-            
             ImGui::End();
         }
         

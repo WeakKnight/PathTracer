@@ -479,7 +479,6 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
 	}
 
     assert(!isnan(result.r + result.g + result.b));
-    result.ClampMax();
     return result;
 }
 

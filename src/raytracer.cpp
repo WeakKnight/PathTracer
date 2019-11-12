@@ -347,8 +347,9 @@ void RayTracer::Run()
 //                    int a = 1;
 //                }
                 SampleResult sampleResult = haltonSampler->SamplePixel(x, y);
-                
-                RenderImageHelper::SetPixel(renderImage, x, y, Color24(sampleResult.avgColor.r * 255.0f, sampleResult.avgColor.g * 255.0f, sampleResult.avgColor.b * 255.0f));
+				Color finalColor = sampleResult.avgColor;
+				finalColor.ClampMax();
+                RenderImageHelper::SetPixel(renderImage, x, y, Color24(finalColor.r * 255.0f, finalColor.g * 255.0f, finalColor.b * 255.0f));
                 RenderImageHelper::SetDepth(renderImage, x, y, sampleResult.avgZ);
                 RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, sampleResult.avgN);
                 
