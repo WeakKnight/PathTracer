@@ -4,6 +4,7 @@
 #include "cyColor.h"
 #include <assert.h>
 #include "utils.h"
+#include "constants.h"
 
 using namespace cy;
 
@@ -54,7 +55,7 @@ Vec3f RandomInUnitSphere()
 Vec2f NonUniformRandomPointInCircle(float radius)
 {
 	float r = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* radius;
-	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* Pi<float>() * 2.0f;
+	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* TWO_PI;
 
 	float x = r * cos(theta);
 	float y = r * sin(theta);
@@ -68,7 +69,7 @@ Vec2f RandomPointInCircle(float radius)
 	float S = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
 	// S = r2 / R2, choose r based on F
 	float r = sqrtf(S) * radius;
-	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* Pi<float>() * 2.0f;
+	float theta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* TWO_PI;
 
 	float x = r * cos(theta);
 	float y = r * sin(theta);
@@ -85,7 +86,7 @@ Vec3f UniformRandomPointOnHemiSphere()
 		sinTheta = 0.0f;
 	}
 
-	float beta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * Pi<float>() * 2.0f;
+	float beta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * TWO_PI;
 
 	// z = 1 * cosTheta, r = 1 * sinTheta, x = cosBeta * sinTheta, y = sinBeta * sinTheta
 	return Vec3f(sinTheta * cos(beta), sinTheta * sin(beta), cosTheta);
@@ -99,7 +100,7 @@ Vec3f CosineWeightedRandomPointOnHemiSphere()
     float cosTheta = cos(theta);
     float sinTheta = sin(theta);
     
-    float beta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * Pi<float>() * 2.0f;
+    float beta = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * TWO_PI;
     
     // z = 1 * cosTheta, r = 1 * sinTheta, x = cosBeta * sinTheta, y = sinBeta * sinTheta
     return Vec3f(sinTheta * cos(beta), sinTheta * sin(beta), cosTheta);

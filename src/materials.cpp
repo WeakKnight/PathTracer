@@ -106,7 +106,7 @@ void CalculateRefractDir(
     reflect = Reflect(-v, normal);
 }
 
-Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount) const
+Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const
 {
     // ray world space
     // N world space
@@ -215,7 +215,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
                                                  powf(M_E, -1.0f * distance * absorption.r)
                                                  , powf(M_E, -1.0f * distance * absorption.g)
                                                  , powf(M_E, -1.0f * distance * absorption.b));
-                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1);
+                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
                     result += refractColor;
                 }
                 else
@@ -233,7 +233,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             {
                 if(GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfoContext, HIT_FRONT, reflectDistance))
                 {
-                    Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1);
+                    Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
                     result += reflectColor;
                 }
                 else
@@ -260,7 +260,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
                         //                            absortionColor *
                         //                            refraction *
                         (1.0f - Rs) *
-                        refractHitInfo.node->GetMaterial()->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1);
+                        refractHitInfo.node->GetMaterial()->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
                         result += refractColor;
                     }
                     else
@@ -283,7 +283,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
 
                     Color refractColor = absortionColor
                     //                            * refraction
-                    * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1);
+                    * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
 
                     result += refractColor;
                 }
@@ -303,7 +303,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
                                                  , powf(M_E, -1.0f * distance * absorption.g)
                                                  , powf(M_E, -1.0f * distance * absorption.b));
 
-                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1);
+                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
 
                     result += refractColor;
                 }
@@ -354,7 +354,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             {
                 const Material* mat = reflectHitInfo.node->GetMaterial();
                 
-                Color reflectColor = reflectFactor * mat->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1);
+                Color reflectColor = reflectFactor * mat->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
                 result += reflectColor;
             }
             else
@@ -463,7 +463,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
 	}
 	else
 	{
-		indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount);
+		indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount, indirectLightBounce);
 	}
 
     result += indirectResult;
@@ -486,11 +486,11 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
 
 constexpr float InversePi = 1.0f / M_PI;
 
-Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
+Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
 {
 	Color result = Color::Black();
 
-	if (bounceCount <= 0)
+	if (indirectLightBounce <= 0)
 	{
 		return result;
 	}
@@ -546,7 +546,7 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 				fallFactor = 1.0f;
 			}
 
-			indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount - 1);
+			indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount, indirectLightBounce - 1);
 		}
 		else
 		{

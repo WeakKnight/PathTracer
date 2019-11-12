@@ -12,3 +12,6 @@ constexpr unsigned int IndirectLightSampleCount = 16;
 constexpr int MinShadowSampleCount = 4;
 constexpr int MaxShadowSampleCount = 16;
 constexpr float ShadowTolerance = 0.01f;
+// Refraction/Reflection Bounce Count
+constexpr int RefractionBounceCount = 4;
+constexpr int IndirectLightBounceCount = 1;

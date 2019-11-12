@@ -51,7 +51,7 @@ public:
 
 			if (sthTraced)
 			{
-				Color shadingResult = hitInfo.node->GetMaterial()->IndirectLightShade(rayContext, hitInfoContext, lights, 1);
+				Color shadingResult = hitInfo.node->GetMaterial()->IndirectLightShade(rayContext, hitInfoContext, lights, RefractionBounceCount, IndirectLightBounceCount);
 				result += factor * shadingResult;
 				hasCached = true;
 			}

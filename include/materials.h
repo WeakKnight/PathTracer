@@ -25,9 +25,9 @@ public:
     MtlBlinn() : diffuse(0.5f,0.5f,0.5f), specular(0.7f,0.7f,0.7f), glossiness(20.0f), 
                  reflection(0,0,0), refraction(0,0,0), emission(0, 0, 0), absorption(0,0,0), ior(1),
                  reflectionGlossiness(0), refractionGlossiness(0) {}
-    virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount) const;
+    virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const;
  
-	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const;
+	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const;
 
     void SetDiffuse     (Color dif)     { diffuse.SetColor(dif); }
     void SetSpecular    (Color spec)    { specular.SetColor(spec); }
@@ -121,10 +121,10 @@ class MultiMtl : public Material
 public:
     virtual ~MultiMtl() { for ( unsigned int i=0; i<mtls.size(); i++ ) delete mtls[i]; }
  
-    virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount) const { 
-        return hInfoContext.mainHitInfo.mtlID<(int)mtls.size() ? mtls[hInfoContext.mainHitInfo.mtlID]->Shade(rayContext,hInfoContext,lights,bounceCount) : Color(1,1,1); 
+    virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const {
+        return hInfoContext.mainHitInfo.mtlID<(int)mtls.size() ? mtls[hInfoContext.mainHitInfo.mtlID]->Shade(rayContext,hInfoContext,lights, bounceCount, indirectLightBounce) : Color(1,1,1);
         }
-	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount) const
+	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
 	{
 		Color result;
 		return result;
