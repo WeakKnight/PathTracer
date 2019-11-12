@@ -483,9 +483,6 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     return result;
 }
 
-
-constexpr float InversePi = 1.0f / M_PI;
-
 Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
 {
 	Color result = Color::Black();
