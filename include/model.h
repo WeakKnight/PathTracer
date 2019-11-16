@@ -3,6 +3,14 @@
 #include "mesh.h"
 #include <float.h>
 
+#include <assimp/Importer.hpp>      // C++ importer interface
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+
+#include <spdlog/spdlog.h>
+
+class BVHNode;
+
 class Model : public Object
 {
 public:
@@ -59,74 +67,12 @@ public:
 		}
 	}
 
-	virtual bool IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT) const
-	{
-		if (!GetBoundBox().IntersectRay(ray, BIGFLOAT))
-		{
-			return false;
-		}
+	bool TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, Mesh& mesh, BVHNode* node) const;
+	bool TraceBVHNode(RayContext& rayContext, HitInfoContext& hInfoContext, int hitSide, Mesh& mesh, BVHNode* node) const;
 
-		bool result = false;
-		for (int i = 0; i < meshesNum; i++)
-		{
-			auto mesh = meshes[i];
-			for (int j = 0; j < mesh.faces.size(); j++)
-			{
-				auto face = mesh.faces[j];
-				HitInfo currentHitInfo;
-				if (IntersectRayWithFace(ray, currentHitInfo, hitSide, mesh, face))
-				{
-					if (currentHitInfo.z < hInfo.z)
-					{
-						result = true;
-						hInfo.Copy(currentHitInfo);
-					}
-				}
-			}
-		}
+	virtual bool IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT) const;
 
-		return result;
-	}
-
-	virtual bool IntersectRay(RayContext& rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const
-	{
-		if (!GetBoundBox().IntersectRay(rayContext.cameraRay, BIGFLOAT))
-		{
-			return false;
-		}
-
-		bool result = false;
-
-		HitInfo& hInfo = hInfoContext.mainHitInfo;
-		HitInfo& hInfoRight = hInfoContext.rightHitInfo;
-		HitInfo& hInfoTop = hInfoContext.topHitInfo;
-
-		for (int i = 0; i < meshesNum; i++)
-		{
-			auto mesh = meshes[i];
-			for (int j = 0; j < mesh.faces.size(); j++)
-			{
-				auto face = mesh.faces[j];
-				HitInfoContext currentHitInfoContext;
-				HitInfo& currentHitInfo = currentHitInfoContext.mainHitInfo;
-
-				if (IntersectRayWithFace(rayContext, currentHitInfoContext, hitSide, mesh, face))
-				{
-					if (currentHitInfo.z < hInfo.z)
-					{
-						result = true;
-
-						hInfo.Copy(currentHitInfo);
-
-						hInfoRight.CopyForDiffRay(currentHitInfoContext.rightHitInfo);
-						hInfoTop.CopyForDiffRay(currentHitInfoContext.topHitInfo);
-					}
-				}
-			}
-
-		}
-		return result;
-	}
+	virtual bool IntersectRay(RayContext& rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const;
 
 	virtual Box  GetBoundBox() const
 	{
@@ -382,9 +328,79 @@ public:
 
 		return true;
 	}
+	std::string path;
 
 private:
 	Box aabb;
 	Mesh* meshes;
 	unsigned int meshesNum;
+};
+
+class ModelLoader
+{
+public:
+	Node* Load(const std::string& path)
+	{
+		Assimp::Importer importer;
+		const aiScene* scene = importer.ReadFile(path,
+			aiProcess_CalcTangentSpace
+			| aiProcess_Triangulate
+			| aiProcess_JoinIdenticalVertices
+			| aiProcess_SortByPType
+			| aiProcess_GenBoundingBoxes
+			| aiProcess_GenNormals
+			//|aiProcess_MakeLeftHanded
+		);
+
+		// If the import failed, report it
+		if (!scene)
+		{
+			spdlog::info("assimp: {}", importer.GetErrorString());
+			return nullptr;
+		}
+
+		auto node = ProcessNode(scene, scene->mRootNode, path, 0);
+
+		// scene->mMeshes[scene->mRootNode->];
+		return node;
+	}
+
+	Node* ProcessNode(const aiScene* scene, aiNode* node, const std::string& path, int order)
+	{
+		Node* result = new Node();
+		result->Init();
+
+		int meshCount = node->mNumMeshes;
+		int childCount = node->mNumChildren;
+		auto transformation = node->mTransformation;
+
+		cy::Matrix3<float> trans = Matrix3<float>(transformation.a1, transformation.a2, transformation.a3, transformation.b1, transformation.b2, transformation.b3, transformation.c1, transformation.c2, transformation.c3);
+		result->Transform(trans);
+
+		if (node->mNumMeshes > 0)
+		{
+			Mesh* myMeshes = new Mesh[meshCount];
+			for (int i = 0; i < meshCount; i++)
+			{
+				aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+				Mesh myMesh;
+				myMesh.path = StringUtils::Format("%s,order%d:%d", path, order, i);
+				myMesh.ProcessAssimpData(mesh);
+				myMeshes[i] = myMesh;
+			}
+
+			Model* model = new Model(myMeshes, meshCount);
+			model->path = StringUtils::Format("%s,order%d", path, order);
+			result->SetNodeObj(model);
+		}
+
+		for (int i = 0; i < childCount; i++)
+		{
+			aiNode* child = node->mChildren[i];
+			Node* childNode = ProcessNode(scene, child, path, order + 1);
+			result->AppendChild(childNode);
+		}
+
+		return result;
+	}
 };

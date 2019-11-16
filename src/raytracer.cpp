@@ -25,6 +25,8 @@
 #include "irradiancemap.h"
 #include "config.h"
 
+#include "bvh.h"
+
 Node rootNode;
 Camera camera;
 RenderImage renderImage;
@@ -34,6 +36,7 @@ ObjFileList objList;
 TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
+BVHManager bvhManager;
 
 float imgPlaneHeight;
 float imgPlaneWidth;

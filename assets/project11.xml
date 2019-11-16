@@ -33,6 +33,11 @@
       <rotate angle="30" z="1"/>
       <translate x="-4.5" y="5" z="0"/>
     </object>
+    <object type="model" name="assets/models/rock.fbx" material="mtl1">
+      <scale value="0.75"/>
+      <rotate angle="30" z="1"/>
+      <translate x="-4.5" y="5" z="0"/>
+    </object>
     <object type="sphere" name="sphere2" material="mtl2">
       <scale value="4.5"/>
       <rotate angle="30" y="1"/>

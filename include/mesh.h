@@ -9,6 +9,13 @@
 
 #include "objects.h"
 
+#include <assimp/Importer.hpp>      // C++ importer interface
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+
+#include <spdlog/spdlog.h>
+
+class MeshBVHNew;
 
 class Face
 {
@@ -17,13 +24,76 @@ public:
 	std::vector<unsigned int> indices;
 };
 
-class Mesh 
+class Mesh
 {
 public:
 	Mesh() 
 	{
-
 	} 
+
+	void ProcessAssimpData(aiMesh* mesh)
+	{
+		// Face
+		for (int i = 0; i < mesh->mNumFaces; i++)
+		{
+			Face face;
+			for (int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
+			{
+				face.indices.push_back(mesh->mFaces[i].mIndices[j]);
+			}
+
+			// Push face id
+			face.indices.push_back(i);
+
+			faces.push_back(face);
+		}
+		// Vertices
+		for (int i = 0; i < mesh->mNumVertices; i++)
+		{
+			auto vertex = mesh->mVertices[i];
+			vertices.push_back(glm::vec3(vertex.x, vertex.y, vertex.z));
+		}
+		// Normals
+		if (mesh->HasNormals())
+		{
+			for (int i = 0; i < mesh->mNumVertices; i++)
+			{
+				auto normal = mesh->mNormals[i];
+				normals.push_back(glm::vec3(normal.x, normal.y, normal.z));
+			}
+		}
+		
+		//// Tangent And Bitangent
+		//if (mesh->HasTangentsAndBitangents())
+		//{
+		//	for (int i = 0; i < mesh->mNumVertices; i++)
+		//	{
+		//		auto tangent = mesh->mTangents[i];
+		//		auto bitangent = mesh->mBitangents[i];
+
+		//		tangents.push_back(glm::vec3(tangent.x, tangent.y, tangent.z));
+		//		bitangents.push_back(glm::vec3(bitangent.x, bitangent.y, bitangent.z));
+		//	}
+		//}
+
+		// Texture Coords
+		if (mesh->HasTextureCoords(0))
+		{
+			for (int i = 0; i < mesh->mNumVertices; i++)
+			{
+				auto texCoord = mesh->mTextureCoords[0][i];
+				textureCoords.push_back(glm::vec3(texCoord.x, texCoord.y, texCoord.z));
+			}
+		}
+
+		GenerateTangent();
+
+		aabb = Box(mesh->mAABB.mMin.x, mesh->mAABB.mMin.y, mesh->mAABB.mMin.z, mesh->mAABB.mMax.x, mesh->mAABB.mMax.y, mesh->mAABB.mMax.z);
+
+		BuildBVH();
+	}
+
+	void BuildBVH();
 	
 	void GenerateTangent()
 	{
@@ -63,7 +133,11 @@ public:
 		}
 	}
 
-private:
+public:
+	MeshBVHNew* bvh;
+
+	std::string path;
+
 	friend class MeshBuilder;
 	friend class Model;
 

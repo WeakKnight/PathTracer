@@ -201,7 +201,14 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
 			Plane* plane = new Plane;
             node->SetNodeObj( plane);
             printf(" - Plane");
-        } else if ( COMPARE(type,"obj") ) {
+        }
+		else if (COMPARE(type, "model")) {
+			ModelLoader loader;
+			Node* model = loader.Load(name);
+			node->AppendChild(model);
+			printf(" - Model");
+		}
+		else if ( COMPARE(type,"obj") ) {
             printf(" - OBJ");
             Object *obj = objList.Find(name);
             if ( obj == nullptr ) { // object is not on the list, so we should load it now

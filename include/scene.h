@@ -509,12 +509,23 @@ private:
     Object *obj;                // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
     Material *mtl;              // Material used for shading the object
     Box childBoundBox;          // Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
+	Node* parent;
 public:
     Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr) {}
     virtual ~Node() { DeleteAllChildNodes(); }
     
     void Init() { DeleteAllChildNodes(); obj=nullptr; mtl=nullptr; childBoundBox.Init(); SetName(nullptr); InitTransform(); } // Initialize the node deleting all child nodes
     
+	// 
+	Node* GetParent()
+	{
+		return parent;
+	}
+	void SetParent(Node* node)
+	{
+		parent = node;
+	}
+
     // Hierarchy management
     int  GetNumChild() const { return numChild; }
     void SetNumChild(int n, int keepOld=false)
@@ -534,7 +545,12 @@ public:
     Node const* GetChild( int i ) const       { return child[i]; }
     Node*       GetChild( int i )             { return child[i]; }
     void        SetChild( int i, Node *node ) { child[i]=node; }
-    void        AppendChild( Node *node )     { SetNumChild(numChild+1,true); SetChild(numChild-1,node); }
+    void        AppendChild( Node *node )     
+	{ 
+		SetNumChild(numChild+1,true); 
+		SetChild(numChild-1,node); 
+		node->SetParent(this);
+	}
     void        RemoveChild( int i )          { for ( int j=i; j<numChild-1; j++) child[j]=child[j+1]; SetNumChild(numChild-1); }
     void        DeleteAllChildNodes()         { for ( int i=0; i<numChild; i++ ) { child[i]->DeleteAllChildNodes(); delete child[i]; } SetNumChild(0); }
     
@@ -561,7 +577,15 @@ public:
     void           SetNodeObj(Object *object) { obj=object; }
     
     // Material management
-    const Material* GetMaterial() const { return mtl; }
+    const Material* GetMaterial() const 
+	{
+		if (mtl == nullptr && parent != nullptr)
+		{
+			return parent->GetMaterial();
+		}
+
+		return mtl; 
+	}
     void            SetMaterial(Material *material) { mtl=material; }
     
     // Transformations
