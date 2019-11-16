@@ -544,14 +544,20 @@ public:
     }
     Node const* GetChild( int i ) const       { return child[i]; }
     Node*       GetChild( int i )             { return child[i]; }
-    void        SetChild( int i, Node *node ) { child[i]=node; }
-    void        AppendChild( Node *node )     
+    
+	void        SetChild( int i, Node *node ) 
+	{ 
+		child[i]=node; 
+	}
+    
+	void        AppendChild( Node *node )     
 	{ 
 		SetNumChild(numChild+1,true); 
 		SetChild(numChild-1,node); 
 		node->SetParent(this);
 	}
-    void        RemoveChild( int i )          { for ( int j=i; j<numChild-1; j++) child[j]=child[j+1]; SetNumChild(numChild-1); }
+    
+	void        RemoveChild( int i )          { for ( int j=i; j<numChild-1; j++) child[j]=child[j+1]; SetNumChild(numChild-1); }
     void        DeleteAllChildNodes()         { for ( int i=0; i<numChild; i++ ) { child[i]->DeleteAllChildNodes(); delete child[i]; } SetNumChild(0); }
     
     // Bounding Box

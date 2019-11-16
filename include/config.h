@@ -16,4 +16,4 @@ constexpr float ShadowTolerance = 0.01f;
 // Refraction/Reflection Bounce Count
 constexpr int RefractionBounceCount = 4;
 constexpr int IndirectLightBounceCount = 1;
-constexpr char* ScenePath = "assets/project11.xml";
+constexpr char* ScenePath = "assets/project11c.xml";
