@@ -53,12 +53,12 @@ bool TextureFile::Load()
 		) 
 	{
 		int width, height, nrChannels;
-		if (strncmp(ext, "hdr", 3) == 0)
+		// if (strncmp(ext, "hdr", 3) == 0)
 		{
 			stbi_set_flip_vertically_on_load(true);
 		}
 		float* rawData = stbi_loadf(name, &width, &height, &nrChannels, 3);
-		if (strncmp(ext, "hdr", 3) == 0)
+		// if (strncmp(ext, "hdr", 3) == 0)
 		{
 			stbi_set_flip_vertically_on_load(false);
 		}
