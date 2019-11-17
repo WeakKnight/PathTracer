@@ -686,7 +686,13 @@ public:
 		width = w;
 		height = h;
 		if (img) delete[] img;
-		img = new Color24[width * height];
+		{
+			img = new Color24[width * height];
+			for (int i = 0; i < width * height; i++)
+			{
+				img[i] = Color24::Black();
+			}
+		}
 		if (zbuffer) delete[] zbuffer;
 		zbuffer = new float[width * height];
 		if (zbufferImg) delete[] zbufferImg;
@@ -768,6 +774,7 @@ public:
 		return smax;
 	}
 
+	bool SaveImage(char const* filename, uint8_t* data) const { return SavePNG(filename, data, 3); }
 	bool SaveImage(char const* filename) const { return SavePNG(filename, &img[0].r, 3); }
 	bool SaveZImage(char const* filename) const { return SavePNG(filename, zbufferImg, 1); }
 	bool SaveSampleCountImage(char const* filename) const { return SavePNG(filename, sampleCountImg, 1); }

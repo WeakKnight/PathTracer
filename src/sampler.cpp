@@ -9,101 +9,45 @@ colorTolerance(0.01f),
 sampleNum(32),
 minimumSampleNum(4)
 {
-    results = new std::vector<SampleResult>();
+    results = new std::vector<PixelContext>();
     int64_t seed = 6000;
     std::seed_seq ss{uint32_t(seed & 0xffffffff), uint32_t(seed>>32)};
     rng.seed(ss);
 }
 
-SampleResult HaltonSampler::SamplePixel(int x, int y)
+PixelContext HaltonSampler::SamplePixel(int x, int y, Vec2f& randomOffset, int index) const
 {
-    SampleResult result;
-    result.x = x;
-    result.y = y;
-    std::uniform_real_distribution<float> unif(0.0f, ONE_MINUS_EPSILON);
-    Vec2f randomOffset = Vec2f(unif(rng), unif(rng));
-    
-    std::vector<SampleResult> tempSampleResults;
-    
-    for(size_t i = 0; i < sampleNum; i++)
-    {
-		// -0.5 to 0.5
-        Vec2f samplerPos = Vec2f(Halton(i, haltonXBase) - 0.5f, Halton(i, haltonYBase) - 0.5f);
+    Vec2f samplerPos = Vec2f(Halton(index, haltonXBase) - 0.5f, Halton(index, haltonYBase) - 0.5f);
       
-        float finalX = samplerPos.x + randomOffset.x;
-        if(finalX >= 0.5f)
-        {
-            finalX -= 1.0f;
-        }
-        
-        float finalY = samplerPos.y + randomOffset.y;
-        if(finalY >= 0.5f)
-        {
-            finalY -= 1.0f;
-        }
-        
-        RayContext rayContext = GenCameraRayContext(x, y, finalX, finalY);
-        HitInfoContext hitInfoContext;
-		hitInfoContext.SetAsScreenInfo(x, y);
-
-        Color sampleColor = RootTrace(rayContext, hitInfoContext, x, y);
-        SampleResult tempSampleResult;
-        tempSampleResult.avgColor = sampleColor;
-        tempSampleResult.avgZ = hitInfoContext.mainHitInfo.z;
-        tempSampleResult.avgN = hitInfoContext.mainHitInfo.N;
-        
-        tempSampleResults.push_back(tempSampleResult);
-        
-        if(!ContinueSamplingCondition(tempSampleResults))
-        {
-            break;
-        }
-    }
-    
-    RenderImageHelper::SetSampleNum(renderImage, x, y, tempSampleResults.size());
-    
-    for(size_t i = 0; i < tempSampleResults.size(); i++)
+    float finalX = samplerPos.x + randomOffset.x;
+    if(finalX >= 0.5f)
     {
-        result.avgColor += (tempSampleResults[i].avgColor / (float)tempSampleResults.size());
-        result.avgN += (tempSampleResults[i].avgN / (float)tempSampleResults.size());
-        result.avgZ += (tempSampleResults[i].avgZ / (float)tempSampleResults.size());
+        finalX -= 1.0f;
     }
-    
-	// gamma correction
-	auto resultColor = result.avgColor;
-	result.avgColor = Color(powf(resultColor.r, 0.4545f), powf(resultColor.g, 0.4545f), powf(resultColor.b, 0.4545f));
+        
+    float finalY = samplerPos.y + randomOffset.y;
+    if(finalY >= 0.5f)
+    {
+        finalY -= 1.0f;
+    }
+        
+    RayContext rayContext = GenCameraRayContext(x, y, finalX, finalY);
+    HitInfoContext hitInfoContext;
+	hitInfoContext.SetAsScreenInfo(x, y);
 
-    return result;
+    Color sampleColor = RootTrace(rayContext, hitInfoContext, x, y);
+	PixelContext tempSampleResult;
+    tempSampleResult.color = sampleColor;
+    tempSampleResult.z = hitInfoContext.mainHitInfo.z;
+    tempSampleResult.normal = hitInfoContext.mainHitInfo.N;
+        
+	auto& resultColor = tempSampleResult.color;
+	tempSampleResult.color = Color(powf(resultColor.r, 0.4545f), powf(resultColor.g, 0.4545f), powf(resultColor.b, 0.4545f));
+
+    return tempSampleResult;
 }
 
 void HaltonSampler::BeginSampling()
 {
     
-}
-
-bool HaltonSampler::ContinueSamplingCondition(std::vector<SampleResult>& sampleResult)
-{
-    if(sampleResult.size() < this->minimumSampleNum)
-    {
-        return true;
-    }
-    
-    Color meanColor = Color::Black();
-    for(size_t i = 0; i < sampleResult.size(); i ++)
-    {
-        meanColor += (sampleResult[i].avgColor / sampleResult.size());
-    }
-    
-    for(size_t i = 0; i < sampleResult.size(); i ++)
-    {
-        auto delta = (sampleResult[i].avgColor - meanColor);
-        delta.Abs();
-        
-        if(delta.Sum() >= colorTolerance)
-        {
-            return true;
-        }
-    }
-    
-    return false;
 }

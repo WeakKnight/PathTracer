@@ -47,35 +47,23 @@ Color PointLight::Illuminate(Vec3f const& p, Vec3f const& N) const
 	BranchlessONB(top, right, forward);
 	
 	float radius = size;
-	
-	QuasyMonteCarloCircleSampler sampler;
 
-	float factorSum = 0.0f;
-	float avgFactor = 0.0f;
-	for (int index = 0; index < MaxShadowSampleCount; index++)
-	{
-		Vec2f p2d = sampler.RandomPointInCircle(size);
+	Vec2f p2d = RandomPointInCircle(size);
 
-		Vec3f shadowRayDir = position - p + p2d.x * right + p2d.y * forward;
-		// shadowRayDir.Normalize();
+	Vec3f shadowRayDir = position - p + p2d.x * right + p2d.y * forward;
+	// shadowRayDir.Normalize();
 
-		float shadowFactor = Shadow(Ray(p, shadowRayDir), 1);
-		factorSum += shadowFactor;
-
-		avgFactor = factorSum / (float)(index + 1);
-		if (abs(avgFactor - shadowFactor) < ShadowTolerance && (index + 1) >= MinShadowSampleCount)
-		{
-			break;
-		}
-	}
+	float shadowFactor = Shadow(Ray(p, shadowRayDir), 1);
 
 	// distance square
 	float distanceSquare = (position - p).LengthSquared();
 	float distance = sqrt(distanceSquare);
 	float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
+
 	if (!LightFallOff)
 	{
 		fallFactor = 1.0f;
 	}
-	return avgFactor * fallFactor * intensity;
+
+	return shadowFactor * fallFactor * intensity;
 }

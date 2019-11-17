@@ -205,6 +205,11 @@ void Window::StartUpdate()
             {
                 rayTracer.WriteToFile();
             }
+
+			if (ImGui::Button("pause"))
+			{
+				rayTracer.Pause();
+			}
             
             ImGui::End();
         }

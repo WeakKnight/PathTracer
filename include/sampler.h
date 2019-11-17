@@ -5,29 +5,16 @@
 #include <random>
 #include <mutex> 
 
-#define ONE_MINUS_EPSILON 0x1.fffffep-1
+#include "pathtracer.h"
 
-struct SampleResult {
-    SampleResult()
-    {
-        avgColor = Color::Black();
-        avgZ = 0.0f;
-        avgN = Vec3f(0.0f, 0.0f, 0.0f);
-    }
-    
-    Color avgColor;
-    float avgZ;
-    Vec3f avgN;
-    int x;
-    int y;
-};
+#define ONE_MINUS_EPSILON 0x1.fffffep-1
 
 class HaltonSampler{
 public:
     
     HaltonSampler();
     
-    SampleResult SamplePixel(int x, int y);
+	PixelContext SamplePixel(int x, int y, Vec2f& randomOffset, int index) const;
     void BeginSampling();
     
     void SetSampleCount(int count)
@@ -46,12 +33,9 @@ public:
     }
     
 private:
-    
-    bool ContinueSamplingCondition(std::vector<SampleResult>& sampleResult);
-    
     float colorTolerance;
     
-    std::vector<SampleResult>* results;
+    std::vector<PixelContext>* results;
     // use for storing count info
     std::vector<int> sampleCountResult;
     unsigned int sampleNum;

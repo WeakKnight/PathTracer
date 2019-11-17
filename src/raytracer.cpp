@@ -27,6 +27,8 @@
 
 #include "bvh.h"
 
+#include "pathtracer.h"
+
 Node rootNode;
 Camera camera;
 RenderImage renderImage;
@@ -37,6 +39,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 BVHManager bvhManager;
+std::atomic<bool> outputing;
 
 float imgPlaneHeight;
 float imgPlaneWidth;
@@ -223,6 +226,7 @@ RayContext GenCameraRayContext(int x, int y, float offsetX, float offsetY)
 
 void RayTracer::Init()
 {
+	outputing = false;
 #ifdef IMGUI_DEBUG
     if(!renderTexture)
     {
@@ -308,12 +312,24 @@ void RayTracer::Run()
 	}
 
 	irradianceCachePixels = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
+
+	if (myZImg != nullptr)
+	{
+		delete[] myZImg;
+	}
+
+	myZImg = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
+
+	if (mySampleImg != nullptr)
+	{
+		delete[] mySampleImg;
+	}
+
+	mySampleImg = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
     
     float now = glfwGetTime();
     
-    std::size_t cores =
-//    1;
-    std::thread::hardware_concurrency() - 1;
+    std::size_t cores = std::thread::hardware_concurrency() - 1;
     std::vector<std::future<void>> threads;
     
     std::size_t size = renderImage.GetWidth() * renderImage.GetHeight();
@@ -333,75 +349,51 @@ void RayTracer::Run()
 		irradianceThread4.join();
 	}
 
-    static HaltonSampler* haltonSampler = new HaltonSampler();
-    // for test
-    haltonSampler->SetMinimumSampleCount(MinPixelSampleCount);
-    haltonSampler->SetSampleCount(MaxPixelSampleCount);
-    
-    for(std::size_t i = 0; i < cores; i++)
-    {
-        threads.push_back(std::async([=](){
-            for(std::size_t index = i; index < size; index+= cores)
-            {
-                int y = index / renderImage.GetWidth();
-                int x = index - y * renderImage.GetWidth();
-                
-//                if(x == 399 && y == 150)
+	PathTracer pathTracer;
+	pathTracer.Init(renderImage.GetWidth(), renderImage.GetHeight());
+	pathTracer.Run();
+
+//    static HaltonSampler* haltonSampler = new HaltonSampler();
+//    // for test
+//    haltonSampler->SetMinimumSampleCount(MinPixelSampleCount);
+//    haltonSampler->SetSampleCount(MaxPixelSampleCount);
+//    
+//    for(std::size_t i = 0; i < cores; i++)
+//    {
+//        threads.push_back(std::async([=](){
+//            for(std::size_t index = i; index < size; index+= cores)
+//            {
+//                int y = index / renderImage.GetWidth();
+//                int x = index - y * renderImage.GetWidth();
+//                
+//                PixelContext sampleResult = haltonSampler->SamplePixel(x, y);
+//				Color& finalColor = sampleResult.color;
+//				finalColor.ClampMax();
+//                RenderImageHelper::SetPixel(renderImage, x, y, Color24(finalColor.r * 255.0f, finalColor.g * 255.0f, finalColor.b * 255.0f));
+//                RenderImageHelper::SetDepth(renderImage, x, y, sampleResult.z);
+//                RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, sampleResult.normal);
+//                
+//                renderImage.IncrementNumRenderPixel(1);
+//                // done
+//                if(renderImage.IsRenderDone())
 //                {
-//                    int a = 1;
+//                    float finish = glfwGetTime();
+//                    
+//                    spdlog::debug("bvh build time is {}", buildTime);
+//                    spdlog::debug("time is {}", finish - now);
+//                    renderImage.ComputeZBufferImage();
+//                    renderImage.ComputeSampleCountImage();
+//                    
+////                    gaussianFilter->Compute();
+////                    colorShiftFilter->Compute();
+//                    
+//#ifndef IMGUI_DEBUG
+//                    WriteToFile();
+//#endif
 //                }
-                SampleResult sampleResult = haltonSampler->SamplePixel(x, y);
-				Color finalColor = sampleResult.avgColor;
-				finalColor.ClampMax();
-                RenderImageHelper::SetPixel(renderImage, x, y, Color24(finalColor.r * 255.0f, finalColor.g * 255.0f, finalColor.b * 255.0f));
-                RenderImageHelper::SetDepth(renderImage, x, y, sampleResult.avgZ);
-                RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, sampleResult.avgN);
-                
-//                RayContext rayContext = GenCameraRayContext(x, y);
-//                HitInfoContext hitInfoContext;
-//                HitInfo& hitInfo = hitInfoContext.mainHitInfo;
-//
-//                auto color = RootTrace(rayContext, hitInfoContext, x, y);
-                
-//                RenderImageHelper::SetPixel(renderImage, x, y, Color24(color.r * 255.0f, color.g * 255.0f, color.b * 255.0f));
-//                RenderImageHelper::SetDepth(renderImage, x, y, hitInfo.z);
-//                RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, hitInfo.N);
-                
-                renderImage.IncrementNumRenderPixel(1);
-                // done
-                if(renderImage.IsRenderDone())
-                {
-                    float finish = glfwGetTime();
-                    
-                    spdlog::debug("bvh build time is {}", buildTime);
-                    spdlog::debug("time is {}", finish - now);
-                    renderImage.ComputeZBufferImage();
-                    renderImage.ComputeSampleCountImage();
-                    
-//                    gaussianFilter->Compute();
-//                    colorShiftFilter->Compute();
-                    
-#ifndef IMGUI_DEBUG
-                    WriteToFile();
-#endif
-                }
-            }
-        }));
-    }
-    
-    if(myZImg != nullptr)
-    {
-        delete [] myZImg;
-    }
-    
-    myZImg = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
-    
-    if(mySampleImg != nullptr)
-    {
-        delete [] mySampleImg;
-    }
-    
-    mySampleImg = new Color24[renderImage.GetWidth() * renderImage.GetHeight()];
+//            }
+//        }));
+//    }
 }
 
 void RayTracer::UpdateRenderResult()
@@ -417,11 +409,23 @@ void RayTracer::UpdateRenderResult()
 //    filterTexture->SetData((unsigned char *)colorShiftFilter->GetOutput(), renderImage.GetWidth(), renderImage.GetHeight());
 }
 
+void RayTracer::Pause()
+{
+	outputing = true;
+	spdlog::info("Outputing Set To True");
+}
+
 void RayTracer::WriteToFile()
 {
-    renderImage.SaveImage("colorbuffer.png");
-    renderImage.SaveZImage("zbuffer.png");
-    renderImage.SaveSampleCountImage("samplecount.png");
-//    renderImage.SaveImage("colorShiftFilter.png", colorShiftFilter->GetOutput());
-//    renderImage.SaveImage("gaussianFilter.png", gaussianFilter->GetOutput());
+	
+	
+	// unsigned char* tempData = new unsigned char[renderImage.GetWidth() * renderImage.GetHeight()];
+	// memcpy(tempData, renderImage.GetPixels(), renderImage.GetWidth() * renderImage.GetHeight() * 3 * sizeof(unsigned char));
+	// renderImage.SaveImage("color.png", tempData);
+
+	// outputing = false;
+     renderImage.SaveImage("colorbuffer.png");
+    // renderImage.SaveZImage("zbuffer.png");
+    // renderImage.SaveSampleCountImage("samplecount.png");
+	
 }

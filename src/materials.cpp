@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include "irradiancemap.h"
 #include "config.h"
+#include "constants.h"
 
 using namespace cy;
 
@@ -501,84 +502,83 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 	BranchlessONB(N, xBasis, yBasis);
 
 	// float constantFactor = (2.0f * Pi<float>()) / (float)IndirectLightSampleCount;
-    float constantFactor = 1.0f / (float)IndirectLightSampleCount;
+    float constantFactor = 1.0f * PI;
     
 	QuasyMonteCarloHemiSphereSampler sampler;
 
-	for (int i = 0; i < IndirectLightSampleCount; i++)
-	{
-		Color singleResult = Color::Black();
-		Color indirectLightIntencity = Color::Black();
+	Color indirectLightIntencity = Color::Black();
 
-		Vec3f randomPoint = sampler.CosineWeightedSample();
-		// Vec3f randomPoint = UniformRandomPointOnHemiSphere();
-		Vec3f rayDir = randomPoint.z * N + randomPoint.x * xBasis + randomPoint.y * yBasis;
-		Ray indirectRay(p, rayDir);
-		indirectRay.Normalize();
+	Vec3f randomPoint = sampler.CosineWeightedSample();
+	// Vec3f randomPoint = UniformRandomPointOnHemiSphere();
+	Vec3f rayDir = randomPoint.z * N + randomPoint.x * xBasis + randomPoint.y * yBasis;
+	Ray indirectRay(p, rayDir);
+	indirectRay.Normalize();
         
-		Vec3f H = (V + indirectRay.dir).GetNormalized();
+	Vec3f H = (V + indirectRay.dir).GetNormalized();
 
-        assert(!isnan(rayDir.x + rayDir.y + rayDir.z));
+    assert(!isnan(rayDir.x + rayDir.y + rayDir.z));
 
-		RayContext indirectRayContext;
-		indirectRayContext.cameraRay = indirectRay;
-		indirectRayContext.rightRay = indirectRay;
-		indirectRayContext.topRay = indirectRay;
-		indirectRayContext.hasDiff = false;
+	RayContext indirectRayContext;
+	indirectRayContext.cameraRay = indirectRay;
+	indirectRayContext.rightRay = indirectRay;
+	indirectRayContext.topRay = indirectRay;
+	indirectRayContext.hasDiff = false;
 
-		HitInfoContext indirectHitInfoContext;
+	HitInfoContext indirectHitInfoContext;
 
-		bool hit = TraceNode(indirectHitInfoContext, indirectRayContext, &rootNode, HIT_FRONT_AND_BACK);
-		if (hit)
+	bool hit = TraceNode(indirectHitInfoContext, indirectRayContext, &rootNode, HIT_FRONT_AND_BACK);
+	if (hit)
+	{
+		float distance = indirectHitInfoContext.mainHitInfo.z;
+		float distanceSquare = distance * distance;
+
+		auto inDirectNode = indirectHitInfoContext.mainHitInfo.node;
+		float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
+		// float fallFactor = 1.0f;
+		if (!LightFallOff)
 		{
-			float distance = indirectHitInfoContext.mainHitInfo.z;
-			float distanceSquare = distance * distance;
-
-			auto inDirectNode = indirectHitInfoContext.mainHitInfo.node;
-			float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
-			// float fallFactor = 1.0f;
-			if (!LightFallOff)
-			{
-				fallFactor = 1.0f;
-			}
-
-			indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount, indirectLightBounce - 1);
-		}
-		else
-		{
-			indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir);
+			fallFactor = 1.0f;
 		}
 
-		float cosTheta = N.Dot(indirectRay.dir);
-		if (cosTheta < 0.0f)
-		{
-			cosTheta = 0.0f;
-		}
-
-		Color diffuseColor;
-		Color specularColor;
-		if (!rayContext.hasDiff)
-		{
-			diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw);
-			specularColor = specular.Sample(hInfoContext.mainHitInfo.uvw);
-		}
-		else
-		{
-			diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
-			specularColor = specular.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
-		}
-
-		float cosNH = H.Dot(N);
-		if (cosNH < 0.0f)
-		{
-			cosNH = 0.0f;
-		}
-
-		singleResult = (indirectLightIntencity * diffuseColor) + (indirectLightIntencity * cosTheta * specularColor * pow(cosNH, glossiness));
-        assert(!isnan(singleResult.r + singleResult.g + singleResult.b));
-		result = result + (constantFactor * singleResult);
+		indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount, indirectLightBounce - 1);
 	}
-    assert(!isnan(result.r + result.g + result.b));
+	else
+	{
+		indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir);
+	}
+
+	float cosTheta = N.Dot(indirectRay.dir);
+	if (cosTheta < 0.0f)
+	{
+		cosTheta = 0.0f;
+	}
+
+	Color diffuseColor;
+	Color specularColor;
+	if (!rayContext.hasDiff)
+	{
+		diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw);
+		specularColor = specular.Sample(hInfoContext.mainHitInfo.uvw);
+	}
+	else
+	{
+		diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
+		specularColor = specular.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
+	}
+
+	float cosNH = H.Dot(N);
+	if (cosNH < 0.0f)
+	{
+		cosNH = 0.0f;
+	}
+
+	float specularFactor = (glossiness + 2.0f) * INVERSE_PI * 0.5f;
+
+    // assert(!isnan(singleResult.r + singleResult.g + singleResult.b));
+	result =  (constantFactor * 
+		((indirectLightIntencity * diffuseColor * INVERSE_PI) + (indirectLightIntencity * specularFactor * specularColor * pow(cosNH, glossiness))));
+	
+    // assert(!isnan(result.r + result.g + result.b));
     // assert()
 	return result;
 }

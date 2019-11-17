@@ -4,6 +4,8 @@
 #include "cyVector.h"
 #include "scene.h"
 #include "config.h"
+#include <mutex>
+#include <atomic>
 
 Ray GenCameraRay(int x, int y, float xOffset = 0.5f, float yOffset = 0.5f, bool normalize = true);
 bool GenerateRayForAnyIntersection(Ray& ray, float t_max = BIGFLOAT);
@@ -26,6 +28,7 @@ class RayTracer
     void Run();
     void UpdateRenderResult();
     void WriteToFile();
+	void Pause();
     
     std::shared_ptr<Texture2D> GetZBufferTexture(){return zbufferTexture;}
     std::shared_ptr<Texture2D> GetRenderTexture(){return renderTexture;}
@@ -45,5 +48,7 @@ private:
     std::shared_ptr<Texture2D> sampleTexture;
 	std::shared_ptr<Texture2D> filterTexture;
     std::shared_ptr<Texture2D> irradianceTexture;
+
+	std::mutex mtx;
 };
 
