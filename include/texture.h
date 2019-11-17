@@ -14,6 +14,7 @@
 #define _TEXTURE_H_INCLUDED_
  
 #include "scene.h"
+#include "glm/vec4.hpp"
  
 //-------------------------------------------------------------------------------
  
@@ -24,7 +25,9 @@ public:
     bool Load();
     virtual Color Sample(Vec3f const &uvw) const;
 private:
-    std::vector<Color24> data;
+
+    // std::vector<Color24> data;
+	std::vector<Color> data;
     int width, height;
 };
  

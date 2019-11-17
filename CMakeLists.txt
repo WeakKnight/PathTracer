@@ -24,7 +24,7 @@ include_directories(include/
                     thirdparty/lodepng/include/
                     thirdparty/cybase/include/
                     thirdparty/glm/
-                    thirdparty/assimp/)
+                    thirdparty/assimp/include/)
 
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)

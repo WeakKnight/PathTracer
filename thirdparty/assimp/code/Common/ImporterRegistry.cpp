@@ -197,6 +197,9 @@ corresponding preprocessor flag to selectively disable formats.
 #ifndef ASSIMP_BUILD_NO_MMD_IMPORTER
 #   include "MMD/MMDImporter.h"
 #endif
+
+#define ASSIMP_BUILD_NO_M3D_IMPORTER
+
 #ifndef ASSIMP_BUILD_NO_M3D_IMPORTER
 #   include "M3D/M3DImporter.h"
 #endif
