@@ -281,7 +281,8 @@ Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, i
     }
     else
     {
-        return background.Sample(Vec3f(x/(float)renderImage.GetWidth(), y/(float)renderImage.GetHeight(), 0.0f));
+		return environment.SampleEnvironment(rayContext.cameraRay.dir);
+        // return background.Sample(Vec3f(x/(float)renderImage.GetWidth(), y/(float)renderImage.GetHeight(), 0.0f));
     }
 }
 

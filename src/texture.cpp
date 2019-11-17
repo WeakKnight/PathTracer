@@ -32,33 +32,6 @@ int ReadLine( FILE *fp, int size, char *buffer )
     return i;
 }
  
-//-------------------------------------------------------------------------------
- 
-bool LoadPPM( FILE *fp, int &width, int &height, std::vector<Color24> &data )
-{
-    const int bufferSize = 1024;
-    char buffer[bufferSize];
-    ReadLine(fp,bufferSize,buffer);
-    if ( buffer[0] != 'P' && buffer[1] != '6' ) return false;
-     
-    ReadLine(fp,bufferSize,buffer);
-    while ( buffer[0] == '#' ) ReadLine(fp,bufferSize,buffer);  // skip comments
-     
-    sscanf(buffer,"%d %d",&width,&height);
-     
-    ReadLine(fp,bufferSize,buffer);
-    while ( buffer[0] == '#' ) ReadLine(fp,bufferSize,buffer);  // skip comments
- 
-    // last read line should be "255\n"
- 
-    data.resize(width*height);
-    fread( data.data(), sizeof(Color24), width*height, fp );
- 
-    return true;
-}
- 
-//-------------------------------------------------------------------------------
- 
 bool TextureFile::Load()
 {
     data.clear();
@@ -73,16 +46,22 @@ bool TextureFile::Load()
     bool success = false;
  
     char ext[3] = { (char)tolower(name[len-3]), (char)tolower(name[len-2]), (char)tolower(name[len-1]) };
- 
+	
     if ( strncmp(ext,"png",3) == 0 
 		|| strncmp(ext, "jpg", 3) == 0
 		|| strncmp(ext, "hdr", 3) == 0
 		) 
 	{
 		int width, height, nrChannels;
-		
+		if (strncmp(ext, "hdr", 3) == 0)
+		{
+			stbi_set_flip_vertically_on_load(true);
+		}
 		float* rawData = stbi_loadf(name, &width, &height, &nrChannels, 3);
-		
+		if (strncmp(ext, "hdr", 3) == 0)
+		{
+			stbi_set_flip_vertically_on_load(false);
+		}
 		if (rawData)
 		{
 			this->width = width;
