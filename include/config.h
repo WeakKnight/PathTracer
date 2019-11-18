@@ -5,7 +5,7 @@
 constexpr int MinPixelSampleCount = 8;
 constexpr int MaxPixelSampleCount = 16;
 // Lighting
-constexpr bool LightFallOff = true;
+constexpr bool LightFallOff = false;
 constexpr bool IrradianceCache = false;
 constexpr int IrradianceGISampleCount = 16;
 constexpr unsigned int IndirectLightSampleCount = 8;
@@ -16,4 +16,4 @@ constexpr float ShadowTolerance = 0.01f;
 // Refraction/Reflection Bounce Count
 constexpr int RefractionBounceCount = 4;
 constexpr int IndirectLightBounceCount = 3;
-constexpr char* ScenePath = "assets/project13.xml";
+constexpr char* ScenePath = "assets/project11.xml";

@@ -427,7 +427,9 @@ Color MtlBlinn::DirectLightShade(RayContext const& rayContext, const HitInfoCont
 	Color flex = flexForSpecular * cosTheta;
 
 	Color diffuseColor = flex * Lambert(L, V, N, p, hInfo);
-	Color specularColor = flexForSpecular * Specular(L, V, N, p, hInfo);
+	Color specularColor =
+		// Color::Black();
+		flexForSpecular * Specular(L, V, N, p, hInfo);
 
 	float aoFactor = 1.0f;
 
@@ -516,7 +518,9 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 	Color flex = flexForSpecular * cosTheta;
 
 	Color diffuseColor = flex * Lambert(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
-	Color specularColor = flexForSpecular * Specular(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
+	Color specularColor =
+		// Color::Black();
+		flexForSpecular * Specular(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
 
 	result =  (constantFactor * (diffuseColor + specularColor));
 	
