@@ -25,6 +25,7 @@
 
 #include <vector>
 #include <atomic>
+#include <mutex>
 
 #include "lodepng.h"
 
@@ -136,6 +137,7 @@ class Node;
 #define HIT_FRONT           1
 #define HIT_BACK            2
 #define HIT_FRONT_AND_BACK  (HIT_FRONT|HIT_BACK)
+class Material;
 
 struct HitInfo
 {
@@ -146,12 +148,13 @@ struct HitInfo
 	Vec3f       Bitangent;
     Vec3f       uvw;    // texture coordinate at the hit point
     Vec3f       duvw[2];// derivatives of the texture coordinate
-    Node const *node;   // the object node that was hit
+    Node		*node;   // the object node that was hit
     bool        front;  // true if the ray hits the front side, false if the ray hits the back side
     int         mtlID;  // sub-material index
+	Material*	mtl;
     
     HitInfo() { Init(); }
-    void Init() { z=BIGFLOAT; node=nullptr; front=true; uvw.Set(0.5f,0.5f,0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID=0; }
+	void Init() { z = BIGFLOAT; node = nullptr; front = true; uvw.Set(0.5f, 0.5f, 0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID = 0; mtl = nullptr; }
 	
 	void Copy(const HitInfo& other)
 	{
@@ -166,6 +169,7 @@ struct HitInfo
 		node = other.node;
 		front = other.front;
 		mtlID = other.mtlID;
+		mtl = other.mtl;
 	}
 
 	void CopyForDiffRay(const HitInfo& other)
@@ -342,8 +346,8 @@ class Light : public ItemBase
 public:
     virtual Color Illuminate(Vec3f const &p, Vec3f const &N) const=0;
     virtual Vec3f Direction (Vec3f const &p) const=0;
-    virtual bool  IsAmbient () const { return false; }
     virtual void  SetViewportLight(int lightID) const {}    // used for OpenGL display
+	virtual Color GetFallOffIntensity(Vec3f const& x) const= 0;
 };
 
 class LightList : public ItemList<Light> {};
@@ -515,15 +519,28 @@ private:
     Node **child;               // Child nodes
     int numChild;               // The number of child nodes
     Object *obj;                // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
-    Material *mtl;              // Material used for shading the object
+    Material* mtl;              // Material used for shading the object
     Box childBoundBox;          // Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
 	Node* parent;
+
 public:
-    Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr) {}
+    Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr), parent(nullptr) {}
     virtual ~Node() { DeleteAllChildNodes(); }
     
     void Init() { DeleteAllChildNodes(); obj=nullptr; mtl=nullptr; childBoundBox.Init(); SetName(nullptr); InitTransform(); } // Initialize the node deleting all child nodes
     
+	Node CopyNodeWithSameMaterialAndChild()
+	{
+		Node result;
+		result.numChild = numChild;
+		result.child = child;
+		result.mtl = mtl;
+		result.parent = nullptr;
+		result.obj = obj;
+		
+		return result;
+	}
+
 	// 
 	Node* GetParent()
 	{
@@ -591,14 +608,14 @@ public:
     void           SetNodeObj(Object *object) { obj=object; }
     
     // Material management
-    const Material* GetMaterial() const 
+    Material* GetMaterial()  
 	{
 		if (mtl == nullptr && parent != nullptr)
 		{
 			return parent->GetMaterial();
 		}
 
-		return mtl; 
+		return mtl;
 	}
     void            SetMaterial(Material *material) { mtl=material; }
     

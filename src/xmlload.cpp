@@ -413,19 +413,7 @@ void LoadLight(TiXmlElement *element)
     // type
     char const* type = element->Attribute("type");
     if ( type ) {
-        if ( COMPARE(type,"ambient") ) {
-            printf(" - Ambient\n");
-            AmbientLight *l = new AmbientLight();
-            light = l;
-            for ( TiXmlElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
-                if ( COMPARE( child->Value(), "intensity" ) ) {
-                    Color c(1,1,1);
-                    ReadColor( child, c );
-                    l->SetIntensity(c);
-                    printf("   intensity %f %f %f\n",c.r,c.g,c.b);
-                }
-            }
-        } else if ( COMPARE(type,"direct") ) {
+      if ( COMPARE(type,"direct") ) {
             printf(" - Direct\n");
             DirectLight *l = new DirectLight();
             light = l;

@@ -216,12 +216,8 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
                                                  powf(M_E, -1.0f * distance * absorption.r)
                                                  , powf(M_E, -1.0f * distance * absorption.g)
                                                  , powf(M_E, -1.0f * distance * absorption.b));
-                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.node->GetMaterial()->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
+                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f - Rs) * refractHitInfo.mtl->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
                     result += refractColor;
-                }
-                else
-                {
-
                 }
             }
 
@@ -234,7 +230,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             {
                 if(GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfoContext, HIT_FRONT, reflectDistance))
                 {
-                    Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
+                    Color reflectColor = refraction.GetColor() * Rs * reflectHitInfo.mtl->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
                     result += reflectColor;
                 }
                 else
@@ -257,12 +253,15 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
                 {
                     if(GenerateRayForNearestIntersection(refractRayContext, refractHitInfoContext, HIT_FRONT, distance))
                     {
-                        Color refractColor =
-                        //                            absortionColor *
-                        //                            refraction *
-                        (1.0f - Rs) *
-                        refractHitInfo.node->GetMaterial()->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
-                        result += refractColor;
+						float relractFactor = 1.0f - Rs;
+						if (refractHitInfo.mtl != nullptr)
+						{
+							Color refractShadeResult = refractHitInfo.mtl->Shade(refractRayContext, refractHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
+							Color refractColor = relractFactor * refractShadeResult;
+							//                            absortionColor *
+							//                            refraction *
+							result += refractColor;
+						}
                     }
                     else
                     {
@@ -284,7 +283,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
 
                     Color refractColor = absortionColor
                     //                            * refraction
-                    * (Rs) * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
+                    * (Rs) * reflectHitInfo.mtl->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
 
                     result += refractColor;
                 }
@@ -304,7 +303,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
                                                  , powf(M_E, -1.0f * distance * absorption.g)
                                                  , powf(M_E, -1.0f * distance * absorption.b));
 
-                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.node->GetMaterial()->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
+                    Color refractColor = absortionColor * refraction.GetColor() * (1.0f) * reflectHitInfo.mtl->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
 
                     result += refractColor;
                 }
@@ -353,7 +352,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             // detect front intersection for reflection shading
             if(GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfoContext, HIT_FRONT, transDistance))
             {
-                const Material* mat = reflectHitInfo.node->GetMaterial();
+                const Material* mat = reflectHitInfo.mtl;
                 
                 Color reflectColor = reflectFactor * mat->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
                 result += reflectColor;
@@ -364,97 +363,10 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             }
         }
     }
-    
-	Vec3f diffuseN = N;
 
-    for(size_t index = 0; index < lights.size(); index++)
-    {
-        Light* light = lights[index];
-        
-        Color colorComing;
-        
-        if(light->IsAmbient())
-        {
-            colorComing = light->Illuminate(hInfo.p + hInfo.N * INTERSECTION_BIAS, diffuseN);
-            
-            Color diffuseColor = colorComing * diffuse.GetColor();
-            if(diffuse.GetTexture())
-            {
-                if(!rayContext.hasDiff)
-                {
-                    diffuseColor = colorComing * diffuse.Sample(hInfo.uvw);
-                }
-                else
-                {
-                    diffuseColor = colorComing * diffuse.Sample(hInfo.uvw, hInfo.duvw);
-                }
-            }
-            Color specularColor =
-            Color::Black();
-            
-            result += (diffuseColor + specularColor);
-        }
-        else
-        {
-            Vec3f L = -1.0f * light->Direction(hInfo.p);
-            assert(L.IsUnit());
-            
-            Vec3f H = (V + L).GetNormalized();
-            assert(H.IsUnit());
-            
-            float cosTheta = L.Dot(diffuseN);
-            if(cosTheta < 0.0f)
-            {
-                cosTheta = 0.0f;
-            }
-//            assert(cosBeta > - 0.00001f);
-            
-            if(cosTheta < 0.0f)
-            {
-                continue;
-            }
-            
-            // don't shade diffuse color or specular color back side
-            if(!hInfo.front)
-            {
-                continue;
-            }
-            
-            Color iComing = light->Illuminate(hInfo.p + N * INTERSECTION_BIAS, diffuseN);
-            colorComing = iComing * cosTheta;
-            
-            Color diffuseColor = colorComing * diffuse.GetColor();
-            if(diffuse.GetTexture())
-            {
-                if(!rayContext.hasDiff)
-                {
-                    diffuseColor = colorComing * diffuse.Sample(hInfo.uvw);
-                }
-                else
-                {
-                    diffuseColor = colorComing * diffuse.Sample(hInfo.uvw, hInfo.duvw);
-                }
-            }
-            
-            Color specularColor = iComing * specular.GetColor() * pow(H.Dot(N), glossiness);
-            
-//            if(refraction.Sum() > 0.0f)
-//            {
-//                specularColor.SetBlack();
-//            }
-            
-			float aoFactor = 1.0f;
-
-			if (this->ao)
-			{
-				Vec3f texAo = this->ao->SampleVector(hInfo.uvw, hInfo.duvw);
-
-				aoFactor = (texAo.x / 1.0f);
-			}
-
-            result += (aoFactor * (diffuseColor + specularColor));
-        }
-    }
+	// direct part
+	Color directResult = DirectLightShade(rayContext, hInfoContext, lights);
+	result += directResult;
 
 	// indirect part
 	Color indirectResult;
@@ -481,6 +393,53 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
 
     assert(!isnan(result.r + result.g + result.b));
     return result;
+}
+
+Color MtlBlinn::DirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights) const
+{
+	Color result = Color::Black();
+
+	// don't shade diffuse color or specular color back side
+	if (!hInfoContext.mainHitInfo.front)
+	{
+		return result;
+	}
+
+	const HitInfo& hInfo = hInfoContext.mainHitInfo;
+
+	Vec3f V = -1.0f * rayContext.cameraRay.dir;
+	auto N = hInfoContext.mainHitInfo.N.GetNormalized();
+	const Vec3f& p = hInfoContext.mainHitInfo.p;
+
+	float inverseProbability;
+	Light* light = LiForDirect(p, N, lights, inverseProbability);
+
+	Vec3f L = -1.0f * light->Direction(p);
+	assert(L.IsUnit());
+
+	float cosTheta = L.Dot(N);
+	if (cosTheta < 0.0f)
+	{
+		cosTheta = 0.0f;
+	}
+
+	Color flexForSpecular = inverseProbability * light->Illuminate(p + N * INTERSECTION_BIAS, N);
+	Color flex = flexForSpecular * cosTheta;
+
+	Color diffuseColor = flex * Lambert(L, V, N, p, hInfo);
+	Color specularColor = flexForSpecular * Specular(L, V, N, p, hInfo);
+
+	float aoFactor = 1.0f;
+
+	if (this->ao)
+	{
+		Vec3f texAo = this->ao->SampleVector(hInfo.uvw, hInfo.duvw);
+		aoFactor = (texAo.x / 1.0f);
+	}
+
+	result = aoFactor * (diffuseColor + specularColor);
+
+	return result;
 }
 
 Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
@@ -540,7 +499,7 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 			fallFactor = 1.0f;
 		}
 
-		indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.node->GetMaterial()->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount, indirectLightBounce - 1);
+		indirectLightIntencity = fallFactor * indirectHitInfoContext.mainHitInfo.mtl->Shade(indirectRayContext, indirectHitInfoContext, lights, bounceCount, indirectLightBounce - 1);
 	}
 	else
 	{
@@ -553,40 +512,32 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 		cosTheta = 0.0f;
 	}
 
-	Color diffuseColor;
-	Color specularColor;
-	if (!rayContext.hasDiff)
-	{
-		diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw);
-		specularColor = specular.Sample(hInfoContext.mainHitInfo.uvw);
-	}
-	else
-	{
-		diffuseColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
-		specularColor = specular.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
-	}
+	Color flexForSpecular = indirectLightIntencity;
+	Color flex = flexForSpecular * cosTheta;
 
-	float cosNH = H.Dot(N);
-	if (cosNH < 0.0f)
-	{
-		cosNH = 0.0f;
-	}
+	Color diffuseColor = flex * Lambert(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
+	Color specularColor = flexForSpecular * Specular(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
 
-	float specularFactor = (glossiness + 2.0f) * INVERSE_PI * 0.5f;
-
-    // assert(!isnan(singleResult.r + singleResult.g + singleResult.b));
-	result =  (constantFactor * 
-		((indirectLightIntencity * diffuseColor * INVERSE_PI) + (indirectLightIntencity * specularFactor * specularColor * pow(cosNH, glossiness))));
+	result =  (constantFactor * (diffuseColor + specularColor));
 	
-    // assert(!isnan(result.r + result.g + result.b));
-    // assert()
 	return result;
 }
 
-Color MtlBlinn::SpecularPart(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& p) const
+Color MtlBlinn::Lambert(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const
 {
-	Color result = Color::Black();
-	return result;
+	return diffuse.Sample(hitInfo.uvw, hitInfo.duvw) * INVERSE_PI;
+}
+Color MtlBlinn::Specular(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const
+{
+	Vec3f H = (wi + wo).GetNormalized();
+	float HDotN = H.Dot(n);
+	if (HDotN < 0.0f)
+	{
+		HDotN = 0.0f;
+	}
+
+	float factor = pow(HDotN, glossiness) * (glossiness + 2.0f) * INVERSE_PI * 0.5f;
+	return specular.Sample(hitInfo.uvw, hitInfo.duvw) * H.Dot(n) * factor;
 }
 
 float MtlBlinn::NDF(const Vec3f& n, const Vec3f& h, float roughness) const
@@ -601,4 +552,43 @@ float MtlBlinn::GeometrySmith(const Vec3f& n, const Vec3f& v, const Vec3f& l, fl
 
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
+}
+
+Light* MtlBlinn::LiForDirect(const Vec3f& x, const Vec3f& n, const LightList& lights, float& inverseProbability) const
+{
+	// Importance Sampling For Lights
+	float totalIntensity = 0.0f;
+
+	std::vector<float> CDF;
+
+	CDF.push_back(0.0f);
+
+	for (int i = 0; i < lights.size(); i++)
+	{
+		auto light = lights[i];
+		totalIntensity += light->GetFallOffIntensity(x).Max();
+
+		CDF.push_back(totalIntensity);
+	}
+
+	float sample = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * totalIntensity;
+
+	for (int i = 0; i < lights.size(); i++)
+	{
+		auto light = lights[i];
+
+		float a = CDF[i];
+		float b = CDF[(size_t)i + 1];
+
+		if (sample >= a && sample <= b)
+		{
+			// fall in this segment
+			auto intensity = light->GetFallOffIntensity(x);
+			inverseProbability = totalIntensity / intensity.Max();
+			return light;
+		}
+	}
+
+	spdlog::error("Shoud not be there");
+	return nullptr;
 }

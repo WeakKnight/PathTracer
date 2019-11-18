@@ -67,3 +67,18 @@ Color PointLight::Illuminate(Vec3f const& p, Vec3f const& N) const
 
 	return shadowFactor * fallFactor * intensity;
 }
+
+Color PointLight::GetFallOffIntensity(Vec3f const& x) const
+{
+	float distanceSquare = (position - x).LengthSquared();
+	float distance = sqrt(distanceSquare);
+
+	float fallFactor = 1.0f / (1.0f + 0.09f * distance + 0.032f * distanceSquare);
+	
+	if (!LightFallOff)
+	{
+		fallFactor = 1.0f;
+	}
+
+	return fallFactor * intensity;
+}

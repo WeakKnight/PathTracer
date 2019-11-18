@@ -28,22 +28,6 @@ protected:
  
 //-------------------------------------------------------------------------------
  
-class AmbientLight : public GenLight
-{
-public:
-    AmbientLight() : intensity(0,0,0) {}
-    virtual Color Illuminate(Vec3f const &p, Vec3f const &N) const { return intensity; }
-    virtual Vec3f Direction(Vec3f const &p) const { return Vec3f(0,0,0); }
-    virtual bool IsAmbient() const { return true; }
-    virtual void SetViewportLight(int lightID) const { SetViewportParam(lightID,ColorA(intensity),ColorA(0.0f),Vec4f(0,0,0,1)); }
- 
-    void SetIntensity(Color intens) { intensity=intens; }
-private:
-    Color intensity;
-};
- 
-//-------------------------------------------------------------------------------
- 
 class DirectLight : public GenLight
 {
 public:
@@ -54,6 +38,11 @@ public:
  
     void SetIntensity(Color intens) { intensity=intens; }
     void SetDirection(Vec3f dir) { direction=dir.GetNormalized(); }
+
+	virtual Color GetFallOffIntensity(Vec3f const& x) const
+	{
+		return intensity;
+	}
 private:
     Color intensity;
     Vec3f direction;
@@ -71,7 +60,7 @@ public:
     void SetIntensity(Color intens) { intensity=intens; }
     void SetPosition(Vec3f pos) { position=pos; }
     void SetSize(float s) { size=s; }
- 
+	virtual Color GetFallOffIntensity(Vec3f const& x) const;
 private:
     Color intensity;
     Vec3f position;

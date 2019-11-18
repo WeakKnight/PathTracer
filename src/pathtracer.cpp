@@ -21,7 +21,9 @@ void PathTracer::Init(unsigned int _width, unsigned int _height)
 
 void PathTracer::Run()
 {
-	std::size_t cores = std::thread::hardware_concurrency() - 1;
+	std::size_t cores =
+		//1;
+		 std::thread::hardware_concurrency() - 1;
 
 	for (std::size_t i = 0; i < cores; i++)
 	{
@@ -79,9 +81,7 @@ void RenderWorker::Run()
 			break;
 		}
 
-		mtx.lock();
 		RenderImageHelper::SetPixel(renderImage, x, y, Color24(finalColor.r * 255.0f, finalColor.g * 255.0f, finalColor.b * 255.0f));
-		mtx.unlock();
 
 		index += cores;
 

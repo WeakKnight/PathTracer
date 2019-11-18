@@ -119,6 +119,7 @@ bool TraceNode(HitInfoContext& hitInfoContext, RayContext& rayContext, Node* nod
         {
 			hitInfo.Copy(currentHitInfo);
             hitInfo.node = node;
+			hitInfo.mtl = node->GetMaterial();
             
 			rightInfo.CopyForDiffRay(currentHitInfoContext.rightHitInfo);
 			topInfo.CopyForDiffRay(currentHitInfoContext.topHitInfo);

@@ -28,6 +28,7 @@ public:
     virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const;
  
 	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const;
+	Color DirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights) const;
 
     void SetDiffuse     (Color dif)     { diffuse.SetColor(dif); }
     void SetSpecular    (Color spec)    { specular.SetColor(spec); }
@@ -90,7 +91,10 @@ public:
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
  
 private:
-	Color SpecularPart(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& p) const;
+	Color Lambert(const Vec3f& wi,const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const;
+	Color Specular(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const;
+
+	Light* LiForDirect(const Vec3f& x, const Vec3f& n, const LightList& lights, float& inverseProbability) const;
 	float NDF(const Vec3f& n, const Vec3f& h, float roughness) const;
 	float GeometrySmith(const Vec3f& n, const Vec3f& v, const Vec3f& l, float k) const;
 
