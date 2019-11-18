@@ -26,8 +26,10 @@ public:
     virtual Color Sample(Vec3f const &uvw) const;
 private:
 
-    // std::vector<Color24> data;
-	std::vector<Color> data;
+    std::vector<Color24> data8bit;
+	std::vector<Color> data16bit;
+
+	bool isHDR = false;
     int width, height;
 };
  

@@ -16,7 +16,7 @@
 #include "scene.h"
 #include <random>
 #include "sampler.h"
- 
+#include "brdf_cook_torrance.h"
 //-------------------------------------------------------------------------------
  
 class MtlBlinn : public Material
@@ -27,11 +27,15 @@ public:
                  reflectionGlossiness(0), refractionGlossiness(0) {}
     virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const;
  
-	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const;
-	Color DirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights) const;
+	virtual Color IndirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const;
+	Color DirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights) const;
 
     void SetDiffuse     (Color dif)     { diffuse.SetColor(dif); }
     void SetSpecular    (Color spec)    { specular.SetColor(spec); }
+	
+	void SetRoughness(Color _roughness) { roughness.SetColor(_roughness); }
+	void SetMetalness(Color _metalness) { metalness.SetColor(_metalness); }
+
     void SetGlossiness  (float gloss)   
 	{ 
 		glossiness = gloss; 
@@ -48,6 +52,9 @@ public:
     void SetReflectionTexture(TextureMap *map)  { reflection.SetTexture(map); }
     void SetRefractionTexture(TextureMap *map)  { refraction.SetTexture(map); }
 	void SetEmissionTexture(TextureMap* map) { emission.SetTexture(map); }
+
+	void SetRoughnessTexture(TextureMap* _roughness) { roughness.SetTexture(_roughness); }
+	void SetMetalnessTexture(TextureMap* _metalness) { metalness.SetTexture(_metalness); }
 
 	void SetNormalTexture(TextureMap* map) { normal = map; }
 	void SetAOTexture(TextureMap* map) { ao = map; }
@@ -95,13 +102,12 @@ private:
 	Color Specular(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const;
 
 	Light* LiForDirect(const Vec3f& x, const Vec3f& n, const LightList& lights, float& inverseProbability) const;
-	float NDF(const Vec3f& n, const Vec3f& h, float roughness) const;
-	float GeometrySmith(const Vec3f& n, const Vec3f& v, const Vec3f& l, float k) const;
 
 private:
+	BrdfCookTorrance brdf;
 	Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, int type) const;
 
-    TexturedColor diffuse, specular, reflection, refraction, emission, metalic, roughness;
+    TexturedColor diffuse, specular, reflection, refraction, emission, metalness, roughness;
 	TextureMap* normal = nullptr;
 	TextureMap* ao = nullptr;
 
@@ -128,7 +134,7 @@ public:
     virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const {
         return hInfoContext.mainHitInfo.mtlID<(int)mtls.size() ? mtls[hInfoContext.mainHitInfo.mtlID]->Shade(rayContext,hInfoContext,lights, bounceCount, indirectLightBounce) : Color(1,1,1);
         }
-	virtual Color IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
+	virtual Color IndirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
 	{
 		Color result;
 		return result;

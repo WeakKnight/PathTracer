@@ -1,6 +1,7 @@
 #include "sampler.h"
 #include "raytracer.h"
 #include "renderimagehelper.h"
+#include "spdlog/spdlog.h"
 
 extern RenderImage renderImage;
 
@@ -42,7 +43,15 @@ PixelContext HaltonSampler::SamplePixel(int x, int y, Vec2f& randomOffset, int i
     tempSampleResult.normal = hitInfoContext.mainHitInfo.N;
         
 	auto& resultColor = tempSampleResult.color;
-	tempSampleResult.color = Color(powf(resultColor.r, 0.4545f), powf(resultColor.g, 0.4545f), powf(resultColor.b, 0.4545f));
+
+	// Exposure tone mapping
+	Color mappedColor = Color(
+		1.0f - exp(-resultColor.r * exposure),
+		1.0f - exp(-resultColor.g * exposure), 
+		1.0f - exp(-resultColor.b * exposure));
+
+	// gamma correction
+	tempSampleResult.color = Color(powf(mappedColor.r, 0.4545f), powf(mappedColor.g, 0.4545f), powf(mappedColor.b, 0.4545f));
 
     return tempSampleResult;
 }

@@ -105,3 +105,30 @@ Vec3f CosineWeightedRandomPointOnHemiSphere()
     // z = 1 * cosTheta, r = 1 * sinTheta, x = cosBeta * sinTheta, y = sinBeta * sinTheta
     return Vec3f(sinTheta * cos(beta), sinTheta * sin(beta), cosTheta);
 }
+
+Vec3f ImportanceSampleGGX(const Vec3f& N, float roughness)
+{
+	Vec2f Xi = Vec2f(
+		(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)), 
+		(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)));
+
+	float a = roughness * roughness;
+
+	float phi = 2.0 * PI * Xi.x;
+	float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
+	float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+
+	// from spherical coordinates to cartesian coordinates
+	Vec3f H;
+	H.x = cos(phi) * sinTheta;
+	H.y = sin(phi) * sinTheta;
+	H.z = cosTheta;
+
+	// from tangent-space vector to world-space sample vector
+	const Vec3f& up = N;
+	Vec3f tangent, bitangent;
+	BranchlessONB(N, tangent, bitangent);
+
+	Vec3f sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
+	return sampleVec.GetNormalized();
+}

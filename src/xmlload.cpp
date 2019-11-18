@@ -337,6 +337,18 @@ void LoadMaterial(TiXmlElement *element)
 				else if (COMPARE(child->Value(), "ao")) {
 					m->SetAOTexture(ReadTexture(child));
 				}
+				else if (COMPARE(child->Value(), "roughness")) {
+					ReadColor(child, c);
+					m->SetRoughness(c);
+					printf("   roughness %f %f %f\n", c.r, c.g, c.b);
+					m->SetRoughnessTexture(ReadTexture(child));
+				}
+				else if (COMPARE(child->Value(), "metalness")) {
+					ReadColor(child, c);
+					m->SetMetalness(c);
+					printf("   metalness %f %f %f\n", c.r, c.g, c.b);
+					m->SetMetalnessTexture(ReadTexture(child));
+				}
 				else if ( COMPARE( child->Value(), "specular" ) ) {
                     ReadColor( child, c );
                     m->SetSpecular(c);

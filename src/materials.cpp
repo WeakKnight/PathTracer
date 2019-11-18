@@ -120,10 +120,10 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     const Ray& ray = rayContext.cameraRay;
     
     Vec3f V = -1.0f * ray.dir;
-    assert(V.IsUnit());
-    
+	V.Normalize();
+
 	Vec3f N = hInfo.N;
-	assert(N.IsUnit());
+	N.Normalize();
 
 	if (this->normal)
 	{
@@ -365,19 +365,14 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     }
 
 	// direct part
-	Color directResult = DirectLightShade(rayContext, hInfoContext, lights);
-	result += directResult;
+	if (lights.size() > 0)
+	{
+		Color directResult = DirectLightShade(N, rayContext, hInfoContext, lights);
+		result += directResult;
+	}
 
 	// indirect part
-	Color indirectResult;
-	if (IrradianceCache)
-	{
-		indirectResult = irradianceCacheMap.Sample(hInfoContext.screenX, hInfoContext.screenY).c;
-	}
-	else
-	{
-		indirectResult = IndirectLightShade(rayContext, hInfoContext, lights, bounceCount, indirectLightBounce);
-	}
+	Color indirectResult = IndirectLightShade(N, rayContext, hInfoContext, lights, bounceCount, indirectLightBounce);
 
     result += indirectResult;
 
@@ -395,7 +390,7 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     return result;
 }
 
-Color MtlBlinn::DirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights) const
+Color MtlBlinn::DirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights) const
 {
 	Color result = Color::Black();
 
@@ -408,7 +403,6 @@ Color MtlBlinn::DirectLightShade(RayContext const& rayContext, const HitInfoCont
 	const HitInfo& hInfo = hInfoContext.mainHitInfo;
 
 	Vec3f V = -1.0f * rayContext.cameraRay.dir;
-	auto N = hInfoContext.mainHitInfo.N.GetNormalized();
 	const Vec3f& p = hInfoContext.mainHitInfo.p;
 
 	float inverseProbability;
@@ -426,25 +420,36 @@ Color MtlBlinn::DirectLightShade(RayContext const& rayContext, const HitInfoCont
 	Color flexForSpecular = inverseProbability * light->Illuminate(p + N * INTERSECTION_BIAS, N);
 	Color flex = flexForSpecular * cosTheta;
 
-	Color diffuseColor = flex * Lambert(L, V, N, p, hInfo);
-	Color specularColor =
-		// Color::Black();
-		flexForSpecular * Specular(L, V, N, p, hInfo);
+	Color albedoColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
+	float roughnessValue = roughness.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw).r;
+	float metalnessValue = metalness.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw).r;
 
-	float aoFactor = 1.0f;
+	// spdlog::info("albedo is {}, roughness is {}, metalness is {}", albedoColor.r, roughnessValue, metalnessValue);
+	// spdlog::info("N is {}, {}, {}", N.x, N.y, N.z);
+
+	Color brdfColor = flex * brdf.BRDFDirect(L, V, N, albedoColor, roughnessValue, metalnessValue);
+
+	//Color diffuseColor = flex * Lambert(L, V, N, p, hInfo);
+	//Color specularColor =
+	//	// Color::Black();
+	//	flexForSpecular * Specular(L, V, N, p, hInfo);
+
+	float aoFactor = 0.0f;
 
 	if (this->ao)
 	{
 		Vec3f texAo = this->ao->SampleVector(hInfo.uvw, hInfo.duvw);
-		aoFactor = (texAo.x / 1.0f);
+		aoFactor = texAo.x;
 	}
 
-	result = aoFactor * (diffuseColor + specularColor);
+	Color ambient = Color(0.03f, 0.03f, 0.03f) * albedoColor * aoFactor;
+
+	result = ambient + brdfColor;
 
 	return result;
 }
 
-Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
+Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
 {
 	Color result = Color::Black();
 
@@ -455,7 +460,6 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 
 	Vec3f V = -1.0f * rayContext.cameraRay.dir;
 
-	auto N = hInfoContext.mainHitInfo.N.GetNormalized();
 	const auto& p = hInfoContext.mainHitInfo.p + N * 10.0f * INTERSECTION_BIAS;
 	const auto node = hInfoContext.mainHitInfo.node;
 
@@ -463,22 +467,55 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 	BranchlessONB(N, xBasis, yBasis);
 
 	// float constantFactor = (2.0f * Pi<float>()) / (float)IndirectLightSampleCount;
-    float constantFactor = 1.0f * PI;
     
 	QuasyMonteCarloHemiSphereSampler sampler;
 
 	Color indirectLightIntencity = Color::Black();
 
-	Vec3f randomPoint = sampler.CosineWeightedSample();
-	// Vec3f randomPoint = UniformRandomPointOnHemiSphere();
-	Vec3f rayDir = randomPoint.z * N + randomPoint.x * xBasis + randomPoint.y * yBasis;
-	Ray indirectRay(p, rayDir);
-	indirectRay.Normalize();
+	Color albedoColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
+	float roughnessValue = roughness.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw).r;
+	float metalnessValue = metalness.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw).r;
+
+	Vec3f randomForSpecular = ImportanceSampleGGX(N, roughnessValue);
+	Vec3f rayDirForSpecular = randomForSpecular.z * N + randomForSpecular.x * xBasis + randomForSpecular.y * yBasis;
+	Ray indirectRayForSpecular(p, rayDirForSpecular);
+	indirectRayForSpecular.Normalize();
+	
+	Vec3f randomForLambert = sampler.CosineWeightedSample();
+	Vec3f rayDirForLambert = randomForLambert.z * N + randomForLambert.x * xBasis + randomForLambert.y * yBasis;
+	Ray indirectRayForLambert(p, rayDirForLambert);
+	indirectRayForLambert.Normalize();
+
+	// multiple importance
+	float NDotLSpecular = Max<float>(N.Dot(rayDirForSpecular), 0.001f);
+	float probabilitySpecular = NDotLSpecular;
+	float NDotLLambert = Max<float>(N.Dot(rayDirForLambert), 0.001f);
+	float probabilityLambert = NDotLLambert * INVERSE_PI;
+
+	
+	float totalProbability = probabilitySpecular + probabilityLambert;
+	float randomProbability = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* totalProbability;
+
+	Vec3f rayDir; 
+	Ray indirectRay;
+	float constantFactor;
+	float cosTheta;
+
+	if (randomProbability <= probabilitySpecular)
+	{
+		rayDir = indirectRayForSpecular.dir;
+		indirectRay = indirectRayForSpecular;
+		constantFactor = 1.0f / probabilitySpecular;
+		cosTheta = NDotLSpecular;
+	}
+	else
+	{
+		rayDir = indirectRayForLambert.dir;
+		indirectRay = indirectRayForLambert;
+		constantFactor = 1.0f / probabilityLambert;
+		cosTheta = NDotLLambert;
+	}
         
-	Vec3f H = (V + indirectRay.dir).GetNormalized();
-
-    assert(!isnan(rayDir.x + rayDir.y + rayDir.z));
-
 	RayContext indirectRayContext;
 	indirectRayContext.cameraRay = indirectRay;
 	indirectRayContext.rightRay = indirectRay;
@@ -508,21 +545,16 @@ Color MtlBlinn::IndirectLightShade(RayContext const& rayContext, const HitInfoCo
 		indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir);
 	}
 
-	float cosTheta = N.Dot(indirectRay.dir);
-	if (cosTheta < 0.0f)
-	{
-		cosTheta = 0.0f;
-	}
+	Color flex = cosTheta * indirectLightIntencity;
 
-	Color flexForSpecular = indirectLightIntencity;
-	Color flex = flexForSpecular * cosTheta;
+	Color diffuseColor = flex * brdf.BRDFDirect(indirectRay.dir, V, N, albedoColor, roughnessValue, metalnessValue);
 
-	Color diffuseColor = flex * Lambert(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
-	Color specularColor =
-		// Color::Black();
-		flexForSpecular * Specular(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
+	//Color diffuseColor = flex * Lambert(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
+	//Color specularColor =
+	//	// Color::Black();
+	//	flexForSpecular * Specular(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
 
-	result =  (constantFactor * (diffuseColor + specularColor));
+	result =  (constantFactor * (diffuseColor));
 	
 	return result;
 }
@@ -542,16 +574,6 @@ Color MtlBlinn::Specular(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const
 
 	float factor = pow(HDotN, glossiness) * (glossiness + 2.0f) * INVERSE_PI * 0.5f;
 	return specular.Sample(hitInfo.uvw, hitInfo.duvw) * H.Dot(n) * factor;
-}
-
-float MtlBlinn::NDF(const Vec3f& n, const Vec3f& h, float roughness) const
-{
-	return 0.0f;
-}
-
-float MtlBlinn::GeometrySmith(const Vec3f& n, const Vec3f& v, const Vec3f& l, float k) const
-{
-	return 0.0f;
 }
 
 void MtlBlinn::SetViewportMaterial(int subMtlID) const

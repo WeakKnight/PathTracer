@@ -68,7 +68,7 @@ void RenderWorker::Run()
 			// = sampleResult.color;
 			= ((float)(historyContext.CurrentSampleNum - 1) * historyContext.color + (sampleResult.color)) * factor;
 
-		historyContext.color.ClampMax();
+		// historyContext.color.ClampMax();
 
 		const auto& finalColor = historyContext.color;
 

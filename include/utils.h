@@ -21,3 +21,4 @@ Vec3f UniformRandomPointOnHemiSphere();
 
 Vec3f CosineWeightedRandomPointOnHemiSphere();
 
+Vec3f ImportanceSampleGGX(const Vec3f& N, float roughness);
