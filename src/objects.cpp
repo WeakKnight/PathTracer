@@ -587,7 +587,7 @@ void Plane::ViewportDisplay(const Material *mtl) const
     
 }
 
-Vec3f SphereCalculateCoord(Vec3f& p, float reverseLength)
+Vec3f SphereCalculateCoord(const Vec3f& p, float reverseLength)
 {
     return Vec3f(
                  (0.5f - atan2(p.x, p.y) / (2.0f * Pi<float>())),

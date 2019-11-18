@@ -384,13 +384,13 @@ public:
 			{
 				aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 				Mesh myMesh;
-				myMesh.path = StringUtils::Format("%s,order%d:%d", path, order, i);
+				myMesh.path = StringUtils::Format("%s,order%d:%d", path.c_str(), order, i);
 				myMesh.ProcessAssimpData(mesh);
 				myMeshes[i] = myMesh;
 			}
 
 			Model* model = new Model(myMeshes, meshCount);
-			model->path = StringUtils::Format("%s,order%d", path, order);
+			model->path = StringUtils::Format("%s,order%d", path.c_str(), order);
 			result->SetNodeObj(model);
 		}
 

@@ -492,7 +492,7 @@ public:
     Color Sample(Vec3f const &uvw) const { return ( map ) ? color*map->Sample(uvw) : color; }
     Color Sample(Vec3f const &uvw, Vec3f const duvw[2], bool elliptic=true) const { return ( map ) ? color*map->Sample(uvw,duvw,elliptic) : color; }
 	
-	Vec3f SphereCalculateCoord(Vec3f& p, float reverseLength) const
+	Vec3f SphereCalculateCoord(const Vec3f& p, float reverseLength) const
 	{
 		return Vec3f(
 			(0.5f - atan2(p.x, p.y) / (2.0f * Pi<float>())),
@@ -503,7 +503,7 @@ public:
     // Returns the color value at the given direction for environment mapping.
     Color SampleEnvironment(Vec3f const &dir) const
     {
-		return Sample(SphereCalculateCoord(dir * 1.0f, 1.0f));
+		return Sample(SphereCalculateCoord(dir, 1.0f));
       /*  float z = asinf(-dir.z)/float(M_PI)+0.5f;
         float x = dir.x / (fabs(dir.x)+fabs(dir.y));
         float y = dir.y / (fabs(dir.x)+fabs(dir.y));
