@@ -18,4 +18,4 @@ constexpr int RefractionBounceCount = 4;
 constexpr int IndirectLightBounceCount = 3;
 constexpr char* ScenePath = "assets/project11.xml";
 
-constexpr float exposure = 2.5f;
+constexpr float exposure = 1.2f;
