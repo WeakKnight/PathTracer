@@ -67,7 +67,7 @@ private:
 	float GeometrySchlickGGX(float NdotV, float roughness) const
 	{
 		float k = roughness * roughness * 0.5f;
-
+		//float k = (roughness + 1.0f) * (roughness + 1.0f) * 0.125f;
 		float nom = NdotV;
 		float denom = NdotV * (1.0f - k) + k;
 
