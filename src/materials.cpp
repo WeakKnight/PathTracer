@@ -334,11 +334,6 @@ Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext,
 		return result;
 	}
 
-	//for (int bounceIndex = 0; bounceIndex < indirectLightBounce; bounceIndex++)
-	//{
-
-	//}
-
 	Vec3f V = -1.0f * rayContext.cameraRay.dir;
 	V.Normalize();
 
