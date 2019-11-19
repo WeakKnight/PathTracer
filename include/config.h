@@ -15,9 +15,9 @@ constexpr int MaxShadowSampleCount = 8;
 constexpr float ShadowTolerance = 0.01f;
 // Refraction/Reflection Bounce Count
 constexpr int RefractionBounceCount = 4;
-constexpr int IndirectLightBounceCount = 100;
+constexpr int IndirectLightBounceCount = 5;
 constexpr char* ScenePath =
-//"assets/cornell.xml";
-"assets/project11.xml";
+"assets/cornell.xml";
+//"assets/project11.xml";
 
-constexpr float exposure = 5.0f;
+constexpr float exposure = 1.8f;

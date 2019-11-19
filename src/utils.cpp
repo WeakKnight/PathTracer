@@ -110,7 +110,7 @@ Vec3f ImportanceSampleGGX(float roughness, float& probability)
 {
 	float a = roughness * roughness;
 
-	float F = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+	float F = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 0.99999f;
 	float theta = acos(
 		sqrt(
 		(1.0f - F)/(F * (a*a - 1.0f) + 1.0f)
@@ -147,4 +147,45 @@ Vec3f ImportanceSampleGGX(float roughness, float& probability)
 		int a = 1;
 	}
 	return Vec3f(sinTheta * cos(beta), sinTheta * sin(beta), cosTheta);
+}
+
+int MIS2(float p1, float p2)
+{
+	float total = p1 + p2;
+	float random = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* total;
+	if (random <= p1)
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+int MIS3(float p1, float p2, float p3)
+{
+	float total = p1 + p2 + p3;
+	float random = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* total;
+
+	if (random <= p1)
+	{
+		return 0;
+	}
+	else if(random > p1 && random <= (p1 + p2))
+	{
+		return 1;
+	}
+	else
+	{
+		return 2;
+	}
+}
+
+float LightFallOffFactor(const Vec3f& p1, const Vec3f& p2)
+{
+	float distanceSquare = (p2 - p1).LengthSquared();
+	float distance = sqrt(distanceSquare);
+
+	return 1.0f / (1.0f + 0.12f * distance + 0.032f * distanceSquare);
 }

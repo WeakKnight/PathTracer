@@ -35,7 +35,10 @@ public:
 		float denominator = 4.0f * Max<float>(N.Dot(V), 0.0f) * Max<float>(N.Dot(L), 0.0f);
 
 		Color specular = numerator / Max<float>(denominator, 0.001f);
-
+		if (isnan(specular.Sum()))
+		{
+			int a = 1;
+		}
 
 		Color kS = F;
 		Color kD = Color(1.0f, 1.0f, 1.0f) - kS;
@@ -44,8 +47,17 @@ public:
 		kD = kD * (1.0f - metalness);
 
 		Color lambert = kD * albedo * INVERSE_PI;
+		if (isnan(lambert.Sum()))
+		{
+			int a = 1;
+		}
+		Color result = (lambert + specular);
+		if (isnan(result.Sum()))
+		{
+			int a = 1;
+		}
 
-		return (lambert + specular);
+		return result;
 	}
 
 private:

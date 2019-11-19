@@ -471,6 +471,13 @@ Vec3f PlaneCalculatePlaneTexCoord(const Vec3f &p)
     return p * 0.5f + Vec3f(0.5f, 0.5f, 0.0f);
 };
 
+Vec3f Plane::Sample() const
+{
+	float x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* 2.0f - 1.0f;
+	float y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 2.0f - 1.0f;
+	return Vec3f(x, y, 0.0f);
+}
+
 bool Plane::IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide) const
 {
     HitInfo& hInfo = hInfoContext.mainHitInfo;

@@ -30,6 +30,8 @@ extern ObjFileList objList;
 extern TexturedColor background;
 extern TexturedColor environment;
 extern TextureList textureList;
+extern EmissiveList emissives;
+
 //-------------------------------------------------------------------------------
  
 #ifdef WIN32
@@ -103,7 +105,15 @@ int LoadScene(char const *filename)
     int numNodes = nodeMtlList.size();
     for ( int i=0; i<numNodes; i++ ) {
         Material *mtl = materials.Find( nodeMtlList[i].mtlName );
-        if ( mtl ) nodeMtlList[i].node->SetMaterial(mtl);
+		if (mtl)
+		{
+			// add into emissive list
+			if (mtl->emissive)
+			{
+				emissives.push_back(nodeMtlList[i].node);
+			}
+			nodeMtlList[i].node->SetMaterial(mtl);
+		}
     }
     nodeMtlList.clear();
  
@@ -364,6 +374,7 @@ void LoadMaterial(TiXmlElement *element)
 					m->SetEmission(c);
 					printf("   emission %f %f %f\n", c.r, c.g, c.b);
 					m->SetEmissionTexture(ReadTexture(child));
+					m->emissive = true;
 				}
 				else if ( COMPARE( child->Value(), "reflection" ) ) {
                     ReadColor( child, c );

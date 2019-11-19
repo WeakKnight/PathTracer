@@ -95,12 +95,8 @@ public:
 	}
 
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
- 
-private:
-	Color Lambert(const Vec3f& wi,const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const;
-	Color Specular(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const;
 
-	Light* LiForDirect(const Vec3f& x, const Vec3f& n, const LightList& lights, float& inverseProbability) const;
+	float GetEmissiveIntensityForImportanceSampling(const Vec3f& x, const Vec3f& lightPos) const;
 
 private:
 	BrdfCookTorrance brdf;

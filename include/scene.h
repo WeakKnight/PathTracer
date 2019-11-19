@@ -289,6 +289,7 @@ private:
     Matrix3f tm;            // Transformation matrix to the local space
     Vec3f    pos;           // Translation part of the transformation matrix
     mutable Matrix3f itm;   // Inverse of the transformation matrix (cached)
+
 public:
     Transformation() : pos(0,0,0) { tm.SetIdentity(); itm.SetIdentity(); }
     Matrix3f const& GetTransform       () const { return tm; }
@@ -309,8 +310,10 @@ public:
     void Scale    ( float sx, float sy, float sz )     { Matrix3f m; m.Zero(); m[0]=sx; m[4]=sy; m[8]=sz; Transform(m); }
     void Transform( Matrix3f const &m ) { tm=m*tm; pos=m*pos; tm.GetInverse(itm); }
     
-    void InitTransform() { pos.Zero(); tm.SetIdentity(); itm.SetIdentity(); }
-    
+	void InitTransform() {
+		pos.Zero(); tm.SetIdentity(); itm.SetIdentity(); 
+	}
+
 private:
     // Multiplies the given vector with the transpose of the given matrix
     static Vec3f TransposeMult( Matrix3f const &m, Vec3f const &dir )
@@ -335,6 +338,9 @@ public:
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide= HIT_FRONT) const=0;
     virtual Box  GetBoundBox() const=0;
     virtual void ViewportDisplay(const Material *mtl) const {}  // used for OpenGL display
+	virtual Vec3f Sample() const {
+		return Vec3f(0.0f, 0.0f, 0.0f);
+	};
 };
 
 typedef ItemFileList<Object> ObjFileList;
@@ -352,6 +358,8 @@ public:
 
 class LightList : public ItemList<Light> {};
 
+class EmissiveList : public ItemList<Node> {};
+
 //-------------------------------------------------------------------------------
 
 class Material : public ItemBase
@@ -364,6 +372,7 @@ public:
     virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const=0;
 	virtual Color IndirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const =0;
     virtual void SetViewportMaterial(int subMtlID=0) const {}   // used for OpenGL display
+	bool emissive = false;
 };
 
 class MaterialList : public ItemList<Material>
@@ -521,7 +530,7 @@ private:
     Object *obj;                // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
     Material* mtl;              // Material used for shading the object
     Box childBoundBox;          // Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
-	Node* parent;
+	
 
 public:
     Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr), parent(nullptr) {}
@@ -529,6 +538,8 @@ public:
     
     void Init() { DeleteAllChildNodes(); obj=nullptr; mtl=nullptr; childBoundBox.Init(); SetName(nullptr); InitTransform(); } // Initialize the node deleting all child nodes
     
+	Node* parent;
+
 	Node CopyNodeWithSameMaterialAndChild()
 	{
 		Node result;

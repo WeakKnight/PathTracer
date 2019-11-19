@@ -34,6 +34,7 @@ Camera camera;
 RenderImage renderImage;
 MaterialList materials;
 LightList lights;
+EmissiveList emissives;
 ObjFileList objList;
 TexturedColor background;
 TexturedColor environment;

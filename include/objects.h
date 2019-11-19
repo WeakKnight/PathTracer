@@ -36,6 +36,7 @@ public:
     virtual Box GetBoundBox() const { return Box(-1,-1,0,1,1,0); }
     virtual void ViewportDisplay(const Material *mtl) const;
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const;
+	virtual Vec3f Sample() const;
 };
 //-------------------------------------------------------------------------------
 class MeshBVH;
