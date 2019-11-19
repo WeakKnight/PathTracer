@@ -310,66 +310,6 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
             }
         }
     }
-    
-    Color reflectFactor = this->reflection.GetColor();
-    if(this->reflection.GetTexture())
-    {
-        reflectFactor = this->reflection.Sample(hInfo.uvw, hInfo.duvw);
-    }
-    
-    // has reflection
-    if(reflectFactor.Sum() > 0.0f && bounceCount > 0)
-    {
-        // only consider front reflect
-        if(hInfo.front)
-        {
-			Vec3f reflectN = GenerateNormalWithGlossiness(N, ENUM_RELFECTION);
-
-            // Generate Reflect Ray Check Target
-            Vec3f R = Reflect(ray.dir, reflectN);
-            
-            assert(R.IsUnit());
-            assert(reflectN.IsUnit());
-            assert(ray.dir.IsUnit());
-            
-            // world space
-            Ray reflectRay;
-            reflectRay.dir = R;
-            reflectRay.p = hInfo.p;
-            
-            RayContext reflectRayContext;
-            reflectRayContext.cameraRay = reflectRay;
-            reflectRayContext.rightRay = reflectRay;
-            reflectRayContext.topRay = reflectRay;
-            reflectRayContext.delta = RAY_DIFF_DELTA;
-			reflectRayContext.hasDiff = false;
-            
-            HitInfoContext reflectHitInfoContext;
-            HitInfo& reflectHitInfo = reflectHitInfoContext.mainHitInfo;
-            
-            float transDistance = 0.0f;
-            
-            // detect front intersection for reflection shading
-            if(GenerateRayForNearestIntersection(reflectRayContext, reflectHitInfoContext, HIT_FRONT, transDistance))
-            {
-                const Material* mat = reflectHitInfo.mtl;
-                
-                Color reflectColor = reflectFactor * mat->Shade(reflectRayContext, reflectHitInfoContext, lights, bounceCount - 1, indirectLightBounce);
-                result += reflectColor;
-            }
-            else
-            {
-                result += reflectFactor * environment.SampleEnvironment(reflectRayContext.cameraRay.dir);
-            }
-        }
-    }
-
-	// direct part
-	if (lights.size() > 0)
-	{
-		Color directResult = DirectLightShade(N, rayContext, hInfoContext, lights);
-		result += directResult;
-	}
 
 	// indirect part
 	Color indirectResult = IndirectLightShade(N, rayContext, hInfoContext, lights, bounceCount, indirectLightBounce);
@@ -377,76 +317,12 @@ Color MtlBlinn::Shade(RayContext const &rayContext, const HitInfoContext &hInfoC
     result += indirectResult;
 
 	// emission part
-	if (rayContext.hasDiff)
+	if (hInfo.front)
 	{
 		result += emission.Sample(hInfo.uvw, hInfo.duvw);
 	}
-	else
-	{
-		result += emission.Sample(hInfo.uvw);
-	}
 
-    assert(!isnan(result.r + result.g + result.b));
     return result;
-}
-
-Color MtlBlinn::DirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights) const
-{
-	Color result = Color::Black();
-
-	// don't shade diffuse color or specular color back side
-	if (!hInfoContext.mainHitInfo.front)
-	{
-		return result;
-	}
-
-	const HitInfo& hInfo = hInfoContext.mainHitInfo;
-
-	Vec3f V = -1.0f * rayContext.cameraRay.dir;
-	const Vec3f& p = hInfoContext.mainHitInfo.p;
-
-	float inverseProbability;
-	Light* light = LiForDirect(p, N, lights, inverseProbability);
-
-	Vec3f L = -1.0f * light->Direction(p);
-	assert(L.IsUnit());
-
-	float cosTheta = L.Dot(N);
-	if (cosTheta < 0.0f)
-	{
-		cosTheta = 0.0f;
-	}
-
-	Color flexForSpecular = inverseProbability * light->Illuminate(p + N * INTERSECTION_BIAS, N);
-	Color flex = flexForSpecular * cosTheta;
-
-	Color albedoColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
-	float roughnessValue = roughness.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw).r;
-	float metalnessValue = metalness.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw).r;
-
-	// spdlog::info("albedo is {}, roughness is {}, metalness is {}", albedoColor.r, roughnessValue, metalnessValue);
-	// spdlog::info("N is {}, {}, {}", N.x, N.y, N.z);
-
-	Color brdfColor = flex * brdf.BRDFDirect(L, V, N, albedoColor, roughnessValue, metalnessValue);
-
-	//Color diffuseColor = flex * Lambert(L, V, N, p, hInfo);
-	//Color specularColor =
-	//	// Color::Black();
-	//	flexForSpecular * Specular(L, V, N, p, hInfo);
-
-	float aoFactor = 0.0f;
-
-	if (this->ao)
-	{
-		Vec3f texAo = this->ao->SampleVector(hInfo.uvw, hInfo.duvw);
-		aoFactor = texAo.x;
-	}
-
-	Color ambient = Color(0.03f, 0.03f, 0.03f) * albedoColor * aoFactor;
-
-	result = ambient + brdfColor;
-
-	return result;
 }
 
 Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const
@@ -458,7 +334,13 @@ Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext,
 		return result;
 	}
 
+	//for (int bounceIndex = 0; bounceIndex < indirectLightBounce; bounceIndex++)
+	//{
+
+	//}
+
 	Vec3f V = -1.0f * rayContext.cameraRay.dir;
+	V.Normalize();
 
 	const auto& p = hInfoContext.mainHitInfo.p + N * 10.0f * INTERSECTION_BIAS;
 	const auto node = hInfoContext.mainHitInfo.node;
@@ -466,56 +348,32 @@ Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext,
 	Vec3f xBasis, yBasis;
 	BranchlessONB(N, xBasis, yBasis);
 
-	// float constantFactor = (2.0f * Pi<float>()) / (float)IndirectLightSampleCount;
-    
-	QuasyMonteCarloHemiSphereSampler sampler;
-
 	Color indirectLightIntencity = Color::Black();
 
 	Color albedoColor = diffuse.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw);
 	float roughnessValue = roughness.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw).r;
+	if (roughnessValue <= 0.0f)
+	{
+		roughnessValue = 0.001f;
+	}
 	float metalnessValue = metalness.Sample(hInfoContext.mainHitInfo.uvw, hInfoContext.mainHitInfo.duvw).r;
 
-	Vec3f randomForSpecular = ImportanceSampleGGX(N, roughnessValue);
-	Vec3f rayDirForSpecular = randomForSpecular.z * N + randomForSpecular.x * xBasis + randomForSpecular.y * yBasis;
-	Ray indirectRayForSpecular(p, rayDirForSpecular);
-	indirectRayForSpecular.Normalize();
-	
-	Vec3f randomForLambert = sampler.CosineWeightedSample();
-	Vec3f rayDirForLambert = randomForLambert.z * N + randomForLambert.x * xBasis + randomForLambert.y * yBasis;
-	Ray indirectRayForLambert(p, rayDirForLambert);
-	indirectRayForLambert.Normalize();
+	float probabilityGGX;
+	Vec3f randomGGXWeighted = ImportanceSampleGGX(roughnessValue, probabilityGGX);
+	Vec3f rayDirGGXWeighted = randomGGXWeighted.z * N + randomGGXWeighted.x * xBasis + randomGGXWeighted.y * yBasis;
 
-	// multiple importance
-	float NDotLSpecular = Max<float>(N.Dot(rayDirForSpecular), 0.001f);
-	float probabilitySpecular = NDotLSpecular;
-	float NDotLLambert = Max<float>(N.Dot(rayDirForLambert), 0.001f);
-	float probabilityLambert = NDotLLambert * INVERSE_PI;
+	Ray indirectRayGGXWeighted(p, rayDirGGXWeighted);
+	indirectRayGGXWeighted.Normalize();
 
-	
-	float totalProbability = probabilitySpecular + probabilityLambert;
-	float randomProbability = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* totalProbability;
+	float NDotLGGXWeighted = Max<float>(N.Dot(indirectRayGGXWeighted.dir), 0.001f);
 
-	Vec3f rayDir; 
-	Ray indirectRay;
-	float constantFactor;
-	float cosTheta;
+	//NDotLCosineWeighted * INVERSE_PI;
 
-	if (randomProbability <= probabilitySpecular)
-	{
-		rayDir = indirectRayForSpecular.dir;
-		indirectRay = indirectRayForSpecular;
-		constantFactor = 1.0f / probabilitySpecular;
-		cosTheta = NDotLSpecular;
-	}
-	else
-	{
-		rayDir = indirectRayForLambert.dir;
-		indirectRay = indirectRayForLambert;
-		constantFactor = 1.0f / probabilityLambert;
-		cosTheta = NDotLLambert;
-	}
-        
+	Vec3f rayDir = indirectRayGGXWeighted.dir;
+	Ray indirectRay = indirectRayGGXWeighted;
+	float cosTheta = NDotLGGXWeighted;
+	float probability = probabilityGGX;
+
 	RayContext indirectRayContext;
 	indirectRayContext.cameraRay = indirectRay;
 	indirectRayContext.rightRay = indirectRay;
@@ -545,76 +403,16 @@ Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext,
 		indirectLightIntencity = environment.SampleEnvironment(indirectRayContext.cameraRay.dir);
 	}
 
-	Color flex = cosTheta * indirectLightIntencity;
+	result = cosTheta * indirectLightIntencity * brdf.BRDF(indirectRay.dir, V, N, albedoColor, roughnessValue, metalnessValue) / probability;
 
-	Color diffuseColor = flex * brdf.BRDFDirect(indirectRay.dir, V, N, albedoColor, roughnessValue, metalnessValue);
-
-	//Color diffuseColor = flex * Lambert(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
-	//Color specularColor =
-	//	// Color::Black();
-	//	flexForSpecular * Specular(indirectRay.dir, V, N, p, hInfoContext.mainHitInfo);
-
-	result =  (constantFactor * (diffuseColor));
-	
-	return result;
-}
-
-Color MtlBlinn::Lambert(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const
-{
-	return diffuse.Sample(hitInfo.uvw, hitInfo.duvw) * INVERSE_PI;
-}
-Color MtlBlinn::Specular(const Vec3f& wi, const Vec3f& wo, const Vec3f& n, const Vec3f& x, const HitInfo& hitInfo) const
-{
-	Vec3f H = (wi + wo).GetNormalized();
-	float HDotN = H.Dot(n);
-	if (HDotN < 0.0f)
+	if (isnan(result.Sum()))
 	{
-		HDotN = 0.0f;
+		int a = 1;
 	}
 
-	float factor = pow(HDotN, glossiness) * (glossiness + 2.0f) * INVERSE_PI * 0.5f;
-	return specular.Sample(hitInfo.uvw, hitInfo.duvw) * H.Dot(n) * factor;
+	return result;
 }
 
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
-}
-
-Light* MtlBlinn::LiForDirect(const Vec3f& x, const Vec3f& n, const LightList& lights, float& inverseProbability) const
-{
-	// Importance Sampling For Lights
-	float totalIntensity = 0.0f;
-
-	std::vector<float> CDF;
-
-	CDF.push_back(0.0f);
-
-	for (int i = 0; i < lights.size(); i++)
-	{
-		auto light = lights[i];
-		totalIntensity += light->GetFallOffIntensity(x).Max();
-
-		CDF.push_back(totalIntensity);
-	}
-
-	float sample = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * totalIntensity;
-
-	for (int i = 0; i < lights.size(); i++)
-	{
-		auto light = lights[i];
-
-		float a = CDF[i];
-		float b = CDF[(size_t)i + 1];
-
-		if (sample >= a && sample <= b)
-		{
-			// fall in this segment
-			auto intensity = light->GetFallOffIntensity(x);
-			inverseProbability = totalIntensity / intensity.Max();
-			return light;
-		}
-	}
-
-	spdlog::error("Shoud not be there");
-	return nullptr;
 }

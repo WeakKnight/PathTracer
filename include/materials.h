@@ -28,7 +28,6 @@ public:
     virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const;
  
 	virtual Color IndirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const;
-	Color DirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights) const;
 
     void SetDiffuse     (Color dif)     { diffuse.SetColor(dif); }
     void SetSpecular    (Color spec)    { specular.SetColor(spec); }

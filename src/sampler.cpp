@@ -45,7 +45,9 @@ PixelContext HaltonSampler::SamplePixel(int x, int y, Vec2f& randomOffset, int i
 	auto& resultColor = tempSampleResult.color;
 
 	// Exposure tone mapping
-	Color mappedColor = Color(
+	Color mappedColor =
+		//resultColor;
+		Color(
 		1.0f - exp(-resultColor.r * exposure),
 		1.0f - exp(-resultColor.g * exposure), 
 		1.0f - exp(-resultColor.b * exposure));

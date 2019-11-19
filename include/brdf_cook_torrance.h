@@ -8,65 +8,39 @@
 #include <cmath>
 #include "constants.h"
 
+#include "spdlog/spdlog.h"
+
 using namespace cy;
 
 class BrdfCookTorrance
 {
 public:
 
-	Color BRDFIndirect(const Vec3f& L, const Vec3f& V, Vec3f& N, Color albedo, float roughness, float metalness) const
+	Color BRDF(const Vec3f& L, const Vec3f& V, const Vec3f& N, Color albedo, float roughness, float metalness) const
 	{
-		float cosTheta = Max<float>(N.Dot(L), 0.0f);
+		Vec3f H = (V + L).GetNormalized();
 
 		Color F0 = Color(0.04f, 0.04f, 0.04f);
 		F0 = Color(
 			F0.r * (1.0f - metalness) + albedo.r * metalness,
 			F0.g * (1.0f - metalness) + albedo.g * metalness,
 			F0.b * (1.0f - metalness) + albedo.b * metalness);
-		Color F = FresnelSchlickRoughness(cosTheta, F0, roughness);
+		Color F = FresnelSchlick(F0, V, H);
 
-		Vec3f H = (V + L).GetNormalized();
-		float NDF = DistributionGGXDirect(N, H, roughness);
-		float G = GeometrySmithDirect(N, V, L, roughness);
+		float NDF = DistributionGGX(N, H, roughness);
+		float G = GeometrySmith(N, V, L, roughness);
 
 		Color numerator = NDF * G * F;
+
 		float denominator = 4.0f * Max<float>(N.Dot(V), 0.0f) * Max<float>(N.Dot(L), 0.0f);
 
 		Color specular = numerator / Max<float>(denominator, 0.001f);
 
-		Color kS = F;
-		Color kD = Color(1.0f, 1.0f, 1.0f) - kS;
-
-		kD = kD * (1.0f - metalness);
-
-		Color lambert = kD * albedo * INVERSE_PI;
-
-		return (lambert + specular);
-	}
-
-	Color BRDFDirect(const Vec3f& L, const Vec3f& V, const Vec3f& N, Color albedo, float roughness, float metalness) const
-	{
-		float cosTheta = Max<float>(N.Dot(L), 0.0f);
-
-		Color F0 = Color(0.04f, 0.04f, 0.04f);
-		F0 = Color(
-					F0.r * (1.0f - metalness) + albedo.r * metalness,
-					F0.g * (1.0f - metalness) + albedo.g * metalness,
-					F0.b * (1.0f - metalness) + albedo.b * metalness);
-		Color F = FresnelSchlick(cosTheta, F0);
-
-		Vec3f H = (V + L).GetNormalized();
-		float NDF = DistributionGGXDirect(N, H, roughness);
-		float G = GeometrySmithDirect(N, V, L, roughness);
-
-		Color numerator = NDF * G * F;
-		float denominator = 4.0f * Max<float>(N.Dot(V), 0.0f) * Max<float>(N.Dot(L), 0.0f);
-
-		Color specular = numerator / Max<float>(denominator, 0.001f);
 
 		Color kS = F;
 		Color kD = Color(1.0f, 1.0f, 1.0f) - kS;
 
+		// when metalness = 1.0, no diffuse
 		kD = kD * (1.0f - metalness);
 
 		Color lambert = kD * albedo * INVERSE_PI;
@@ -76,7 +50,7 @@ public:
 
 private:
 
-	float DistributionGGXDirect(Vec3f N, Vec3f H, float roughness) const
+	float DistributionGGX(Vec3f N, Vec3f H, float roughness) const
 	{
 		float a = roughness * roughness;
 		float a2 = a * a;
@@ -90,36 +64,29 @@ private:
 		return nom / denom;
 	}
 
-	float GeometrySchlickGGXDirect(float NdotV, float roughness) const
+	float GeometrySchlickGGX(float NdotV, float roughness) const
 	{
-		float r = (roughness + 1.0f);
-		float k = (r * r) / 8.0f;
+		float k = roughness * roughness * 0.5f;
 
 		float nom = NdotV;
-		float denom = NdotV * (1.0 - k) + k;
+		float denom = NdotV * (1.0f - k) + k;
 
 		return nom / denom;
 	}
 
-	float GeometrySmithDirect(Vec3f N, Vec3f V, Vec3f L, float roughness) const
+	float GeometrySmith(const Vec3f& N, const Vec3f& V, const Vec3f& L, float roughness) const
 	{
 		float NdotV = Max<float>(N.Dot(V), 0.0f);
 		float NdotL = Max<float>(N.Dot(L), 0.0f);
-		float ggx1 = GeometrySchlickGGXDirect(NdotV, roughness);
-		float ggx2 = GeometrySchlickGGXDirect(NdotL, roughness);
+		float ggx1 = GeometrySchlickGGX(NdotV, roughness);
+		float ggx2 = GeometrySchlickGGX(NdotL, roughness);
 
 		return ggx1 * ggx2;
 	}
 
-	Color FresnelSchlick(float cosTheta, Color F0) const
+	Color FresnelSchlick(Color F0, const Vec3f& V, const Vec3f H) const
 	{
-		return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0);
-	}
-
-	Color FresnelSchlickRoughness(float cosTheta, Color F0, float roughness) const
-	{
-		return F0 + (Color(Max<float>(1.0f - roughness, F0.r),
-			Max<float>(1.0f - roughness, F0.g),
-			Max<float>(1.0f - roughness, F0.b)) - F0) * pow(1.0 - cosTheta, 5.0);
+		float VDotH = Max<float>(V.Dot(H), 0.0f);
+		return F0 + (1.0f - F0) * pow(1.0f - VDotH, 5.0);
 	}
 };
