@@ -405,11 +405,6 @@ Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext,
 
 	result = cosTheta * indirectLightIntencity * brdf.BRDF(indirectRay.dir, V, N, albedoColor, roughnessValue, metalnessValue) / probability;
 
-	if (isnan(result.Sum()))
-	{
-		int a = 1;
-	}
-
 	return result;
 }
 
