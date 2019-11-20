@@ -11,7 +11,8 @@
       <rotate angle="30" z="1"/>
       <translate x="-4.5" y="5" z="0"/>
     </object> -->
-    <object type="model" name="assets/models/Cerberus_LP.FBX" material="mtl2">
+    <object type="obj" name="assets/teapot.obj" material="mtl2" light="0.6">
+    <!-- <object type="model" name="assets/models/Cerberus_LP.FBX" material="mtl2" light="0.6"> -->
       <scale value="0.42"/>
       <rotate angle="128" y="1"/>
       <rotate angle="90" x="1"/>

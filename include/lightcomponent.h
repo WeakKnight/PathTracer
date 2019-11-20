@@ -1,7 +1,16 @@
 #pragma once
 
+#include "cyColor.h"
+
+using namespace cy;
+
 class LightComponent 
 {
 public:
-	float intensity;
+	Color Le()
+	{
+		return Color(intensity, intensity, intensity);
+	}
+
+	float intensity = 0.0f;
 };

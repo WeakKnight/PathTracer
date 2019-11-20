@@ -39,7 +39,7 @@ private:
 	Object* obj;                // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
 	Material* mtl;              // Material used for shading the object
 	Box childBoundBox;          // Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
-	LightComponent* light;
+	LightComponent* light = nullptr;
 
 public:
 	Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr), parent(nullptr) {}

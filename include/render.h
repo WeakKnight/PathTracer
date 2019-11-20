@@ -4,6 +4,9 @@
 #include "renderimagehelper.h"
 #include "constants.h"
 
+#include "utils.h"
+#include "materials.h"
+
 extern Node rootNode;
 extern TexturedColor environment;
 
@@ -27,15 +30,49 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 			break;
 		}
 
+		auto& hitinfo = hitInfoContext.mainHitInfo;
+
 		auto node = hitInfoContext.mainHitInfo.node;
 		
 		auto object = node->GetNodeObj();
-		auto material = node->GetMaterial();
+		MtlBlinn* material = (MtlBlinn*)(node->GetMaterial());
 
 		auto light = node->GetLight();
 		if (light != nullptr)
 		{
-			
+			color += throughput * light->Le();
+		}
+
+		position = hitinfo.p;
+		normal = hitinfo.N;
+		outputDirection = -1.0f * rayContext.cameraRay.dir;
+		outputDirection.Normalize();
+
+		Vec3f wi;
+		float pdf;
+		material->Sample(hitinfo, wi, pdf);
+
+		throughput = throughput * material->EvalBrdf(hitinfo, wi, outputDirection) / pdf;
+
+		// shoot a new ray
+		Ray newRay(position + wi * INTERSECTION_BIAS, wi);
+		rayContext.cameraRay = newRay;
+		rayContext.rightRay = newRay;
+		rayContext.topRay = newRay;
+		rayContext.hasDiff = false;
+
+		hitInfoContext.Init();
+
+		if (bounces > 3)
+		{
+			float p = throughput.Max();
+			float random = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+			if (random > p)
+			{
+				break;
+			}
+
+			throughput *= (1.0f / p);
 		}
 	}
 

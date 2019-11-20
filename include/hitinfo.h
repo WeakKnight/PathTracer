@@ -24,7 +24,7 @@ struct HitInfo
 	Material* mtl;
 
 	HitInfo() { Init(); }
-	void Init() { z = BIGFLOAT; node = nullptr; front = true; uvw.Set(0.5f, 0.5f, 0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID = 0; mtl = nullptr; }
+	void Init() { z = BIGFLOAT; p.Zero(); N.Zero(); Tangent.Zero(); Bitangent.Zero(); node = nullptr; front = true; uvw.Set(0.5f, 0.5f, 0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID = 0; mtl = nullptr; }
 
 	void Copy(const HitInfo& other)
 	{

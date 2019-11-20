@@ -9,3 +9,4 @@ constexpr float INVERSE_PI = 1.0f / PI;
 #define HIT_FRONT           1
 #define HIT_BACK            2
 #define HIT_FRONT_AND_BACK  (HIT_FRONT|HIT_BACK)
+#define INTERSECTION_BIAS 0.0001f

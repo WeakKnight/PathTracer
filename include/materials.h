@@ -17,6 +17,7 @@
 #include <random>
 #include "sampler.h"
 #include "brdf_cook_torrance.h"
+#include "utils.h"
 //-------------------------------------------------------------------------------
  
 class MtlBlinn : public Material
@@ -95,6 +96,52 @@ public:
 	}
 
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
+
+	void Sample(const HitInfo& hInfo, Vec3f& wi, float& probability)
+	{
+		float roughnessValue = roughness.Sample(hInfo.uvw, hInfo.duvw).r;
+		Vec3f N = hInfo.N;
+		N.Normalize();
+		Vec3f brdfN = N;
+		if (this->normal)
+		{
+			Vec3f texNormal = this->normal->SampleVector(hInfo.uvw, hInfo.duvw);
+			brdfN = hInfo.N * texNormal.z + hInfo.Bitangent.GetNormalized() * texNormal.y + hInfo.Tangent.GetNormalized() * texNormal.x;
+			brdfN.Normalize();
+		}
+
+		Vec3f b1, b2;
+		BranchlessONB(brdfN, b1, b2);
+
+		Vec3f sampleDir = ImportanceSampleGGX(roughnessValue, probability);
+		sampleDir = brdfN * sampleDir.z + b1 * sampleDir.x + b2 * sampleDir.y;
+		sampleDir.Normalize();
+
+		wi = sampleDir;
+	}
+
+	Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo)
+	{
+		Color albedoColor = diffuse.Sample(hInfo.uvw, hInfo.duvw);
+		float roughnessValue = roughness.Sample(hInfo.uvw, hInfo.duvw).r;
+		if (roughnessValue <= 0.0f)
+		{
+			roughnessValue = 0.001f;
+		}
+		float metalnessValue = metalness.Sample(hInfo.uvw, hInfo.duvw).r;
+
+		Vec3f N = hInfo.N;
+		N.Normalize();
+		Vec3f brdfN = N;
+		if (this->normal)
+		{
+			Vec3f texNormal = this->normal->SampleVector(hInfo.uvw, hInfo.duvw);
+			brdfN = hInfo.N * texNormal.z + hInfo.Bitangent.GetNormalized() * texNormal.y + hInfo.Tangent.GetNormalized() * texNormal.x;
+			brdfN.Normalize();
+		}
+
+		return brdf.BRDF(wi, wo, N, albedoColor, roughnessValue, metalnessValue);
+	}
 
 private:
 	BrdfCookTorrance brdf;

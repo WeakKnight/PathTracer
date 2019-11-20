@@ -218,8 +218,9 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
         }
 		else if (COMPARE(type, "model")) {
 			ModelLoader loader;
-			Node* model = loader.Load(name);
+			Node* model = loader.Load(name, node->GetLight());
 			node->AppendChild(model);
+
 			printf(" - Model");
 		}
 		else if ( COMPARE(type,"obj") ) {

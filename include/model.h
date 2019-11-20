@@ -339,7 +339,7 @@ private:
 class ModelLoader
 {
 public:
-	Node* Load(const std::string& path)
+	Node* Load(const std::string& path, LightComponent* lightFromParent)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path,
@@ -359,16 +359,18 @@ public:
 			return nullptr;
 		}
 
-		auto node = ProcessNode(scene, scene->mRootNode, path, 0);
+		auto node = ProcessNode(scene, scene->mRootNode, path, 0, lightFromParent);
 
 		// scene->mMeshes[scene->mRootNode->];
 		return node;
 	}
 
-	Node* ProcessNode(const aiScene* scene, aiNode* node, const std::string& path, int order)
+	Node* ProcessNode(const aiScene* scene, aiNode* node, const std::string& path, int order, LightComponent* lightFromParent)
 	{
 		Node* result = new Node();
 		result->Init();
+
+		result->SetLight(lightFromParent);
 
 		int meshCount = node->mNumMeshes;
 		int childCount = node->mNumChildren;
@@ -397,7 +399,7 @@ public:
 		for (int i = 0; i < childCount; i++)
 		{
 			aiNode* child = node->mChildren[i];
-			Node* childNode = ProcessNode(scene, child, path, order + 1);
+			Node* childNode = ProcessNode(scene, child, path, order + 1, lightFromParent);
 			result->AppendChild(childNode);
 		}
 
