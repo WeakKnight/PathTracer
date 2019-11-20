@@ -10,13 +10,33 @@
 ///
 //-------------------------------------------------------------------------------
 
-#ifndef _OBJECTS_H_INCLUDED_
-#define _OBJECTS_H_INCLUDED_
+#pragma once
+
+#include <string.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+#include <vector>
+#include <atomic>
+#include <mutex>
 
 #include "scene.h"
 #include "cyTriMesh.h"
 #include "string_utils.h"
-//-------------------------------------------------------------------------------
+#include "constants.h"
+#include "ray.h"
+
+#include "box.h"
+
+#include "node.h"
+
+using namespace cy;
+
+struct HitInfo;
+struct HitInfoContext;
+class Material;
+
+
 
 class Sphere : public Object
 {
@@ -61,6 +81,3 @@ private:
     bool TraceBVHNode( RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide, BVHNode* node) const;
 };
 
-//-------------------------------------------------------------------------------
-
-#endif

@@ -14,32 +14,10 @@ public:
     
     HaltonSampler();
     
-	PixelContext SamplePixel(int x, int y, Vec2f& randomOffset, int index) const;
-    void BeginSampling();
-    
-    void SetSampleCount(int count)
-    {
-        sampleNum = count;
-    }
-    
-    void SetMinimumSampleCount(int count)
-    {
-        minimumSampleNum = count;
-    }
-    
-    void SetColorTolerance(float tolerance)
-    {
-        colorTolerance = tolerance;
-    }
+	RayContext SamplePixel(int x, int y, Vec2f& randomOffset, int index) const;
     
 private:
-    float colorTolerance;
-    
-    std::vector<PixelContext>* results;
-    // use for storing count info
-    std::vector<int> sampleCountResult;
-    unsigned int sampleNum;
-    unsigned int minimumSampleNum;
+ 
     int haltonXBase = 2;
     int haltonYBase = 3;
     std::mt19937_64 rng;

@@ -34,12 +34,12 @@ Camera camera;
 RenderImage renderImage;
 MaterialList materials;
 LightList lights;
-EmissiveList emissives;
 ObjFileList objList;
 TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 BVHManager bvhManager;
+
 std::atomic<bool> outputing;
 
 float imgPlaneHeight;
@@ -272,24 +272,6 @@ void RayTracer::Init()
     // pixel's world space size
     texelWdith = imgPlaneWidth / static_cast<float>(camera.imgWidth);
     texelHeight = imgPlaneHeight / static_cast<float>(camera.imgHeight);
-}
-
-Color RootTrace(RayContext& rayContext, HitInfoContext& hitInfoContext, int x, int y)
-{
-    HitInfo& hitInfo = hitInfoContext.mainHitInfo;
-    
-    bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode, HIT_FRONT_AND_BACK);
-    
-    if(sthTraced)
-    {
-        Color shadingResult = hitInfo.node->GetMaterial()->Shade(rayContext, hitInfoContext, lights, RefractionBounceCount, IndirectLightBounceCount);
-        return shadingResult;
-    }
-    else
-    {
-		return environment.SampleEnvironment(rayContext.cameraRay.dir);
-        // return background.Sample(Vec3f(x/(float)renderImage.GetWidth(), y/(float)renderImage.GetHeight(), 0.0f));
-    }
 }
 
 void ComputeIrradianceCacheMap()

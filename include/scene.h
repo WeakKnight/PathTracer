@@ -32,6 +32,16 @@
 #include "cyVector.h"
 #include "cyMatrix.h"
 #include "cyColor.h"
+
+#include "objects.h"
+
+#include "node.h"
+#include "itembase.h"
+#include "transformation.h"
+#include "box.h"
+#include "ray.h"
+#include "hitinfo.h"
+
 using namespace cy;
 
 //-------------------------------------------------------------------------------
@@ -60,76 +70,6 @@ inline float Halton(int index, int base)
 }
 
 //-------------------------------------------------------------------------------
-class Ray
-{
-public:
-    Vec3f p, dir;
-    
-    Ray() {}
-    Ray( Vec3f const &_p, Vec3f const &_dir ) : p(_p), dir(_dir) {}
-    Ray( Ray const &r ) : p(r.p), dir(r.dir) {}
-    void Normalize() { dir.Normalize(); }
-};
-
-//-------------------------------------------------------------------------------
-
-class Box
-{
-public:
-    Vec3f pmin, pmax;
-    
-    // Constructors
-    Box() { Init(); }
-    Box(Vec3f const &_pmin, Vec3f const &_pmax) : pmin(_pmin), pmax(_pmax) {}
-    Box(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax ) : pmin(xmin,ymin,zmin), pmax(xmax,ymax,zmax) {}
-    Box(float const *dim) : pmin(dim[0],dim[1],dim[2]), pmax(dim[3],dim[4],dim[5]) {}
-    
-    // Initializes the box, such that there exists no point inside the box (i.e. it is empty).
-    void Init() { pmin.Set(BIGFLOAT,BIGFLOAT,BIGFLOAT); pmax.Set(-BIGFLOAT,-BIGFLOAT,-BIGFLOAT); }
-    
-    // Returns true if the box is empty; otherwise, returns false.
-    bool IsEmpty() const { return pmin.x>pmax.x || pmin.y>pmax.y || pmin.z>pmax.z; }
-    
-    // Returns one of the 8 corner point of the box in the following order:
-    // 0:(x_min,y_min,z_min), 1:(x_max,y_min,z_min)
-    // 2:(x_min,y_max,z_min), 3:(x_max,y_max,z_min)
-    // 4:(x_min,y_min,z_max), 5:(x_max,y_min,z_max)
-    // 6:(x_min,y_max,z_max), 7:(x_max,y_max,z_max)
-    Vec3f Corner( int i ) const // 8 corners of the box
-    {
-        Vec3f p;
-        p.x = (i & 1) ? pmax.x : pmin.x;
-        p.y = (i & 2) ? pmax.y : pmin.y;
-        p.z = (i & 4) ? pmax.z : pmin.z;
-        return p;
-    }
-    
-    // Enlarges the box such that it includes the given point p.
-    void operator += (Vec3f const &p)
-    {
-        for ( int i=0; i<3; i++ ) {
-            if ( pmin[i] > p[i] ) pmin[i] = p[i];
-            if ( pmax[i] < p[i] ) pmax[i] = p[i];
-        }
-    }
-    
-    // Enlarges the box such that it includes the given box b.
-    void operator += (const Box &b)
-    {
-        for ( int i=0; i<3; i++ ) {
-            if ( pmin[i] > b.pmin[i] ) pmin[i] = b.pmin[i];
-            if ( pmax[i] < b.pmax[i] ) pmax[i] = b.pmax[i];
-        }
-    }
-    
-    // Returns true if the point is inside the box; otherwise, returns false.
-    bool IsInside(Vec3f const &p) const { for ( int i=0; i<3; i++ ) if ( pmin[i] > p[i] || pmax[i] < p[i] ) return false; return true; }
-    
-    // Returns true if the ray intersects with the box for any parameter that is smaller than t_max; otherwise, returns false.
-    bool IntersectRay(Ray const &r, float t_max) const;
-};
-
-//-------------------------------------------------------------------------------
 
 class Node;
 
@@ -139,115 +79,10 @@ class Node;
 #define HIT_FRONT_AND_BACK  (HIT_FRONT|HIT_BACK)
 class Material;
 
-struct HitInfo
-{
-    float       z;      // the distance from the ray center to the hit point
-    Vec3f       p;      // position of the hit point
-    Vec3f       N;      // surface normal at the hit point
-	Vec3f	    Tangent;
-	Vec3f       Bitangent;
-    Vec3f       uvw;    // texture coordinate at the hit point
-    Vec3f       duvw[2];// derivatives of the texture coordinate
-    Node		*node;   // the object node that was hit
-    bool        front;  // true if the ray hits the front side, false if the ray hits the back side
-    int         mtlID;  // sub-material index
-	Material*	mtl;
-    
-    HitInfo() { Init(); }
-	void Init() { z = BIGFLOAT; node = nullptr; front = true; uvw.Set(0.5f, 0.5f, 0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID = 0; mtl = nullptr; }
-	
-	void Copy(const HitInfo& other)
-	{
-		z = other.z;
-		p = other.p;
-		N = other.N;
-		Tangent = other.Tangent;
-		Bitangent = other.Bitangent;
-		uvw = other.uvw;
-		duvw[0] = other.duvw[0];
-		duvw[1] = other.duvw[1];
-		node = other.node;
-		front = other.front;
-		mtlID = other.mtlID;
-		mtl = other.mtl;
-	}
 
-	void CopyForDiffRay(const HitInfo& other)
-	{
-		z = other.z;
-		p = other.p;
-		N = other.N;
-	}
-};
-
-struct HitInfoContext
-{
-    HitInfoContext()
-    {
-        mainHitInfo.Init();
-        rightHitInfo.Init();
-        topHitInfo.Init();
-    }
-    
-    HitInfo mainHitInfo;
-    HitInfo rightHitInfo;
-    HitInfo topHitInfo;
-
-	bool screenRay = false;
-	int screenX = -1;
-	int screenY = -1;
-
-	void SetAsScreenInfo(int x, int y)
-	{
-		screenRay = true;
-		screenX = x;
-		screenY = y;
-	}
-};
-
-struct RayContext
-{
-    Ray cameraRay;
-    // Ray Differential
-    Ray rightRay;
-    Ray topRay;
-    float delta;
-    bool hasDiff = true;
-    
-    RayContext() {}
-    RayContext( RayContext const &r ) :
-    cameraRay(r.cameraRay),
-    rightRay(r.rightRay),
-    topRay(r.topRay),
-    delta(r.delta)
-    {
-        
-    }
-};
 
 //-------------------------------------------------------------------------------
 
-class ItemBase
-{
-private:
-    char *name;                 // The name of the item
-    
-public:
-    ItemBase() : name(nullptr) {}
-    virtual ~ItemBase() { if ( name ) delete [] name; }
-    
-    char const* GetName() const { return name ? name : ""; }
-    void SetName(char const *newName)
-    {
-        if ( name ) delete [] name;
-        if ( newName ) {
-            int n = strlen(newName);
-            name = new char[n+1];
-            for ( int i=0; i<n; i++ ) name[i] = newName[i];
-            name[n] = '\0';
-        } else { name = nullptr; }
-    }
-};
 
 template <class T> class ItemList : public std::vector<T*>
 {
@@ -283,65 +118,12 @@ private:
 
 //-------------------------------------------------------------------------------
 
-class Transformation
-{
-private:
-    Matrix3f tm;            // Transformation matrix to the local space
-    Vec3f    pos;           // Translation part of the transformation matrix
-    mutable Matrix3f itm;   // Inverse of the transformation matrix (cached)
-
-public:
-    Transformation() : pos(0,0,0) { tm.SetIdentity(); itm.SetIdentity(); }
-    Matrix3f const& GetTransform       () const { return tm; }
-    Vec3f    const& GetPosition        () const { return pos; }
-    Matrix3f const& GetInverseTransform() const { return itm; }
-    
-    Vec3f TransformTo  ( Vec3f const &p ) const { return itm * (p - pos); } // Transform to the local coordinate system
-    Vec3f TransformFrom( Vec3f const &p ) const { return tm*p + pos; }  // Transform from the local coordinate system
-    
-    // Transforms a vector to the local coordinate system (same as multiplication with the inverse transpose of the transformation)
-    Vec3f VectorTransformTo( Vec3f const &dir ) const { return TransposeMult(tm,dir); }
-    
-    // Transforms a vector from the local coordinate system (same as multiplication with the inverse transpose of the transformation)
-    Vec3f VectorTransformFrom( Vec3f const &dir ) const { return TransposeMult(itm,dir); }
-    
-    void Translate( Vec3f const &p ) { pos+=p; }
-    void Rotate   ( Vec3f const &axis, float degrees ) { Matrix3f m; m.SetRotation(axis,degrees*(float)M_PI/180.0f); Transform(m); }
-    void Scale    ( float sx, float sy, float sz )     { Matrix3f m; m.Zero(); m[0]=sx; m[4]=sy; m[8]=sz; Transform(m); }
-    void Transform( Matrix3f const &m ) { tm=m*tm; pos=m*pos; tm.GetInverse(itm); }
-    
-	void InitTransform() {
-		pos.Zero(); tm.SetIdentity(); itm.SetIdentity(); 
-	}
-
-private:
-    // Multiplies the given vector with the transpose of the given matrix
-    static Vec3f TransposeMult( Matrix3f const &m, Vec3f const &dir )
-    {
-        Vec3f d;
-        d.x = m.GetColumn(0) % dir;
-        d.y = m.GetColumn(1) % dir;
-        d.z = m.GetColumn(2) % dir;
-        return d;
-    }
-};
 
 //-------------------------------------------------------------------------------
 
 class Material;
 
-// Base class for all object types
-class Object
-{
-public:
-    virtual bool IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide=HIT_FRONT ) const=0;
-    virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide= HIT_FRONT) const=0;
-    virtual Box  GetBoundBox() const=0;
-    virtual void ViewportDisplay(const Material *mtl) const {}  // used for OpenGL display
-	virtual Vec3f Sample() const {
-		return Vec3f(0.0f, 0.0f, 0.0f);
-	};
-};
+
 
 typedef ItemFileList<Object> ObjFileList;
 
@@ -357,8 +139,6 @@ public:
 };
 
 class LightList : public ItemList<Light> {};
-
-class EmissiveList : public ItemList<Node> {};
 
 //-------------------------------------------------------------------------------
 
@@ -517,156 +297,6 @@ public:
         float x = dir.x / (fabs(dir.x)+fabs(dir.y));
         float y = dir.y / (fabs(dir.x)+fabs(dir.y));
         return Sample( Vec3f(0.5f,0.5f,0.0f) + z*(x*Vec3f(0.5f,0.5f,0) + y*Vec3f(-0.5f,0.5f,0)) );*/
-    }
-};
-
-//-------------------------------------------------------------------------------
-
-class Node : public ItemBase, public Transformation
-{
-private:
-    Node **child;               // Child nodes
-    int numChild;               // The number of child nodes
-    Object *obj;                // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
-    Material* mtl;              // Material used for shading the object
-    Box childBoundBox;          // Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
-	
-
-public:
-    Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr), parent(nullptr) {}
-    virtual ~Node() { DeleteAllChildNodes(); }
-    
-    void Init() { DeleteAllChildNodes(); obj=nullptr; mtl=nullptr; childBoundBox.Init(); SetName(nullptr); InitTransform(); } // Initialize the node deleting all child nodes
-    
-	Node* parent;
-
-	Node CopyNodeWithSameMaterialAndChild()
-	{
-		Node result;
-		result.numChild = numChild;
-		result.child = child;
-		result.mtl = mtl;
-		result.parent = nullptr;
-		result.obj = obj;
-		
-		return result;
-	}
-
-	// 
-	Node* GetParent()
-	{
-		return parent;
-	}
-	void SetParent(Node* node)
-	{
-		parent = node;
-	}
-
-    // Hierarchy management
-    int  GetNumChild() const { return numChild; }
-    void SetNumChild(int n, int keepOld=false)
-    {
-        if ( n < 0 ) n=0;    // just to be sure
-        Node **nc = nullptr;    // new child pointer
-        if ( n > 0 ) nc = new Node*[n];
-        for ( int i=0; i<n; i++ ) nc[i] = nullptr;
-        if ( keepOld ) {
-            int sn = Min(n,numChild);
-            for ( int i=0; i<sn; i++ ) nc[i] = child[i];
-        }
-        if ( child ) delete [] child;
-        child = nc;
-        numChild = n;
-    }
-    Node const* GetChild( int i ) const       { return child[i]; }
-    Node*       GetChild( int i )             { return child[i]; }
-    
-	void        SetChild( int i, Node *node ) 
-	{ 
-		child[i]=node; 
-	}
-    
-	void        AppendChild( Node *node )     
-	{ 
-		SetNumChild(numChild+1,true); 
-		SetChild(numChild-1,node); 
-		node->SetParent(this);
-	}
-    
-	void        RemoveChild( int i )          { for ( int j=i; j<numChild-1; j++) child[j]=child[j+1]; SetNumChild(numChild-1); }
-    void        DeleteAllChildNodes()         { for ( int i=0; i<numChild; i++ ) { child[i]->DeleteAllChildNodes(); delete child[i]; } SetNumChild(0); }
-    
-    // Bounding Box
-    const Box& ComputeChildBoundBox()
-    {
-        childBoundBox.Init();
-        for ( int i=0; i<numChild; i++ ) {
-            Box childBox = child[i]->ComputeChildBoundBox();
-            Object *cobj = child[i]->GetNodeObj();
-            if ( cobj ) childBox += cobj->GetBoundBox();
-            if ( ! childBox.IsEmpty() ) {
-                // transform the box from child coordinates
-                for ( int j=0; j<8; j++ ) childBoundBox += child[i]->TransformFrom( childBox.Corner(j) );
-            }
-        }
-        return childBoundBox;
-    }
-    const Box& GetChildBoundBox() const { return childBoundBox; }
-    
-    // Object management
-    Object const * GetNodeObj() const { return obj; }
-    Object*        GetNodeObj()       { return obj; }
-    void           SetNodeObj(Object *object) { obj=object; }
-    
-    // Material management
-    Material* GetMaterial()  
-	{
-		if (mtl == nullptr && parent != nullptr)
-		{
-			return parent->GetMaterial();
-		}
-
-		return mtl;
-	}
-    void            SetMaterial(Material *material) { mtl=material; }
-    
-    // Transformations
-    Ray ToNodeCoords( Ray const &ray ) const
-    {
-        Ray r;
-        r.p   = TransformTo(ray.p);
-        r.dir = TransformTo(ray.p + ray.dir) - r.p;
-        return r;
-    }
-    
-    RayContext ToNodeCoords(RayContext const & rayContext) const
-    {
-        RayContext result;
-        
-        result.cameraRay = ToNodeCoords(rayContext.cameraRay);
-        result.rightRay = ToNodeCoords(rayContext.rightRay);
-        result.topRay = ToNodeCoords(rayContext.topRay);
-        result.delta = rayContext.delta;
-        result.hasDiff = rayContext.hasDiff;
-        
-        return result;
-    }
-    
-    void FromNodeCoords( HitInfo &hInfo ) const
-    {
-        hInfo.p = TransformFrom(hInfo.p);
-        hInfo.N = VectorTransformFrom(hInfo.N).GetNormalized();
-		hInfo.Tangent = VectorTransformFrom(hInfo.Tangent).GetNormalized();
-		hInfo.Bitangent = VectorTransformFrom(hInfo.Bitangent).GetNormalized();
-    }
-    
-    void FromNodeCoords( HitInfoContext &hInfoContext ) const
-    {
-        FromNodeCoords(hInfoContext.mainHitInfo);
-        FromNodeCoords(hInfoContext.rightHitInfo);
-        // assert(!isnan(hInfoContext.rightHitInfo.N.x));
-        FromNodeCoords(hInfoContext.topHitInfo);
-        // assert(!isnan(hInfoContext.topHitInfo.N.x));
     }
 };
 

@@ -24,54 +24,54 @@ public:
 
 	virtual void ComputePoint(ColorZNormal& data, float x, float y, int threadID)
 	{
-		// spdlog::debug("compute point {}, {}", x, y);
-		Quasy2DSampler sampler;
-		Color result = Color::Black();
-		float resultZ = 0.0f;
-		bool firstZ = false;
+		//// spdlog::debug("compute point {}, {}", x, y);
+		//Quasy2DSampler sampler;
+		//Color result = Color::Black();
+		//float resultZ = 0.0f;
+		//bool firstZ = false;
 
-		Vec3f resultN = Vec3f(0.0f, 0.0f, 0.0f);
-		bool firstN = false;
+		//Vec3f resultN = Vec3f(0.0f, 0.0f, 0.0f);
+		//bool firstN = false;
 
-		static const float factor = 1.0f / (float)IrradianceGISampleCount;
-		bool hasCached = false;
+		//static const float factor = 1.0f / (float)IrradianceGISampleCount;
+		//bool hasCached = false;
 
-		for (int i = 0; i < IrradianceGISampleCount; i++)
-		{
-			auto randomOffset = sampler.GenRandom2DVector();
-			auto clampedOffset = Vec2f(randomOffset.x - 0.5f, randomOffset.y - 0.5f);
+		//for (int i = 0; i < IrradianceGISampleCount; i++)
+		//{
+		//	auto randomOffset = sampler.GenRandom2DVector();
+		//	auto clampedOffset = Vec2f(randomOffset.x - 0.5f, randomOffset.y - 0.5f);
 
-			RayContext rayContext = GenCameraRayContext(x, y, clampedOffset.x, clampedOffset.y);
-			HitInfoContext hitInfoContext;
+		//	RayContext rayContext = GenCameraRayContext(x, y, clampedOffset.x, clampedOffset.y);
+		//	HitInfoContext hitInfoContext;
 
-			Color sampleColor = RootTrace(rayContext, hitInfoContext, x, y);
-			HitInfo& hitInfo = hitInfoContext.mainHitInfo;
+		//	Color sampleColor = RootTrace(rayContext, hitInfoContext, x, y);
+		//	HitInfo& hitInfo = hitInfoContext.mainHitInfo;
 
-			bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode, HIT_FRONT_AND_BACK);
+		//	bool sthTraced = TraceNode(hitInfoContext, rayContext, &rootNode, HIT_FRONT_AND_BACK);
 
-			if (sthTraced)
-			{
-				Color shadingResult = hitInfo.node->GetMaterial()->IndirectLightShade(hitInfoContext.mainHitInfo.N, rayContext, hitInfoContext, lights, RefractionBounceCount, IndirectLightBounceCount);
-				result += factor * shadingResult;
-				hasCached = true;
-			}
+		//	if (sthTraced)
+		//	{
+		//		Color shadingResult = hitInfo.node->GetMaterial()->IndirectLightShade(hitInfoContext.mainHitInfo.N, rayContext, hitInfoContext, lights, RefractionBounceCount, IndirectLightBounceCount);
+		//		result += factor * shadingResult;
+		//		hasCached = true;
+		//	}
 
-			resultZ += factor * hitInfoContext.mainHitInfo.z;
-			resultN += hitInfoContext.mainHitInfo.N;
-		}
+		//	resultZ += factor * hitInfoContext.mainHitInfo.z;
+		//	resultN += hitInfoContext.mainHitInfo.N;
+		//}
 
-		resultN.Normalize();
+		//resultN.Normalize();
 
-		if (hasCached)
-		{
-			if (irradianceCachePixels != nullptr)
-			{
-				RenderImageHelper::SetIrradianceCache(irradianceCachePixels, renderImage, x, y);
-			}
-		}
+		//if (hasCached)
+		//{
+		//	if (irradianceCachePixels != nullptr)
+		//	{
+		//		RenderImageHelper::SetIrradianceCache(irradianceCachePixels, renderImage, x, y);
+		//	}
+		//}
 
-		data.c = result;
-		data.z = resultZ;
-		data.N = resultN;
+		//data.c = result;
+		//data.z = resultZ;
+		//data.N = resultN;
 	}
 };

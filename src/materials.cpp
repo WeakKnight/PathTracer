@@ -17,7 +17,6 @@ extern Node rootNode;
 extern TexturedColor environment;
 extern std::unordered_map<std::string, TextureMap> textureMap;
 extern IrradianceCacheMap irradianceCacheMap;
-extern EmissiveList emissives;
 
 QuasyMonteCarloCircleSampler* MtlBlinn::normalSampler = new QuasyMonteCarloCircleSampler;
 
@@ -368,46 +367,6 @@ Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext,
 		indirectRayGGXWeighted.Normalize();
 
 		float NDotLGGXWeighted = Max<float>(N.Dot(indirectRayGGXWeighted.dir), 0.001f);
-		// =====================================
-		//// spdlog::info("Emissive Count Is {}", emissives.size());
-		//float totalIntensity = 0.0f;
-		//std::vector<float> CDF;
-		//CDF.push_back(0.0f);
-		//for (int j = 0; j < emissives.size(); j++)
-		//{
-		//	auto emissiveObj = emissives[j];
-		//	float emissiveIntensity = ((MtlBlinn*)emissiveObj->GetMaterial())->GetEmissiveIntensityForImportanceSampling(p, emissiveObj->GetPosition());
-		//	totalIntensity += emissiveIntensity;
-		//	CDF.push_back(totalIntensity);
-		//}
-
-		//float randomIntensity = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* totalIntensity;
-		//int emissiveIndex = 0;
-		//float probabilityForEmissive = 1.0f;
-		//for (int j = 0; j < CDF.size() - 1; j++)
-		//{
-		//	float a = CDF[j];
-		//	float b = CDF[j + (size_t)1];
-		//	if (randomIntensity >= a && randomIntensity <= b)
-		//	{
-		//		emissiveIndex = j;
-		//		probabilityForEmissive = (b - a) / totalIntensity;
-		//		break;
-		//	}
-		//}
-		//auto emissiveObj = emissives[emissiveIndex];
-		//Vec3f posForEmissive = emissiveObj->GetNodeObj()->Sample();
-		//Node* currentParent = emissiveObj;
-		//while (currentParent != nullptr)
-		//{
-		//	posForEmissive = currentParent->TransformFrom(posForEmissive);
-		//	currentParent = currentParent->parent;
-		//}
-		////spdlog::info("e pos{},{},{}", posForEmissive.x, posForEmissive.y, posForEmissive.z);
-
-		//Ray indirectRayEmissiveWeighted(p, posForEmissive - p);
-		//indirectRayEmissiveWeighted.Normalize();
-		//float NDotLEmissiveWeighted = Max<float>(N.Dot(indirectRayEmissiveWeighted.dir), 0.001f);
 		// =================================
 		Vec3f randomCosineWeighted = CosineWeightedRandomPointOnHemiSphere();
 		Vec3f rayDirCosineWeighted = randomCosineWeighted.z * N + randomCosineWeighted.x * xBasis + randomCosineWeighted.y * yBasis;
@@ -422,50 +381,23 @@ Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext,
 		Ray indirectRay;
 		float cosTheta;
 		float probability;
-		//=======================================================
-		//int misIndex = MIS3(probabilityCosine, probabilityGGX, probabilityForEmissive);
-		//if (misIndex == 0)
-		//{
-		//	 rayDir = indirectRayCosineWeighted.dir;
-		//	 indirectRay = indirectRayCosineWeighted;
-		//	 cosTheta = NDotLCosineWeighted;
-		//	 probability = probabilityCosine / (probabilityCosine + probabilityGGX + probabilityForEmissive);
-		//}
-		////spdlog::info("PE{} PG{} PC", probabilityForEmissive, probabilityGGX, probabilityCosine);
-		//else if (misIndex == 1)
-		//{
-		//	rayDir = indirectRayGGXWeighted.dir;
-		//	indirectRay = indirectRayGGXWeighted;
-		//	cosTheta = NDotLGGXWeighted;
-		//	probability = probabilityGGX / (probabilityCosine + probabilityGGX + probabilityForEmissive);
-		//}
-		//else
-		//{
-		//	rayDir = indirectRayEmissiveWeighted.dir;
-		//	indirectRay = indirectRayEmissiveWeighted;
-		//	cosTheta = NDotLEmissiveWeighted;
-		//	probability = probabilityForEmissive / (probabilityCosine + probabilityForEmissive + probabilityGGX);
-		//}
-		//====================================
-		//int misIndex = MIS2(probabilityCosine, probabilityGGX);
-		//if (misIndex == 0)
-		//{
-		//	rayDir = indirectRayCosineWeighted.dir;
-		//	indirectRay = indirectRayCosineWeighted;
-		//	cosTheta = NDotLCosineWeighted;
-		//	probability = 2.0f * probabilityCosine * probabilityCosine /(probabilityCosine + probabilityGGX);
-		//}
-		////spdlog::info("PE{} PG{} PC", probabilityForEmissive, probabilityGGX, probabilityCosine);
-		//else 
+
+		int misIndex = MIS2(probabilityCosine, probabilityGGX);
+		if (misIndex == 0)
+		{
+			rayDir = indirectRayCosineWeighted.dir;
+			indirectRay = indirectRayCosineWeighted;
+			cosTheta = NDotLCosineWeighted;
+			probability = probabilityCosine;
+		}
+		else 
 		{
 			rayDir = indirectRayGGXWeighted.dir;
 			indirectRay = indirectRayGGXWeighted;
 			cosTheta = NDotLGGXWeighted;
-			// probability = 2.0f * probabilityGGX * probabilityGGX / (probabilityCosine + probabilityGGX);
 			probability = probabilityGGX;
 		}
 		//=========================================
-
 
 		RayContext indirectRayContext;
 		indirectRayContext.cameraRay = indirectRay;
@@ -512,9 +444,4 @@ Color MtlBlinn::IndirectLightShade(const Vec3f& N, RayContext const& rayContext,
 
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
-}
-
-float MtlBlinn::GetEmissiveIntensityForImportanceSampling(const Vec3f& x, const Vec3f& lightPos) const
-{
-	return LightFallOffFactor(x, lightPos) * emission.GetColor().Max();
 }

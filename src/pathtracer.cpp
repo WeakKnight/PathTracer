@@ -3,6 +3,7 @@
 #include "sampler.h"
 #include <atomic>
 #include "spdlog/spdlog.h"
+#include "render.h"
 
 extern Node rootNode;
 extern RenderImage renderImage;
@@ -62,18 +63,20 @@ void RenderWorker::Run()
 
 		float factor = (1.0f / (float)(historyContext.CurrentSampleNum));
 
-		PixelContext sampleResult = haltonSampler->SamplePixel(x, y, historyContext.offset, historyContext.CurrentSampleNum - 1);
+		RayContext primaryRay = haltonSampler->SamplePixel(x, y, historyContext.offset, historyContext.CurrentSampleNum - 1);
+
+		auto renderResult = RenderPixel(primaryRay, x, y);
 
 		historyContext.color
 			// = sampleResult.color;
-			= ((float)(historyContext.CurrentSampleNum - 1) * historyContext.color + (sampleResult.color)) * factor;
+			= ((float)(historyContext.CurrentSampleNum - 1) * historyContext.color + (renderResult.color)) * factor;
 
 		// historyContext.color.ClampMax();
 
 		const auto& finalColor = historyContext.color;
 
-		historyContext.z = historyContext.z + (sampleResult.z * factor);
-		historyContext.normal = historyContext.normal + (sampleResult.normal * factor);
+		historyContext.z = historyContext.z + (renderResult.z * factor);
+		historyContext.normal = historyContext.normal + (renderResult.normal * factor);
 
 		if (outputing.load())
 		{

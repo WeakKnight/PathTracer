@@ -19,6 +19,7 @@
 #include "xmlload.h"
 #include <unordered_map>
 #include "meshbuilder.h"
+#include <string>
 //-------------------------------------------------------------------------------
  
 extern Node rootNode;
@@ -30,7 +31,6 @@ extern ObjFileList objList;
 extern TexturedColor background;
 extern TexturedColor environment;
 extern TextureList textureList;
-extern EmissiveList emissives;
 
 //-------------------------------------------------------------------------------
  
@@ -107,11 +107,6 @@ int LoadScene(char const *filename)
         Material *mtl = materials.Find( nodeMtlList[i].mtlName );
 		if (mtl)
 		{
-			// add into emissive list
-			if (mtl->emissive)
-			{
-				emissives.push_back(nodeMtlList[i].node);
-			}
 			nodeMtlList[i].node->SetMaterial(mtl);
 		}
     }
@@ -198,6 +193,15 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
         nm.mtlName = mtlName;
         nodeMtlList.push_back(nm);
     }
+
+	char const* lightInfo = element->Attribute("light");
+	if (lightInfo) {
+		float lightIntensity = std::stof(lightInfo);
+		LightComponent* com = new LightComponent();
+		com->intensity = lightIntensity;
+
+		node->SetLight(com);
+	}
  
     // type
     char const* type = element->Attribute("type");

@@ -96,8 +96,6 @@ public:
 
     virtual void SetViewportMaterial(int subMtlID=0) const; // used for OpenGL display
 
-	float GetEmissiveIntensityForImportanceSampling(const Vec3f& x, const Vec3f& lightPos) const;
-
 private:
 	BrdfCookTorrance brdf;
 	Vec3f GenerateNormalWithGlossiness(const Vec3f& originalNormal, int type) const;
