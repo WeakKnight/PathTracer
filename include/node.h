@@ -17,6 +17,7 @@ class LightComponent;
 struct HitInfo;
 struct HitInfoContext;
 
+class Node;
 //-------------------------------------------------------------------------------
 // Base class for all object types
 class Object
@@ -29,6 +30,16 @@ public:
 	virtual Vec3f Sample() const {
 		return Vec3f(0.0f, 0.0f, 0.0f);
 	};
+	virtual float Area() const {
+		return 0.0f;
+	};
+
+	void SetParent(Node* node)
+	{
+		parent = node;
+	}
+
+	Node* parent = nullptr;
 };
 
 class Node : public ItemBase, public Transformation
@@ -42,6 +53,9 @@ private:
 	LightComponent* light = nullptr;
 
 public:
+	Matrix3f worldToLocal = Matrix3f::Identity();
+	Matrix3f localToWorld = Matrix3f::Identity();
+
 	Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr), parent(nullptr) {}
 	virtual ~Node() { DeleteAllChildNodes(); }
 
@@ -96,7 +110,7 @@ public:
 	}
 
 	void        AppendChild(Node* node)
-	{
+	{ 
 		SetNumChild(numChild + 1, true);
 		SetChild(numChild - 1, node);
 		node->SetParent(this);
@@ -125,7 +139,11 @@ public:
 	// Object management
 	Object const* GetNodeObj() const { return obj; }
 	Object* GetNodeObj() { return obj; }
-	void           SetNodeObj(Object* object) { obj = object; }
+	void           SetNodeObj(Object* object) 
+	{ 
+		obj = object;
+		obj->SetParent(this);
+	}
 
 	// Material management
 	Material* GetMaterial()
