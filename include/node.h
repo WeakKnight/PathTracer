@@ -1,13 +1,12 @@
 #pragma once
 
 #include "scene.h"
-#include "lightcomponent.h"
 #include "transformation.h"
 #include "itembase.h"
 #include "hitinfo.h"
 #include "box.h"
 #include "constants.h"
-#include "objects.h"
+#include "objbase.h"
 
 using namespace cy;
 
@@ -18,29 +17,7 @@ struct HitInfo;
 struct HitInfoContext;
 
 class Node;
-//-------------------------------------------------------------------------------
-// Base class for all object types
-class Object
-{
-public:
-	virtual bool IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT) const = 0;
-	virtual bool IntersectRay(RayContext& rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const = 0;
-	virtual Box  GetBoundBox() const = 0;
-	virtual void ViewportDisplay(const Material* mtl) const {}  // used for OpenGL display
-	virtual Vec3f Sample() const {
-		return Vec3f(0.0f, 0.0f, 0.0f);
-	};
-	virtual float Area() const {
-		return 0.0f;
-	};
 
-	void SetParent(Node* node)
-	{
-		parent = node;
-	}
-
-	Node* parent = nullptr;
-};
 
 class Node : public ItemBase, public Transformation
 {
@@ -53,26 +30,29 @@ private:
 	LightComponent* light = nullptr;
 
 public:
-	Matrix3f worldToLocal = Matrix3f::Identity();
-	Matrix3f localToWorld = Matrix3f::Identity();
-	
+	std::vector<Node*> chain;
+
+	Vec3f TransformPointToWorld(const Vec3f& p)
+	{
+		Vec3f result = p;
+		
+		for (int i =  0; i < chain.size(); i++)
+		{
+			result = chain[i]->TransformFrom(result);
+		}
+
+		return result;
+	}
+
 	void InitWorldMatrix()
 	{
 		// first get node chain
-		std::vector<Node*> chain;
 		Node* current = this;
 		while (current != nullptr)
 		{
 			chain.push_back(current);
 			current = current->GetParent();
 		}
-
-		for (int i = chain.size() - 1; i >= 0; i--)
-		{
-			worldToLocal = worldToLocal * chain[i]->GetParentToLocalMatrix();
-		}
-
-		localToWorld = worldToLocal.GetInverse();
 	}
 
 	Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr), parent(nullptr) {}
@@ -180,10 +160,7 @@ public:
 	{
 		return light;
 	}
-	void SetLight(LightComponent* com)
-	{
-		light = com;
-	}
+	void SetLight(LightComponent* com);
 
 	// Transformations
 	Ray ToNodeCoords(Ray const& ray) const

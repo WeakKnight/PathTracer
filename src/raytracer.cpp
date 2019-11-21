@@ -28,6 +28,7 @@
 #include "bvh.h"
 
 #include "pathtracer.h"
+#include "constants.h"
 
 Node rootNode;
 Camera camera;
@@ -39,6 +40,7 @@ TexturedColor background;
 TexturedColor environment;
 TextureList textureList;
 BVHManager bvhManager;
+LightComList lightList;
 
 std::atomic<bool> outputing;
 
@@ -61,6 +63,75 @@ Color24 *irradianceCachePixels = nullptr;
 float buildTime = 0.0f;
 
 IrradianceCacheMap irradianceCacheMap;
+
+bool InternalLightBackTest(Node* node, Ray& ray, Node* light)
+{
+	Ray objectRay = node->ToNodeCoords(ray);
+	Object* obj = node->GetNodeObj();
+
+	// dont test light itself
+	if (obj != nullptr && node == light)
+	{
+		HitInfo objHitInfo;
+		if (obj->IntersectRay(objectRay, objHitInfo, HIT_BACK))
+		{
+			return true;
+		}
+	}
+
+	for (int i = 0; i < node->GetNumChild(); i++)
+	{
+		Node* child = node->GetChild(i);
+
+		if (InternalLightBackTest(child, objectRay, light))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool InternalLightTest(Node* node, Ray& ray, float t_max, Node* light)
+{
+	Ray objectRay = node->ToNodeCoords(ray);
+	Object* obj = node->GetNodeObj();
+
+	// dont test light itself
+	if (obj != nullptr && node != light)
+	{
+		HitInfo objHitInfo;
+		if (obj->IntersectRay(objectRay, objHitInfo, HIT_FRONT))
+		{
+			if (objHitInfo.z < t_max)
+			{
+				return true;
+			}
+		}
+	}
+
+	for (int i = 0; i < node->GetNumChild(); i++)
+	{
+		Node* child = node->GetChild(i);
+
+		if (InternalLightTest(child, objectRay, t_max, light))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool LightVisTest(Ray& ray, float t_max, Node* light)
+{
+	// if hit on light back side, must no light 
+	if (InternalLightBackTest(&rootNode, ray, light))
+	{
+		return true;
+	}
+	return InternalLightTest(&rootNode, ray, t_max, light);
+}
 
 bool InternalGenerateRayForAnyIntersection(Node* node, Ray& ray, float t_max)
 {

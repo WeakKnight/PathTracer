@@ -7,6 +7,7 @@
 #include <mutex>
 #include <atomic>
 
+bool LightVisTest(Ray& ray, float t_max, Node* light);
 Ray GenCameraRay(int x, int y, float xOffset = 0.5f, float yOffset = 0.5f, bool normalize = true);
 bool GenerateRayForAnyIntersection(Ray& ray, float t_max = BIGFLOAT);
 bool GenerateRayForNearestIntersection(RayContext& ray, HitInfoContext& hitinfoContext, int side, float& t);

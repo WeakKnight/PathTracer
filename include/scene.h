@@ -139,6 +139,7 @@ public:
 };
 
 class LightList : public ItemList<Light> {};
+class LightComList : public ItemList<LightComponent> {};
 
 //-------------------------------------------------------------------------------
 

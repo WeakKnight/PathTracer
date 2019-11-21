@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include "meshbuilder.h"
 #include <string>
+#include "lightcomponent.h"
 //-------------------------------------------------------------------------------
  
 extern Node rootNode;
@@ -31,6 +32,7 @@ extern ObjFileList objList;
 extern TexturedColor background;
 extern TexturedColor environment;
 extern TextureList textureList;
+extern LightComList lightList;
 
 //-------------------------------------------------------------------------------
  
@@ -171,13 +173,14 @@ void LoadScene(TiXmlElement *element)
             environment.SetTexture( ReadTexture(child) );
         } else if ( COMPARE( child->Value(), "object" ) ) {
             LoadNode( &rootNode, child );
-			InitWorldMatrix(&rootNode);
         } else if ( COMPARE( child->Value(), "material" ) ) {
             LoadMaterial( child );
         } else if ( COMPARE( child->Value(), "light" ) ) {
             LoadLight( child );
         }
     }
+
+	InitWorldMatrix(&rootNode);
 }
  
 //-------------------------------------------------------------------------------
@@ -212,6 +215,7 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
 		com->intensity = lightIntensity;
 
 		node->SetLight(com);
+		lightList.push_back(com);
 	}
  
     // type

@@ -25,18 +25,14 @@
 #include "string_utils.h"
 #include "constants.h"
 #include "ray.h"
-
 #include "box.h"
-
-#include "node.h"
+#include "objbase.h"
 
 using namespace cy;
 
 struct HitInfo;
 struct HitInfoContext;
 class Material;
-
-
 
 class Sphere : public Object
 {
@@ -57,6 +53,7 @@ public:
     virtual void ViewportDisplay(const Material *mtl) const;
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const;
 	virtual Vec3f Sample() const;
+	virtual float Area() const;
 };
 //-------------------------------------------------------------------------------
 class MeshBVH;

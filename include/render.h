@@ -7,8 +7,57 @@
 #include "utils.h"
 #include "materials.h"
 
+#include "lightcomponent.h"
+
+extern LightComList lightList;
 extern Node rootNode;
 extern TexturedColor environment;
+
+float PowerHeuristic(int numf, float fPdf, int numg, float gPdf) 
+{
+	float f = numf * fPdf;
+	float g = numg * gPdf;
+
+	return (f * f) / (f * f + g * g);
+}
+
+Color EstimateDirect(LightComponent* light, MtlBlinn* material, HitInfo& hitinfo, Vec3f& wo)
+{
+	Color directResult = Color::Black();
+	
+	// Light Sampling
+	{
+		float pdf;
+		Vec3f wi;
+		Color Li = light->SampleLi(hitinfo, pdf, wi);
+		if (pdf > 0.0f)
+		{
+			directResult += material->EvalBrdf(hitinfo, wi, wo) * Li / pdf;
+		}
+	}
+	// Brdf Sampling
+
+	return directResult;
+}
+
+Color SampleLights(LightComponent* hitLight, MtlBlinn* material, HitInfo& hitinfo, Vec3f& wo)
+{
+	int numLights = lightList.size();
+	Color result = Color::Black();
+
+	for (int i = 0; i < numLights; i++)
+	{
+		auto light = lightList[i];
+		if (light == hitLight)
+		{
+			continue;
+		}
+
+		result = result + EstimateDirect(light, material, hitinfo, wo);
+	}
+
+	return result;
+}
 
 PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 {
@@ -38,7 +87,7 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		MtlBlinn* material = (MtlBlinn*)(node->GetMaterial());
 
 		auto light = node->GetLight();
-		if (light != nullptr)
+		if (light != nullptr && bounces == 0)
 		{
 			color += throughput * light->Le();
 		}
@@ -47,6 +96,8 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		normal = hitinfo.N;
 		outputDirection = -1.0f * rayContext.cameraRay.dir;
 		outputDirection.Normalize();
+
+		color += throughput * SampleLights(light, material, hitinfo, outputDirection);
 
 		Vec3f wi;
 		float pdf;

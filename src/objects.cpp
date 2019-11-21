@@ -475,7 +475,17 @@ Vec3f Plane::Sample() const
 {
 	float x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* 2.0f - 1.0f;
 	float y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 2.0f - 1.0f;
-	return Vec3f(x, y, 0.0f);
+	
+	return parent->TransformPointToWorld(Vec3f(x, y, 0.0f));
+}
+
+float Plane::Area() const
+{
+	Vec3f zero = parent->TransformPointToWorld(Vec3f(0.0f, 0.0f, 0.0f));
+	Vec3f width = parent->TransformPointToWorld(Vec3f(2.0f, 0.0f, 0.0f));
+	Vec3f height = parent->TransformPointToWorld(Vec3f(0.0f, 2.0f, 0.0f));
+	
+	return (width - zero).Length() * (height - zero).Length();
 }
 
 bool Plane::IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide) const

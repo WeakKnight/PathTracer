@@ -27,3 +27,4 @@ int MIS2(float p1, float p2);
 int MIS3(float p1, float p2, float p3);
 
 float LightFallOffFactor(const Vec3f& p1, const Vec3f& p2);
+float LightFallOffFactor(float distance);
