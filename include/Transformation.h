@@ -13,6 +13,12 @@ private:
 	mutable Matrix3f itm;   // Inverse of the transformation matrix (cached)
 
 public:
+
+	Matrix3f GetParentToLocalMatrix()
+	{
+		return tm;
+	}
+
 	Transformation() : pos(0, 0, 0) { tm.SetIdentity(); itm.SetIdentity(); }
 	Matrix3f const& GetTransform() const { return tm; }
 	Vec3f    const& GetPosition() const { return pos; }

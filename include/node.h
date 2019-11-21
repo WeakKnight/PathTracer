@@ -55,6 +55,25 @@ private:
 public:
 	Matrix3f worldToLocal = Matrix3f::Identity();
 	Matrix3f localToWorld = Matrix3f::Identity();
+	
+	void InitWorldMatrix()
+	{
+		// first get node chain
+		std::vector<Node*> chain;
+		Node* current = this;
+		while (current != nullptr)
+		{
+			chain.push_back(current);
+			current = current->GetParent();
+		}
+
+		for (int i = chain.size() - 1; i >= 0; i--)
+		{
+			worldToLocal = worldToLocal * chain[i]->GetParentToLocalMatrix();
+		}
+
+		localToWorld = worldToLocal.GetInverse();
+	}
 
 	Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr), parent(nullptr) {}
 	virtual ~Node() { DeleteAllChildNodes(); }

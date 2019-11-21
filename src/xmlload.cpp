@@ -142,7 +142,17 @@ int LoadScene(char const *filename)
 void PrintIndent(int level) { for ( int i=0; i<level; i++) printf("   "); }
  
 //-------------------------------------------------------------------------------
- 
+
+void InitWorldMatrix(Node* node)
+{
+	node->InitWorldMatrix();
+	for (int i = 0; i < node->GetNumChild(); i++)
+	{
+		Node* child = node->GetChild(i);
+		InitWorldMatrix(child);
+	}
+}
+
 void LoadScene(TiXmlElement *element)
 {
     for ( TiXmlElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
@@ -161,6 +171,7 @@ void LoadScene(TiXmlElement *element)
             environment.SetTexture( ReadTexture(child) );
         } else if ( COMPARE( child->Value(), "object" ) ) {
             LoadNode( &rootNode, child );
+			InitWorldMatrix(&rootNode);
         } else if ( COMPARE( child->Value(), "material" ) ) {
             LoadMaterial( child );
         } else if ( COMPARE( child->Value(), "light" ) ) {
