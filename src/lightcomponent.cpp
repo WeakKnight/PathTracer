@@ -14,7 +14,12 @@ float LightComponent::Pdf(const HitInfo& hitInfo, const Vec3f& samplePoint, floa
 	float distanceSquare = distance * distance;
 	float area = obj->Area();
 
-	float pdf = distanceSquare / area;
+	Vec3f neggativeWi = (hitInfo.p - samplePoint).GetNormalized();
+
+	Vec3f normal = obj->Normal(samplePoint);
+	float cosNormalDotNeggativeWi = Max(neggativeWi.Dot(normal), 0.0001f);
+
+	float pdf = distanceSquare / (area * cosNormalDotNeggativeWi);
 	return pdf;
 }
 

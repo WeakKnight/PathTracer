@@ -479,6 +479,14 @@ Vec3f Plane::Sample() const
 	return parent->TransformPointToWorld(Vec3f(x, y, 0.0f));
 }
 
+Vec3f Plane::Normal(const Vec3f& p) const
+{
+	Vec3f zero = parent->TransformPointToWorld(Vec3f(0.0f, 0.0f, 0.0f));
+	Vec3f up = parent->TransformPointToWorld(Vec3f(0.0f, 0.0f, 1.0f));
+
+	return (up - zero).GetNormalized();
+}
+
 float Plane::Area() const
 {
 	Vec3f zero = parent->TransformPointToWorld(Vec3f(0.0f, 0.0f, 0.0f));

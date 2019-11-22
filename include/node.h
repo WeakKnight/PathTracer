@@ -32,16 +32,16 @@ private:
 public:
 	std::vector<Node*> chain;
 
+	Vec3f TransformPointToLocal(const Vec3f& p)
+	{
+		Vec4f result = worldToLocal * Vec4f(p.x, p.y, p.z, 1.0f);
+		return Vec3f(result.x, result.y, result.z);
+	}
+
 	Vec3f TransformPointToWorld(const Vec3f& p)
 	{
-		Vec3f result = p;
-		
-		for (int i =  0; i < chain.size(); i++)
-		{
-			result = chain[i]->TransformFrom(result);
-		}
-
-		return result;
+		Vec4f result = localToWorld * Vec4f(p.x, p.y, p.z, 1.0f);
+		return Vec3f(result.x, result.y, result.z);
 	}
 
 	void InitWorldMatrix()
@@ -53,6 +53,14 @@ public:
 			chain.push_back(current);
 			current = current->GetParent();
 		}
+		// from self to ancestor
+		// for (int i = chain.size() - 1; i >= 0; i--)
+		for (int i = 0; i < chain.size(); i++)
+		{
+			auto item = chain[i];
+			localToWorld = item->localToParent * localToWorld;
+		}
+		worldToLocal = localToWorld.GetInverse();
 	}
 
 	Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr), parent(nullptr) {}

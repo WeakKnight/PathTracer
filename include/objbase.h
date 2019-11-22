@@ -24,6 +24,10 @@ public:
 	virtual bool IntersectRay(RayContext& rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const = 0;
 	virtual Box  GetBoundBox() const = 0;
 	virtual void ViewportDisplay(const Material* mtl) const {}  // used for OpenGL display
+	virtual Vec3f Normal(const Vec3f& p) const
+	{
+		return Vec3f(0.0f, 0.0f, 1.0f);
+	}
 	virtual Vec3f Sample() const;
 	virtual float Pdf() const
 	{

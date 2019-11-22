@@ -13,13 +13,19 @@ private:
 	mutable Matrix3f itm;   // Inverse of the transformation matrix (cached)
 
 public:
+	Matrix4f worldToLocal;
+	Matrix4f localToWorld;
+	Matrix4f localToParent;
 
-	Matrix3f GetParentToLocalMatrix()
-	{
-		return tm;
+	Transformation() : pos(0, 0, 0) 
+	{ 
+		tm.SetIdentity(); 
+		itm.SetIdentity(); 
+		worldToLocal.SetIdentity();
+		localToWorld.SetIdentity();
+		localToParent.SetIdentity();
 	}
 
-	Transformation() : pos(0, 0, 0) { tm.SetIdentity(); itm.SetIdentity(); }
 	Matrix3f const& GetTransform() const { return tm; }
 	Vec3f    const& GetPosition() const { return pos; }
 	Matrix3f const& GetInverseTransform() const { return itm; }
@@ -33,12 +39,46 @@ public:
 	// Transforms a vector from the local coordinate system (same as multiplication with the inverse transpose of the transformation)
 	Vec3f VectorTransformFrom(Vec3f const& dir) const { return TransposeMult(itm, dir); }
 
-	void Translate(Vec3f const& p) { pos += p; }
-	void Rotate(Vec3f const& axis, float degrees) { Matrix3f m; m.SetRotation(axis, degrees * (float)M_PI / 180.0f); Transform(m); }
-	void Scale(float sx, float sy, float sz) { Matrix3f m; m.Zero(); m[0] = sx; m[4] = sy; m[8] = sz; Transform(m); }
-	void Transform(Matrix3f const& m) { tm = m * tm; pos = m * pos; tm.GetInverse(itm); }
+	void Translate(Vec3f const& p) 
+	{ 
+		pos += p; 
 
-	void InitTransform() {
+		localToParent.AddTranslation(p);
+	}
+	
+	void Rotate(Vec3f const& axis, float degrees) 
+	{ 
+		Matrix3f m; m.SetRotation(axis, degrees * (float)M_PI / 180.0f); 
+		Transform(m); 
+
+		Matrix4f rotation;
+		rotation.SetRotation(axis, degrees * (float)M_PI / 180.0f);
+		localToParent = rotation * localToParent;
+	}
+
+	void Scale(float sx, float sy, float sz) 
+	{ 
+		Matrix3f m; 
+		m.Zero(); 
+		m[0] = sx; 
+		m[4] = sy; 
+		m[8] = sz; 
+		Transform(m); 
+
+		Matrix4f scale;
+		scale.SetScale(sx, sy, sz);
+		localToParent = scale * localToParent;
+	}
+
+	void Transform(Matrix3f const& m) 
+	{ 
+		tm = m * tm; 
+		pos = m * pos; 
+		tm.GetInverse(itm); 
+	}
+
+	void InitTransform() 
+	{
 		pos.Zero(); tm.SetIdentity(); itm.SetIdentity();
 	}
 

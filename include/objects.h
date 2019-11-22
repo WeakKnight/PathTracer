@@ -54,6 +54,7 @@ public:
     virtual bool IntersectRay(RayContext &rayContext, HitInfoContext& hInfoContext, int hitSide = HIT_FRONT) const;
 	virtual Vec3f Sample() const;
 	virtual float Area() const;
+	virtual Vec3f Normal(const Vec3f& p) const;
 };
 //-------------------------------------------------------------------------------
 class MeshBVH;
