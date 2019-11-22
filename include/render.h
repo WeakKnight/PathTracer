@@ -30,9 +30,12 @@ Color EstimateDirect(LightComponent* light, MtlBlinn* material, HitInfo& hitinfo
 		float pdf;
 		Vec3f wi;
 		Color Li = light->SampleLi(hitinfo, pdf, wi);
+
+		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
+
 		if (pdf > 0.0f)
 		{
-			directResult += material->EvalBrdf(hitinfo, wi, wo) * Li / pdf;
+			directResult += NdotL * material->EvalBrdf(hitinfo, wi, wo) * Li / pdf;
 		}
 	}
 	// Brdf Sampling
@@ -103,7 +106,8 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		float pdf;
 		material->Sample(hitinfo, wi, pdf);
 
-		throughput = throughput * material->EvalBrdf(hitinfo, wi, outputDirection) / pdf;
+		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
+		throughput = throughput * NdotL * material->EvalBrdf(hitinfo, wi, outputDirection) / pdf;
 
 		// shoot a new ray
 		Ray newRay(position + wi * INTERSECTION_BIAS, wi);
