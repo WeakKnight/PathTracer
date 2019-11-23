@@ -66,8 +66,11 @@ Color SampleLights(LightComponent* hitLight, MtlBlinn* material, HitInfo& hitinf
 
 PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 {
+	if (x == 678 && y == 273)
+	{
+		int a = 1;
+	}
 	HitInfoContext hitInfoContext;
-	hitInfoContext.SetAsScreenInfo(x, y);
 
 	Color color = Color::Black();
 	Color throughput = Color(1.0f, 1.0f, 1.0f);
