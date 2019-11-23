@@ -40,12 +40,5 @@ cy::Color LightComponent::SampleLi(const HitInfo& hitInfo, float& pdf, Vec3f& wi
 		return Color::Black();
 	}
 
-	// light fall
-	float lightFallOff = LightFallOffFactor(distance);
-	if (!LightFallOff)
-	{
-		lightFallOff = 1.0f;
-	}
-
-	return lightFallOff * Le();
+	return Le();
 }
