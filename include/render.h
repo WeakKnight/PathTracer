@@ -8,10 +8,12 @@
 #include "materials.h"
 
 #include "lightcomponent.h"
+#include "tonemapping.h"
 
 extern LightComList lightList;
 extern Node rootNode;
 extern TexturedColor environment;
+ToneMapping toneMapping;
 
 float PowerHeuristic(int numf, float fPdf, int numg, float gPdf) 
 {
@@ -140,14 +142,16 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 
 	// Exposure tone mapping
 	Color mappedColor =
-		//resultColor;
-		Color(
+		// toneMapping.ACES(resultColor.ToVec());
+		toneMapping.Clamp(resultColor.ToVec());
+		// resultColor;
+	/*	Color(
 			1.0f - exp(-resultColor.r * exposure),
 			1.0f - exp(-resultColor.g * exposure),
-			1.0f - exp(-resultColor.b * exposure));
+			1.0f - exp(-resultColor.b * exposure));*/
 
 	// gamma correction
 	tempSampleResult.color = Color(powf(mappedColor.r, 0.4545f), powf(mappedColor.g, 0.4545f), powf(mappedColor.b, 0.4545f));
-
+	// tempSampleResult.color = mappedColor;
 	return tempSampleResult;
 }

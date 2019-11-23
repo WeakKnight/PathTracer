@@ -37,6 +37,7 @@
 //-------------------------------------------------------------------------------
 
 #include <math.h>
+#include "cyVector.h"
 
 //-------------------------------------------------------------------------------
 namespace cy {
@@ -64,12 +65,21 @@ public:
 	//!@name Constructors
 	Color() CY_CLASS_FUNCTION_DEFAULT
 	Color( Color const &c ) : r(c.r), g(c.g), b(c.b) {}
+	Color(const Vec3f& v) : r(v.x), g(v.y), b(v.z)
+	{
+
+	}
 	explicit Color( float _r, float _g, float _b ) : r(_r), g(_g), b(_b) {}
 	explicit Color( float const *c ) : r(c[0]), g(c[1]), b(c[2]) {}
 	explicit Color( float rgb ) : r(rgb), g(rgb), b(rgb) {}
 	explicit Color( ColorA  const &c );
 	explicit Color( Color24 const &c );
 	explicit Color( Color32 const &c );
+
+	Vec3f ToVec()
+	{
+		return Vec3f(r, g, b);
+	}
 
 	//!@name Set & Get value functions
 	void SetBlack() { r=0.0f; g=0.0f; b=0.0f; }							//!< Sets r, g and b components as zero

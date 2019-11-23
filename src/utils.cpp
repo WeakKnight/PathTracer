@@ -186,13 +186,13 @@ float LightFallOffFactor(const Vec3f& p1, const Vec3f& p2)
 {
 	float distanceSquare = (p2 - p1).LengthSquared();
 	float distance = sqrt(distanceSquare);
-
-	return 1.0f / (1.0f + 0.12f * distance + 0.032f * distanceSquare);
+	return 1.0f / distanceSquare;
+	// return 1.0f / (1.0f + 0.12f * distance + 0.032f * distanceSquare);
 }
 
 float LightFallOffFactor(float distance)
 {
 	float distanceSquare = distance * distance;
-
-	return 1.0f / (1.0f + 0.12f * distance + 0.032f * distanceSquare);
+	return 1.0f / distanceSquare;
+	// return 1.0f / (1.0f + 0.12f * distance + 0.032f * distanceSquare);
 }

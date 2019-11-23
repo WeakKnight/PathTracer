@@ -17,7 +17,7 @@ constexpr float ShadowTolerance = 0.01f;
 constexpr int RefractionBounceCount = 4;
 constexpr int IndirectLightBounceCount = 50;
 constexpr char* ScenePath =
- "assets/cornell.xml";
+ "assets/cornell1.xml";
 //"assets/project11.xml";
 
 constexpr float exposure = 1.2f;
