@@ -66,7 +66,7 @@ Color SampleLights(LightComponent* hitLight, Material* material, HitInfo& hitinf
 
 PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 {
-	if (x == 678 && y == 273)
+	if (x == 482 && y == 356)
 	{
 		int a = 1;
 	}
@@ -112,7 +112,19 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		material->Sample(hitinfo, wi, pdf);
 
 		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
-		throughput = throughput * NdotL * material->EvalBrdf(hitinfo, wi, outputDirection) / pdf;
+		
+		if (isinf(throughput.Sum()))
+		{
+			int a = 1;
+		}
+
+		auto brdfResult = material->EvalBrdf(hitinfo, wi, outputDirection);
+		throughput = throughput * NdotL * brdfResult / pdf;
+		
+		if (isinf(throughput.Sum()))
+		{
+			int a = 1;
+		}
 
 		// shoot a new ray
 		Ray newRay(position + wi * INTERSECTION_BIAS, wi);
@@ -134,6 +146,16 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 
 			throughput *= (1.0f / p);
 		}
+
+		if (isnan(color.Sum()))
+		{
+			int a = 1;
+		}
+
+		if (color.MinComponent() < 0.0f)
+		{
+			int a = 1;
+		}
 	}
 
 	PixelContext tempSampleResult;
@@ -145,8 +167,8 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 
 	// Exposure tone mapping
 	Color mappedColor =
-		// toneMapping.ACES(resultColor.ToVec());
 		toneMapping.Clamp(resultColor.ToVec());
+		//toneMapping.Clamp(resultColor.ToVec());
 		// resultColor;
 	/*	Color(
 			1.0f - exp(-resultColor.r * exposure),

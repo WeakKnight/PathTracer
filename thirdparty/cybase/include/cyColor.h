@@ -81,6 +81,13 @@ public:
 		return Vec3f(r, g, b);
 	}
 
+	void GammaCorrection()
+	{
+		r = powf(r, 2.2f);
+		g = powf(g, 2.2f);
+		b = powf(b, 2.2f);
+	}
+
 	//!@name Set & Get value functions
 	void SetBlack() { r=0.0f; g=0.0f; b=0.0f; }							//!< Sets r, g and b components as zero
 	void SetWhite() { r=1.0f; g=1.0f; b=1.0f; }							//!< Sets r, g and b components as one
@@ -94,7 +101,7 @@ public:
 	float Luma1  () const { return 0.299f *r + 0.587f *g + 0.114f *b; }
 	float Luma2  () const { return 0.2126f*r + 0.7152f*g + 0.0722f*b; }
 	bool  IsBlack() const { return r==0.0f && g==0.0f && b==0.0f; }			//!< Returns true if all components are exactly zero
-	float Min    () const { return r<g ? (r<b ? r : b) : (g<b ? g : b); }
+	float MinComponent    () const { return r<g ? (r<b ? r : b) : (g<b ? g : b); }
 	float Max    () const { return r>g ? (r>b ? r : b) : (g>b ? g : b); }
 
 	//!@name Limit functions

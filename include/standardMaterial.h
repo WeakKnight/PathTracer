@@ -55,7 +55,7 @@ public:
 
 	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo)
 	{
-		Color albedoColor = albedo.Sample(hInfo.uvw, hInfo.duvw);
+		Color albedoColor = albedo.SampleSrgb(hInfo.uvw, hInfo.duvw);
 		// albedoColor = Color(powf(albedoColor.r, 2.2f), powf(albedoColor.g, 2.2f), powf(albedoColor.b, 2.2f));
 
 		float roughnessValue = roughness.Sample(hInfo.uvw, hInfo.duvw).r;

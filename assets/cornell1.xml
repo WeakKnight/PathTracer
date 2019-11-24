@@ -1,0 +1,84 @@
+
+
+<xml>
+  <scene>
+    <!-- Objects -->
+    <object name="box">
+      <translate x="0" y="0" z="12"/>
+      <object type="plane" name="WallBottom" material="wall">
+        <scale value="32"/>
+        <translate z="-12"/>
+      </object>
+      <object type="plane" name="WallTop" material="wall">
+        <scale value="32"/>
+        <rotate angle="180" x="1"/>
+        <translate z="12"/>
+      </object>
+      <object type="plane" name="QuadLight" material="wall" light="8.5">
+        <scale value="5.0"/>
+        <rotate angle="180" x="1"/>
+        <translate z="11.99"/>
+      </object>
+      <object type="plane" name="WallBack" material="wall">
+        <scale value="32"/>
+        <rotate angle="90" x="1"/>
+        <translate y="20"/>
+      </object>
+      <object type="plane" name="WallLeft" material="wallRed">
+        <scale value="32"/>
+        <rotate angle="90" y="1"/>
+        <translate x="-15"/>
+      </object>
+      <object type="plane" name="WallRight" material="wallBlue">
+        <scale value="32"/>
+        <rotate angle="-90" y="1"/>
+        <translate x="15"/>
+      </object>
+    </object>
+    <object type="model" name="assets/teapot.obj" material="mtl1">
+      <scale value="0.75"/>
+      <rotate angle="30" z="1"/>
+      <translate x="-4.5" y="5" z="0"/>
+    </object>
+    <object type="sphere" name="sphere2" material="mtl2">
+      <scale value="4.5"/>
+      <rotate angle="30" y="1"/>
+      <translate x="8" y="-6" z="4.5"/>
+    </object>
+ 
+    <!-- Materials -->
+    <material type="standard" name="wall">
+      <albedo  r="1" g="1" b="1"/>
+      <roughness value="0.9"/>
+    </material>
+    <material type="standard" name="wallRed">
+      <albedo  r="1.0" g="0.2" b="0.2"/>
+      <roughness value="0.9"/>
+    </material>
+    <material type="standard" name="wallBlue">
+      <albedo  r="0.2" g="0.2" b="1.0"/>
+      <roughness value="0.9"/>
+    </material>
+    <material type="standard" name="light">
+      <emission  value="20"/>
+    </material>
+    <material type="standard" name="mtl1">
+      <albedo  r="0.8" g="0.2" b="0.2"/>
+      <roughness value="0.7"/>
+    </material>
+    <material type="standard" name="mtl2">
+      <albedo  r="0.1" g="0.1" b="0.1"/>
+      <roughness value="0.05"/>
+      <metalness value="1.0"/>
+    </material>
+  </scene>
+ 
+  <camera>
+    <position x="0" y="-60" z="16"/>
+    <target x="0" y="0" z="11"/>
+    <up x="0" y="0" z="1"/>
+    <fov value="30"/>
+    <width value="800"/>
+    <height value="600"/>
+  </camera>
+</xml>

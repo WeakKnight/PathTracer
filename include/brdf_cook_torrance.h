@@ -45,6 +45,21 @@ public:
 		Color lambert = kD * albedo * INVERSE_PI;
 		Color result = (lambert + specular);
 
+		if (isinf(result.Sum()))
+		{
+			int a = 1;
+		}
+
+		if (isnan(result.Sum()))
+		{
+			int a = 1;
+		}
+
+		if (result.MinComponent() < 0.0f)
+		{
+			int a = 1;
+		}
+
 		return result;
 	}
 
@@ -58,7 +73,7 @@ private:
 		float NdotH2 = NdotH * NdotH;
 
 		float nom = a2;
-		float denom = (NdotH2 * (a2 - 1.0f) + 1.0f);
+		float denom = Max((NdotH2 * (a2 - 1.0f) + 1.0f), 0.001f);
 		denom = PI * denom * denom;
 
 		return nom / denom;
