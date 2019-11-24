@@ -23,7 +23,7 @@ float PowerHeuristic(int numf, float fPdf, int numg, float gPdf)
 	return (f * f) / (f * f + g * g);
 }
 
-Color EstimateDirect(LightComponent* light, MtlBlinn* material, HitInfo& hitinfo, Vec3f& wo)
+Color EstimateDirect(LightComponent* light, Material* material, HitInfo& hitinfo, Vec3f& wo)
 {
 	Color directResult = Color::Black();
 	
@@ -45,7 +45,7 @@ Color EstimateDirect(LightComponent* light, MtlBlinn* material, HitInfo& hitinfo
 	return directResult;
 }
 
-Color SampleLights(LightComponent* hitLight, MtlBlinn* material, HitInfo& hitinfo, Vec3f& wo)
+Color SampleLights(LightComponent* hitLight, Material* material, HitInfo& hitinfo, Vec3f& wo)
 {
 	int numLights = lightList.size();
 	Color result = Color::Black();
@@ -92,7 +92,7 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		auto node = hitInfoContext.mainHitInfo.node;
 		
 		auto object = node->GetNodeObj();
-		MtlBlinn* material = (MtlBlinn*)(node->GetMaterial());
+		Material* material = node->GetMaterial();
 
 		auto light = node->GetLight();
 		if (light != nullptr && bounces == 0)

@@ -21,6 +21,7 @@
 #include "meshbuilder.h"
 #include <string>
 #include "lightcomponent.h"
+#include "standardMaterial.h"
 //-------------------------------------------------------------------------------
  
 extern Node rootNode;
@@ -238,54 +239,7 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
 
 			printf(" - Model");
 		}
-		else if ( COMPARE(type,"obj") ) {
-            printf(" - OBJ");
-            Object *obj = objList.Find(name);
-            if ( obj == nullptr ) { // object is not on the list, so we should load it now
-                TriObj *tobj = new TriObj;
-                if ( ! tobj->Load( name, mtlName==nullptr ) ) {
-                    printf(" -- ERROR: Cannot load file \"%s.\"", name);
-                    delete tobj;
-                } else {
-                    objList.Append(tobj,name);  // add to the list
-                    obj = tobj;
-                    // generate multi-material
-                    if ( tobj->NM() > 0 ) {
-                        if ( materials.Find(name) == nullptr ) {
-                            MultiMtl *mm = new MultiMtl;
-                            for ( unsigned int i=0; i<tobj->NM(); i++ ) {
-                                MtlBlinn *m = new MtlBlinn;
-                                const cyTriMesh::Mtl &mtl = tobj->M(i);
-                                m->SetDiffuse( Color(mtl.Kd) );
-                                m->SetSpecular( Color(mtl.Ks) );
-                                m->SetGlossiness( mtl.Ns );
-                                m->SetRefractionIndex( mtl.Ni );
-                                if ( mtl.map_Kd.data != nullptr ) m->SetDiffuseTexture( new TextureMap(ReadTexture(mtl.map_Kd.data)) );
-                                if ( mtl.map_Ks.data != nullptr ) m->SetDiffuseTexture( new TextureMap(ReadTexture(mtl.map_Ks.data)) );
-                                if ( mtl.illum > 2 && mtl.illum <= 7 ) {
-                                    m->SetReflection( Color(mtl.Ks) );
-                                    if ( mtl.map_Ks.data != nullptr ) m->SetReflectionTexture( new TextureMap(ReadTexture(mtl.map_Ks.data)) );
-                                    float gloss = acosf(powf(2,1/mtl.Ns));
-                                    m->SetReflectionGlossiness(gloss);
-                                    if ( mtl.illum >= 6 ) {
-                                        m->SetRefraction( 1 - Color(mtl.Tf) );
-                                        m->SetRefractionGlossiness(gloss);
-                                    }
-                                }
-                                mm->AppendMaterial(m);
-                            }
-                            mm->SetName(name);
-                            materials.push_back(mm);
-                            NodeMtl nm;
-                            nm.node = node;
-                            nm.mtlName = name;
-                            nodeMtlList.push_back(nm);
-                        }
-                    }
-                }
-            }
-            node->SetNodeObj( obj );
-        } else {
+		else {
             printf(" - UNKNOWN TYPE");
         }
     }
@@ -348,18 +302,18 @@ void LoadMaterial(TiXmlElement *element)
     // type
     char const* type = element->Attribute("type");
     if ( type ) {
-        if ( COMPARE(type,"blinn") ) {
-            printf(" - Blinn\n");
-            MtlBlinn *m = new MtlBlinn();
+        if ( COMPARE(type,"standard") ) {
+            printf(" - Standard\n");
+            MtlStandard *m = new MtlStandard();
             mtl = m;
             for ( TiXmlElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
                 Color c(1,1,1);
                 float f=1;
-                if ( COMPARE( child->Value(), "diffuse" ) ) {
+                if ( COMPARE( child->Value(), "albedo" ) ) {
                     ReadColor( child, c );
-                    m->SetDiffuse(c);
-                    printf("   diffuse %f %f %f\n",c.r,c.g,c.b);
-                    m->SetDiffuseTexture( ReadTexture(child) );
+                    m->SetAlbedo(c);
+                    printf("   albedo %f %f %f\n",c.r,c.g,c.b);
+                    m->SetAlbedoTexture( ReadTexture(child) );
                 }
 				else if (COMPARE(child->Value(), "normal")) {
 					m->SetNormalTexture(ReadTexture(child));
@@ -379,56 +333,12 @@ void LoadMaterial(TiXmlElement *element)
 					printf("   metalness %f %f %f\n", c.r, c.g, c.b);
 					m->SetMetalnessTexture(ReadTexture(child));
 				}
-				else if ( COMPARE( child->Value(), "specular" ) ) {
-                    ReadColor( child, c );
-                    m->SetSpecular(c);
-                    printf("   specular %f %f %f\n",c.r,c.g,c.b);
-                    m->SetSpecularTexture( ReadTexture(child) );
-                } else if ( COMPARE( child->Value(), "glossiness" ) ) {
-                    ReadFloat( child, f );
-                    m->SetGlossiness(f);
-                    printf("   glossiness %f\n",f);
-                }
 				else if (COMPARE(child->Value(), "emission")) {
 					ReadColor(child, c);
 					m->SetEmission(c);
 					printf("   emission %f %f %f\n", c.r, c.g, c.b);
 					m->SetEmissionTexture(ReadTexture(child));
-					m->emissive = true;
 				}
-				else if ( COMPARE( child->Value(), "reflection" ) ) {
-                    ReadColor( child, c );
-                    m->SetReflection(c);
-                    printf("   reflection %f %f %f\n",c.r,c.g,c.b);
-                    m->SetReflectionTexture( ReadTexture(child) );
-                    f = 0;
-                    ReadFloat( child, f, "glossiness" );
-                    m->SetReflectionGlossiness(f);
-                    if ( f > 0 ) printf(" (glossiness %f)",f);
-					printf("\n");
-					f = 0.0f;
-					ReadFloat(child, f, "distribution");
-					m->SetReflectNormalDistribution(f);
-                } else if ( COMPARE( child->Value(), "refraction" ) ) {
-                    ReadColor( child, c );
-                    m->SetRefraction(c);
-                    ReadFloat( child, f, "index" );
-                    m->SetRefractionIndex(f);
-                    printf("   refraction %f %f %f (index %f)\n",c.r,c.g,c.b,f);
-                    m->SetRefractionTexture( ReadTexture(child) );
-                    f = 0;
-                    ReadFloat( child, f, "glossiness" );
-                    m->SetRefractionGlossiness(f);
-                    if ( f > 0 ) printf(" (glossiness %f)",f);
-                    printf("\n");
-					f = 0.0f;
-					ReadFloat(child, f, "distribution");
-					m->SetRefractNormalDistribution(f);
-                } else if ( COMPARE( child->Value(), "absorption" ) ) {
-                    ReadColor( child, c );
-                    m->SetAbsorption(c);
-                    printf("   absorption %f %f %f\n",c.r,c.g,c.b);
-                }
             }
         } else {
             printf(" - UNKNOWN\n");

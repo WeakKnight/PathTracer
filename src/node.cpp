@@ -3,6 +3,9 @@
 
 void Node::SetLight(LightComponent* com)
 {
-	com->parent = this;
+	if (com != nullptr)
+	{
+		com->parent = this;
+	}
 	light = com;
 }

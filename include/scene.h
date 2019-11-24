@@ -41,6 +41,7 @@
 #include "box.h"
 #include "ray.h"
 #include "hitinfo.h"
+#include "materials.h"
 
 using namespace cy;
 
@@ -143,18 +144,7 @@ class LightComList : public ItemList<LightComponent> {};
 
 //-------------------------------------------------------------------------------
 
-class Material : public ItemBase
-{
-public:
-    // The main method that handles the shading by calling all the lights in the list.
-    // ray: incoming ray,
-    // hInfo: hit information for the point that is being shaded, lights: the light list,
-    // bounceCount: permitted number of additional bounces for reflection and refraction.
-    virtual Color Shade(RayContext const &rayContext, const HitInfoContext &hInfoContext, const LightList &lights, int bounceCount, int indirectLightBounce) const=0;
-	virtual Color IndirectLightShade(const Vec3f& N, RayContext const& rayContext, const HitInfoContext& hInfoContext, const LightList& lights, int bounceCount, int indirectLightBounce) const =0;
-    virtual void SetViewportMaterial(int subMtlID=0) const {}   // used for OpenGL display
-	bool emissive = false;
-};
+
 
 class MaterialList : public ItemList<Material>
 {
