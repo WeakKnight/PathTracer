@@ -30,7 +30,7 @@ public:
 	void SetNormalTexture(TextureMap* map) { normal = map; }
 	void SetAOTexture(TextureMap* map) { ao = map; }
 
-	virtual void Sample(const HitInfo& hInfo, Vec3f& wi, float& probability)
+	virtual void Sample(const HitInfo& hInfo, Vec3f& wi, const Vec3f& wo, float& probability)
 	{
 		float roughnessValue = roughness.Sample(hInfo.uvw, hInfo.duvw).r;
 		Vec3f N = hInfo.N;

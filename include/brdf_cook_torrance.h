@@ -45,20 +45,20 @@ public:
 		Color lambert = kD * albedo * INVERSE_PI;
 		Color result = (lambert + specular);
 
-		if (isinf(result.Sum()))
-		{
-			int a = 1;
-		}
+		//if (isinf(result.Sum()))
+		//{
+		//	int a = 1;
+		//}
 
-		if (isnan(result.Sum()))
-		{
-			int a = 1;
-		}
+		//if (isnan(result.Sum()))
+		//{
+		//	int a = 1;
+		//}
 
-		if (result.MinComponent() < 0.0f)
-		{
-			int a = 1;
-		}
+		//if (result.MinComponent() < 0.0f)
+		//{
+		//	int a = 1;
+		//}
 
 		return result;
 	}

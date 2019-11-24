@@ -109,11 +109,15 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 
 		Vec3f wi;
 		float pdf;
-		material->Sample(hitinfo, wi, pdf);
+		material->Sample(hitinfo, wi,outputDirection, pdf);
 
 		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
 		
 		if (isinf(throughput.Sum()))
+		{
+			int a = 1;
+		}
+		if (isnan(throughput.Sum()))
 		{
 			int a = 1;
 		}
@@ -122,6 +126,10 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		throughput = throughput * NdotL * brdfResult / pdf;
 		
 		if (isinf(throughput.Sum()))
+		{
+			int a = 1;
+		}
+		if (isnan(throughput.Sum()))
 		{
 			int a = 1;
 		}
@@ -137,7 +145,7 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 
 		if (bounces > 3)
 		{
-			float p = throughput.Max();
+			float p = Max(throughput.Max(), 0.001f);
 			float random = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
 			if (random > p)
 			{
@@ -145,6 +153,14 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 			}
 
 			throughput *= (1.0f / p);
+			if (isinf(throughput.Sum()))
+			{
+				int a = 1;
+			}
+			if (isnan(throughput.Sum()))
+			{
+				int a = 1;
+			}
 		}
 
 		if (isnan(color.Sum()))

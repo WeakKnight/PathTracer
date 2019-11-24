@@ -22,6 +22,7 @@
 #include <string>
 #include "lightcomponent.h"
 #include "standardMaterial.h"
+#include "disneyMaterial.h"
 //-------------------------------------------------------------------------------
  
 extern Node rootNode;
@@ -340,7 +341,82 @@ void LoadMaterial(TiXmlElement *element)
 					m->SetEmissionTexture(ReadTexture(child));
 				}
             }
-        } else {
+        }
+		else if (COMPARE(type, "disney")) 
+		{
+			printf(" - Disney\n");
+			MtlDisney* m = new MtlDisney();
+			mtl = m;
+			for (TiXmlElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
+				Color c(1, 1, 1);
+				float f = 1;
+				if (COMPARE(child->Value(), "albedo")) {
+					ReadColor(child, c);
+					m->SetAlbedo(c);
+					printf("   albedo %f %f %f\n", c.r, c.g, c.b);
+					m->SetAlbedoTexture(ReadTexture(child));
+				}
+				else if (COMPARE(child->Value(), "normal")) {
+					m->SetNormalTexture(ReadTexture(child));
+				}
+				else if (COMPARE(child->Value(), "roughness")) {
+					ReadColor(child, c);
+					m->SetRoughness(c);
+					printf("   roughness %f %f %f\n", c.r, c.g, c.b);
+					m->SetRoughnessTexture(ReadTexture(child));
+				}
+				else if (COMPARE(child->Value(), "metalness")) {
+					ReadColor(child, c);
+					m->SetMetalness(c);
+					printf("   metalness %f %f %f\n", c.r, c.g, c.b);
+					m->SetMetalnessTexture(ReadTexture(child));
+				}
+				else if (COMPARE(child->Value(), "clearcoat")) {
+					f = 0;
+					ReadFloat(child, f);
+					m->SetClearcoat(f);
+					printf("   clearcoat %f\n", f);
+   				}
+				else if (COMPARE(child->Value(), "clearcoatGloss")) {
+					f = 0;
+					ReadFloat(child, f);
+					m->SetClearcoatGloss(f);
+					printf("   clearcoatGloss %f\n", f);
+				}
+				else if (COMPARE(child->Value(), "sheen")) {
+					f = 0;
+					ReadFloat(child, f);
+					m->SetSheen(f);
+					printf("   sheen %f\n", f);
+				}
+				else if (COMPARE(child->Value(), "sheenTint")) {
+					f = 0;
+					ReadFloat(child, f);
+					m->SetSheenTint(f);
+					printf("   sheenTint %f\n", f);
+				}
+				else if (COMPARE(child->Value(), "specular")) {
+					f = 0;
+					ReadFloat(child, f);
+					m->SetSpecular(f);
+					printf("   specular %f\n", f);
+				}
+				else if (COMPARE(child->Value(), "specularTint")) {
+					f = 0;
+					ReadFloat(child, f);
+					m->SetSpecularTint(f);
+					printf("   specularTint %f\n", f);
+				}
+				else if (COMPARE(child->Value(), "subsurface")) {
+					f = 0;
+					ReadFloat(child, f);
+					m->SetSubsurface(f);
+					printf("   subsurface %f\n", f);
+				}
+			}
+
+		}
+		else {
             printf(" - UNKNOWN\n");
         }
     }

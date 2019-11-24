@@ -10,7 +10,7 @@ class Material : public ItemBase
 {
 public:
 
-	virtual void Sample(const HitInfo& hInfo, Vec3f& wi, float& probability)
+	virtual void Sample(const HitInfo& hInfo, Vec3f& wi, const Vec3f& wo, float& probability)
 	{
 
 	}
