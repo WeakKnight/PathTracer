@@ -23,6 +23,20 @@ float LightComponent::Pdf(const HitInfo& hitInfo, const Vec3f& samplePoint, floa
 	return pdf;
 }
 
+float LightComponent::Pdf(const HitInfo& hitInfo, const Vec3f& wi)
+{
+	HitInfo lightHitInfo;
+	if (LightVisTest(Ray(hitInfo.p + hitInfo.N * INTERSECTION_BIAS, wi), lightHitInfo,
+		BIGFLOAT, parent))
+	{
+		return 0.0f;
+	}
+	else
+	{
+		return Pdf(hitInfo, lightHitInfo.p, (lightHitInfo.p - hitInfo.p).Length());
+	}
+}
+
 cy::Color LightComponent::SampleLi(const HitInfo& hitInfo, float& pdf, Vec3f& wi)
 {
 	auto obj = parent->GetNodeObj();
@@ -34,8 +48,9 @@ cy::Color LightComponent::SampleLi(const HitInfo& hitInfo, float& pdf, Vec3f& wi
 
 	pdf = Pdf(hitInfo, samplePoint, distance);
 
+	HitInfo lightHitInfo;
 	// test visibility
-	if (LightVisTest(Ray(hitInfo.p + hitInfo.N * INTERSECTION_BIAS, wi), (hitInfo.p - samplePoint).Length(), parent))
+	if (LightVisTest(Ray(hitInfo.p + hitInfo.N * INTERSECTION_BIAS, wi), lightHitInfo,(hitInfo.p - samplePoint).Length(), parent))
 	{
 		return Color::Black();
 	}

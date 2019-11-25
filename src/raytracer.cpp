@@ -92,7 +92,7 @@ bool InternalLightBackTest(Node* node, Ray& ray, Node* light)
 	return false;
 }
 
-bool InternalLightTest(Node* node, Ray& ray, float t_max, Node* light)
+bool InternalLightTest(Node* node, HitInfo& hitInfo, Ray& ray, float t_max, Node* light)
 {
 	Ray objectRay = node->ToNodeCoords(ray);
 	Object* obj = node->GetNodeObj();
@@ -105,6 +105,7 @@ bool InternalLightTest(Node* node, Ray& ray, float t_max, Node* light)
 		{
 			if (objHitInfo.z < t_max)
 			{
+				hitInfo.Copy(objHitInfo);
 				return true;
 			}
 		}
@@ -114,8 +115,10 @@ bool InternalLightTest(Node* node, Ray& ray, float t_max, Node* light)
 	{
 		Node* child = node->GetChild(i);
 
-		if (InternalLightTest(child, objectRay, t_max, light))
+		HitInfo objHitInfo;
+		if (InternalLightTest(child, objHitInfo, objectRay, t_max, light))
 		{
+			hitInfo.Copy(objHitInfo);
 			return true;
 		}
 	}
@@ -123,14 +126,14 @@ bool InternalLightTest(Node* node, Ray& ray, float t_max, Node* light)
 	return false;
 }
 
-bool LightVisTest(Ray& ray, float t_max, Node* light)
+bool LightVisTest(Ray& ray, HitInfo& hitInfo,float t_max, Node* light)
 {
 	// if hit on light back side, must no light 
 	if (InternalLightBackTest(&rootNode, ray, light))
 	{
 		return true;
 	}
-	return InternalLightTest(&rootNode, ray, t_max, light);
+	return InternalLightTest(&rootNode,  hitInfo, ray, t_max, light);
 }
 
 bool InternalGenerateRayForAnyIntersection(Node* node, Ray& ray, float t_max)

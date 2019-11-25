@@ -116,7 +116,60 @@ public:
 		float NDotL = brdfN.Dot(wi);
 		float HDotL = H.Dot(wi);
 
+		/*if (!H.IsUnit())
+		{
+			spdlog::info("H is not normalized");
+		}
+		if (!wi.IsUnit())
+		{
+			spdlog::info("wi is not normalized");
+		}
+		if (!wo.IsUnit())
+		{
+			spdlog::info("wo is not normalized");
+		}
+		if (!brdfN.IsUnit())
+		{
+			spdlog::info("brdfN is not normalized");
+		}*/
+
 		probability = brdf.DisneyPdf(shading, NDotH, NDotL, HDotL);
+	}
+
+	virtual float ComputePdf(const HitInfo& hInfo, Vec3f& wi, const Vec3f& wo)
+	{
+		DisneyShadingInfo shading;
+
+		shading.baseColor = albedo.SampleSrgb(hInfo.uvw, hInfo.duvw).ToVec();
+		shading.roughness = roughness.Sample(hInfo.uvw, hInfo.duvw).r;
+		shading.metallic = metalness.Sample(hInfo.uvw, hInfo.duvw).r;
+		shading.clearcoat = clearcoat;
+		shading.clearcoatGloss = clearcoatGloss;
+		shading.sheen = sheen;
+		shading.sheenTint = sheenTint;
+		shading.specular = specular;
+		shading.specularTint = specularTint;
+		shading.subsurface = subsurface;
+
+		shading.Clamp();
+		shading.InitCSW();
+
+		Vec3f N = hInfo.N;
+		N.Normalize();
+		Vec3f brdfN = N;
+		if (this->normal)
+		{
+			Vec3f texNormal = this->normal->SampleVector(hInfo.uvw, hInfo.duvw);
+			brdfN = hInfo.N * texNormal.z + hInfo.Bitangent.GetNormalized() * texNormal.y + hInfo.Tangent.GetNormalized() * texNormal.x;
+			brdfN.Normalize();
+		}
+
+		Vec3f H = (wi + wo).GetNormalized();
+		float NDotH = brdfN.Dot(H);
+		float NDotL = brdfN.Dot(wi);
+		float HDotL = H.Dot(wi);
+
+		return brdf.DisneyPdf(shading, NDotH, NDotL, HDotL);
 	}
 
 	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo)

@@ -143,14 +143,14 @@ public:
 		const float cs_w = shading.csw;
 
 		float result = c_pdf * shading.clearcoat + (1.0f - shading.clearcoat) * (cs_w * r_pdf + (1.0f - cs_w) * d_pdf);
-		if (isnan(result))
+		/*if (isnan(result))
 		{
 			int a = 1;
 		}
 		if (isinf(result))
 		{
 			int a = 1;
-		}
+		}*/
 		return result;
 	}
 
@@ -203,14 +203,14 @@ public:
 		const float gr = SmithGGX_G(NdotV, 0.25f) * SmithGGX_G(NdotL, 0.25f);
 
 		const Vec3f f = ((1.0f / PI) * mix(fd, ss, shading.subsurface) * cd_lin + f_sheen) * (1.0f - shading.metallic) + gs * fs * ds + (0.25f * shading.clearcoat) * gr * fr * dr;
-		if (isnan(f.Sum()))
-		{
-			int a = 1;
-		}
-		if (isinf(f.Sum()))
-		{
-			int a = 1;
-		}
+		//if (isnan(f.Sum()))
+		//{
+		//	int a = 1;
+		//}
+		//if (isinf(f.Sum()))
+		//{
+		//	int a = 1;
+		//}
 		return f * NdotL;
 	}
 

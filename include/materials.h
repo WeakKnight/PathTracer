@@ -15,6 +15,11 @@ public:
 
 	}
 
+	virtual float ComputePdf(const HitInfo& hInfo, Vec3f& wi, const Vec3f& wo)
+	{
+		return 0.0f;
+	}
+
 	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo)
 	{
 		return Color::Black();

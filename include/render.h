@@ -31,16 +31,39 @@ Color EstimateDirect(LightComponent* light, Material* material, HitInfo& hitinfo
 	{
 		float pdf;
 		Vec3f wi;
+
 		Color Li = light->SampleLi(hitinfo, pdf, wi);
 
-		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
-
-		if (pdf > 0.0f)
+		if (pdf > 0.0f && Li.Max() > 0.0f)
 		{
-			directResult += NdotL * material->EvalBrdf(hitinfo, wi, wo) * Li / pdf;
+			float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
+			float brdfPdf = material->ComputePdf(hitinfo, wi, wo);
+
+			if (brdfPdf > 0.0f)
+			{
+				float weight = PowerHeuristic(1.0f, pdf, 1.0f, brdfPdf);
+				directResult += NdotL * material->EvalBrdf(hitinfo, wi, wo) * Li * weight / pdf;
+			}
 		}
 	}
 	// Brdf Sampling
+	{
+		float pdf;
+		Vec3f wi;
+		material->Sample(hitinfo, wi, wo, pdf);
+		Color f = material->EvalBrdf(hitinfo, wi, wo);
+		if (pdf > 0.0f && f.Sum() > 0.0f)
+		{
+			float lightPdf = light->Pdf(hitinfo, wi);
+			if (lightPdf == 0.0f)
+			{
+				return directResult;
+			}
+			float weight = PowerHeuristic(1.0f, pdf, 1.0f, lightPdf);
+			float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
+			directResult += NdotL * f * light->Le() * weight / pdf;
+		}
+	}
 
 	return directResult;
 }
@@ -113,26 +136,26 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 
 		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
 		
-		if (isinf(throughput.Sum()))
-		{
-			int a = 1;
-		}
-		if (isnan(throughput.Sum()))
-		{
-			int a = 1;
-		}
+		//if (isinf(throughput.Sum()))
+		//{
+		//	int a = 1;
+		//}
+		//if (isnan(throughput.Sum()))
+		//{
+		//	int a = 1;
+		//}
 
 		auto brdfResult = material->EvalBrdf(hitinfo, wi, outputDirection);
 		throughput = throughput * NdotL * brdfResult / pdf;
 		
-		if (isinf(throughput.Sum()))
-		{
-			int a = 1;
-		}
-		if (isnan(throughput.Sum()))
-		{
-			int a = 1;
-		}
+		//if (isinf(throughput.Sum()))
+		//{
+		//	int a = 1;
+		//}
+		//if (isnan(throughput.Sum()))
+		//{
+		//	int a = 1;
+		//}
 
 		// shoot a new ray
 		Ray newRay(position + wi * INTERSECTION_BIAS, wi);
@@ -153,25 +176,25 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 			}
 
 			throughput *= (1.0f / p);
-			if (isinf(throughput.Sum()))
-			{
-				int a = 1;
-			}
-			if (isnan(throughput.Sum()))
-			{
-				int a = 1;
-			}
+			//if (isinf(throughput.Sum()))
+			//{
+			//	int a = 1;
+			//}
+			//if (isnan(throughput.Sum()))
+			//{
+			//	int a = 1;
+			//}
 		}
 
-		if (isnan(color.Sum()))
-		{
-			int a = 1;
-		}
+		//if (isnan(color.Sum()))
+		//{
+		//	int a = 1;
+		//}
 
-		if (color.MinComponent() < 0.0f)
-		{
-			int a = 1;
-		}
+		//if (color.MinComponent() < 0.0f)
+		//{
+		//	int a = 1;
+		//}
 	}
 
 	PixelContext tempSampleResult;
@@ -183,8 +206,8 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 
 	// Exposure tone mapping
 	Color mappedColor =
-		toneMapping.Clamp(resultColor.ToVec());
 		//toneMapping.Clamp(resultColor.ToVec());
+		toneMapping.ACES(resultColor.ToVec());
 		// resultColor;
 	/*	Color(
 			1.0f - exp(-resultColor.r * exposure),
