@@ -64,17 +64,18 @@ float buildTime = 0.0f;
 
 IrradianceCacheMap irradianceCacheMap;
 
-bool InternalLightBackTest(Node* node, Ray& ray, Node* light)
+bool InternalLightTest(Node* node, HitInfo& hitinfo, Ray& ray, Node* light)
 {
 	Ray objectRay = node->ToNodeCoords(ray);
 	Object* obj = node->GetNodeObj();
 
-	// dont test light itself
 	if (obj != nullptr && node == light)
 	{
 		HitInfo objHitInfo;
-		if (obj->IntersectRay(objectRay, objHitInfo, HIT_BACK))
+		if (obj->IntersectRay(objectRay, objHitInfo, HIT_FRONT_AND_BACK))
 		{
+			hitinfo.Copy(objHitInfo);
+			node->FromNodeCoords(hitinfo);
 			return true;
 		}
 	}
@@ -83,8 +84,11 @@ bool InternalLightBackTest(Node* node, Ray& ray, Node* light)
 	{
 		Node* child = node->GetChild(i);
 
-		if (InternalLightBackTest(child, objectRay, light))
+		HitInfo objHitInfo;
+		if (InternalLightTest(child, objHitInfo, objectRay, light))
 		{
+			hitinfo.Copy(objHitInfo);
+			node->FromNodeCoords(hitinfo);
 			return true;
 		}
 	}
@@ -92,20 +96,21 @@ bool InternalLightBackTest(Node* node, Ray& ray, Node* light)
 	return false;
 }
 
-bool InternalLightTest(Node* node, HitInfo& hitInfo, Ray& ray, float t_max, Node* light)
+bool InternalNonLightTest(Node* node, Ray& ray, float t_max, Node* light, float lightZ)
 {
 	Ray objectRay = node->ToNodeCoords(ray);
 	Object* obj = node->GetNodeObj();
 
+	bool result = false;
 	// dont test light itself
 	if (obj != nullptr && node != light)
 	{
 		HitInfo objHitInfo;
 		if (obj->IntersectRay(objectRay, objHitInfo, HIT_FRONT))
 		{
-			if (objHitInfo.z < t_max)
+			// closer than light
+			if (objHitInfo.z < t_max && objHitInfo.z < lightZ)
 			{
-				hitInfo.Copy(objHitInfo);
 				return true;
 			}
 		}
@@ -115,10 +120,8 @@ bool InternalLightTest(Node* node, HitInfo& hitInfo, Ray& ray, float t_max, Node
 	{
 		Node* child = node->GetChild(i);
 
-		HitInfo objHitInfo;
-		if (InternalLightTest(child, objHitInfo, objectRay, t_max, light))
+		if (InternalNonLightTest(child, objectRay, t_max, light, lightZ))
 		{
-			hitInfo.Copy(objHitInfo);
 			return true;
 		}
 	}
@@ -128,12 +131,23 @@ bool InternalLightTest(Node* node, HitInfo& hitInfo, Ray& ray, float t_max, Node
 
 bool LightVisTest(Ray& ray, HitInfo& hitInfo,float t_max, Node* light)
 {
-	// if hit on light back side, must no light 
-	if (InternalLightBackTest(&rootNode, ray, light))
+	// if hit on light back side, must no light , pdf zero
+	HitInfo lightHitInfo;
+	if (InternalLightTest(&rootNode, lightHitInfo, ray, light))
+	{
+		if (!lightHitInfo.front)
+		{
+			return true;
+		}
+	}
+	// don't hit light, pdf zero
+	else
 	{
 		return true;
 	}
-	return InternalLightTest(&rootNode,  hitInfo, ray, t_max, light);
+
+	// if hit obj closer than light, pdf zero
+	return InternalNonLightTest(&rootNode, ray, t_max, light, lightHitInfo.z);
 }
 
 bool InternalGenerateRayForAnyIntersection(Node* node, Ray& ray, float t_max)

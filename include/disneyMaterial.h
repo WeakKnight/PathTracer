@@ -6,6 +6,7 @@
 #include "disneyBrdf.h"
 #include "utils.h"
 #include "disneyBrdf.h"
+#include "node.h"
 
 class MtlDisney : public Material
 {
@@ -206,7 +207,14 @@ public:
 		float HDotL = H.Dot(wi);
 		float NDotV = brdfN.Dot(wo);
 
-		return brdf.DisneyEval(shading, NDotL, NDotV, NDotH, HDotL);
+		Color emission = Color::Black();
+		auto light = hInfo.node->GetLight();
+		if (light)
+		{
+			emission = light->Le();
+		}
+
+		return emission + brdf.DisneyEval(shading, NDotL, NDotV, NDotH, HDotL);
 	}
 
 private:

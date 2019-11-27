@@ -26,44 +26,55 @@ float PowerHeuristic(int numf, float fPdf, int numg, float gPdf)
 Color EstimateDirect(LightComponent* light, Material* material, HitInfo& hitinfo, Vec3f& wo)
 {
 	Color directResult = Color::Black();
-	
-	// Light Sampling
+
+	float pdf;
+	Vec3f wi;
+
+	Color Li = light->SampleLi(hitinfo, pdf, wi);
+
+	if (pdf > 0.0f && Li.Max() > 0.0f)
 	{
-		float pdf;
-		Vec3f wi;
-
-		Color Li = light->SampleLi(hitinfo, pdf, wi);
-
-		if (pdf > 0.0f && Li.Max() > 0.0f)
-		{
-			float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
-			float brdfPdf = material->ComputePdf(hitinfo, wi, wo);
-
-			if (brdfPdf > 0.0f)
-			{
-				float weight = PowerHeuristic(1.0f, pdf, 1.0f, brdfPdf);
-				directResult += NdotL * material->EvalBrdf(hitinfo, wi, wo) * Li * weight / pdf;
-			}
-		}
+		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
+		directResult += NdotL * material->EvalBrdf(hitinfo, wi, wo) * Li / pdf;
 	}
-	// Brdf Sampling
-	{
-		float pdf;
-		Vec3f wi;
-		material->Sample(hitinfo, wi, wo, pdf);
-		Color f = material->EvalBrdf(hitinfo, wi, wo);
-		if (pdf > 0.0f && f.Sum() > 0.0f)
-		{
-			float lightPdf = light->Pdf(hitinfo, wi);
-			if (lightPdf == 0.0f)
-			{
-				return directResult;
-			}
-			float weight = PowerHeuristic(1.0f, pdf, 1.0f, lightPdf);
-			float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
-			directResult += NdotL * f * light->Le() * weight / pdf;
-		}
-	}
+
+	//// Light Sampling
+	//{
+	//	float pdf;
+	//	Vec3f wi;
+
+	//	Color Li = light->SampleLi(hitinfo, pdf, wi);
+
+	//	if (pdf > 0.0f && Li.Max() > 0.0f)
+	//	{
+	//		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
+	//		float brdfPdf = material->ComputePdf(hitinfo, wi, wo);
+
+	//		if (brdfPdf > 0.0f)
+	//		{
+	//			float weight = PowerHeuristic(1.0f, pdf, 1.0f, brdfPdf);
+	//			directResult += NdotL * material->EvalBrdf(hitinfo, wi, wo) * Li * weight / pdf;
+	//		}
+	//	}
+	//}
+	//// Brdf Sampling
+	//{
+	//	float pdf;
+	//	Vec3f wi;
+	//	material->Sample(hitinfo, wi, wo, pdf);
+	//	Color f = material->EvalBrdf(hitinfo, wi, wo);
+	//	if (pdf > 0.0f && f.Sum() > 0.0f)
+	//	{
+	//		float lightPdf = light->Pdf(hitinfo, wi);
+	//		if (lightPdf <= 0.0f)
+	//		{
+	//			return directResult;
+	//		}
+	//		float weight = PowerHeuristic(1.0f, pdf, 1.0f, lightPdf);
+	//		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
+	//		directResult += NdotL * f * light->Le() * weight / pdf;
+	//	}
+	//}
 
 	return directResult;
 }
@@ -195,6 +206,13 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		//{
 		//	int a = 1;
 		//}
+	}
+
+	auto colorSum = color.Sum();
+	if (isnan(colorSum) || isinf(colorSum))
+	{
+		spdlog::info("Invalid Color, Set it to zero");
+		color.SetBlack();
 	}
 
 	PixelContext tempSampleResult;
