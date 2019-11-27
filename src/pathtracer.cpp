@@ -30,7 +30,21 @@ void PathTracer::Run()
 	{
 		auto worker = new RenderWorker(i, cores, this);
 		// worker->Run();
+		workers.push_back(worker);
 	}
+}
+
+void PathTracer::Join()
+{
+	for (int i = 0; i < workers.size(); i++)
+	{
+		workers[i]->Join();
+	}
+}
+
+void RenderWorker::Join()
+{
+	thread->join();
 }
 
 RenderWorker::RenderWorker(int _index, int _cores, PathTracer* _render)

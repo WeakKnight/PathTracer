@@ -314,6 +314,23 @@ RayContext GenCameraRayContext(int x, int y, float offsetX, float offsetY)
     return result;
 }
 
+void InitCamera()
+{
+	// make sure camera dir normalized
+	camera.dir.Normalize();
+
+	cameraUp = camera.up;
+	cameraFront = camera.dir;
+	cameraRight = cameraFront.Cross(cameraUp);
+
+	imgPlaneHeight = camera.focaldist * tanf(camera.fov * 0.5f / 180.0f * static_cast<float>(M_PI)) * 2.0f;
+	imgPlaneWidth = imgPlaneHeight * static_cast<float>(camera.imgWidth) / static_cast<float>(camera.imgHeight);
+
+	// pixel's world space size
+	texelWdith = imgPlaneWidth / static_cast<float>(camera.imgWidth);
+	texelHeight = imgPlaneHeight / static_cast<float>(camera.imgHeight);
+}
+
 void RayTracer::Init()
 {
 	outputing = false;
@@ -346,20 +363,7 @@ void RayTracer::Init()
 #endif
     // scene load, ini global variables
     LoadScene(scene_path);
-    
-    // make sure camera dir normalized
-    camera.dir.Normalize();
-    
-    cameraUp = camera.up;
-    cameraFront = camera.dir;
-    cameraRight = cameraFront.Cross(cameraUp);
-    
-    imgPlaneHeight = camera.focaldist * tanf(camera.fov * 0.5f /180.0f * static_cast<float>(M_PI)) * 2.0f;
-    imgPlaneWidth = imgPlaneHeight * static_cast<float>(camera.imgWidth) / static_cast<float>(camera.imgHeight);
-    
-    // pixel's world space size
-    texelWdith = imgPlaneWidth / static_cast<float>(camera.imgWidth);
-    texelHeight = imgPlaneHeight / static_cast<float>(camera.imgHeight);
+	InitCamera();
 }
 
 void ComputeIrradianceCacheMap()
@@ -367,6 +371,13 @@ void ComputeIrradianceCacheMap()
 	while (irradianceCacheMap.ComputeNextPoint())
 	{
 	}
+}
+
+void RayTracer::Restart()
+{
+	outputing = true;
+	Sleep(2000);
+	Init();
 }
 
 void RayTracer::Run()
@@ -424,48 +435,7 @@ void RayTracer::Run()
 	PathTracer pathTracer;
 	pathTracer.Init(renderImage.GetWidth(), renderImage.GetHeight());
 	pathTracer.Run();
-
-//    static HaltonSampler* haltonSampler = new HaltonSampler();
-//    // for test
-//    haltonSampler->SetMinimumSampleCount(MinPixelSampleCount);
-//    haltonSampler->SetSampleCount(MaxPixelSampleCount);
-//    
-//    for(std::size_t i = 0; i < cores; i++)
-//    {
-//        threads.push_back(std::async([=](){
-//            for(std::size_t index = i; index < size; index+= cores)
-//            {
-//                int y = index / renderImage.GetWidth();
-//                int x = index - y * renderImage.GetWidth();
-//                
-//                PixelContext sampleResult = haltonSampler->SamplePixel(x, y);
-//				Color& finalColor = sampleResult.color;
-//				finalColor.ClampMax();
-//                RenderImageHelper::SetPixel(renderImage, x, y, Color24(finalColor.r * 255.0f, finalColor.g * 255.0f, finalColor.b * 255.0f));
-//                RenderImageHelper::SetDepth(renderImage, x, y, sampleResult.z);
-//                RenderImageHelper::SetNormal(normalPixels, renderImage, x, y, sampleResult.normal);
-//                
-//                renderImage.IncrementNumRenderPixel(1);
-//                // done
-//                if(renderImage.IsRenderDone())
-//                {
-//                    float finish = glfwGetTime();
-//                    
-//                    spdlog::debug("bvh build time is {}", buildTime);
-//                    spdlog::debug("time is {}", finish - now);
-//                    renderImage.ComputeZBufferImage();
-//                    renderImage.ComputeSampleCountImage();
-//                    
-////                    gaussianFilter->Compute();
-////                    colorShiftFilter->Compute();
-//                    
-//#ifndef IMGUI_DEBUG
-//                    WriteToFile();
-//#endif
-//                }
-//            }
-//        }));
-//    }
+	pathTracer.Join();
 }
 
 void RayTracer::UpdateRenderResult()

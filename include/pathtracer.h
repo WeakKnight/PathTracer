@@ -31,6 +31,7 @@ class PathTracer
 public:
 	void Init(unsigned int _width, unsigned int _height);
 	void Run();
+	void Join();
 public:
 	unsigned int width = 0;
 	unsigned int height = 0;
@@ -38,6 +39,7 @@ public:
 
 	std::vector<PixelContext> pixelData;
 	HaltonSampler* haltonSampler;
+	std::vector<RenderWorker*> workers;
 };
 
 class RenderWorker 
@@ -46,6 +48,7 @@ public:
 	RenderWorker(int _index, int _cores, PathTracer* _render);
 	
 	void Run();
+	void Join();
 
 	int originalIndex;
 	int cores;

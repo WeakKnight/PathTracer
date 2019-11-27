@@ -26,6 +26,7 @@ class RayTracer
 
     void Init();
     void Run();
+	void Restart();
     void UpdateRenderResult();
     void WriteToFile();
 	void Pause();
