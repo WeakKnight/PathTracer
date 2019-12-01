@@ -5,6 +5,12 @@
 class MeshBuilder
 {
 public:
+
+	static Model* BuildTextModel()
+	{
+
+	}
+
 	static Model* BuildUnitPlane()
 	{
 		Mesh* result = new Mesh();

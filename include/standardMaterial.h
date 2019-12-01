@@ -75,7 +75,7 @@ public:
 		return a * a * cosTheta * sinTheta * INVERSE_PI / bottom;;
 	}
 
-	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo)
+	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo, Vec3f& shadingNormal)
 	{
 		Color albedoColor = albedo.SampleSrgb(hInfo.uvw, hInfo.duvw);
 		// albedoColor = Color(powf(albedoColor.r, 2.2f), powf(albedoColor.g, 2.2f), powf(albedoColor.b, 2.2f));
@@ -96,6 +96,8 @@ public:
 			brdfN = hInfo.N * texNormal.z + hInfo.Bitangent.GetNormalized() * texNormal.y + hInfo.Tangent.GetNormalized() * texNormal.x;
 			brdfN.Normalize();
 		}
+
+		shadingNormal = brdfN;
 
 		return brdf.BRDF(wi, wo, N, albedoColor, roughnessValue, metalnessValue);
 	}

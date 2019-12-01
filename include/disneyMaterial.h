@@ -173,7 +173,7 @@ public:
 		return brdf.DisneyPdf(shading, NDotH, NDotL, HDotL);
 	}
 
-	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo)
+	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo, Vec3f& shadingNormal)
 	{
 		DisneyShadingInfo shading;
 
@@ -213,6 +213,8 @@ public:
 		{
 			emission = light->Le();
 		}
+
+		shadingNormal = brdfN;
 
 		return emission + brdf.DisneyEval(shading, NDotL, NDotV, NDotH, HDotL);
 	}

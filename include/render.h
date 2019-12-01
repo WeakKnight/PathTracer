@@ -34,8 +34,10 @@ Color EstimateDirect(LightComponent* light, Material* material, HitInfo& hitinfo
 
 	if (pdf > 0.0f && Li.Max() > 0.0f)
 	{
-		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
-		directResult += NdotL * material->EvalBrdf(hitinfo, wi, wo) * Li / pdf;
+		Vec3f shadingNormal;
+		auto f = material->EvalBrdf(hitinfo, wi, wo, shadingNormal);
+		float NdotL = Max<float>(shadingNormal.Dot(wi), 0.0f);
+		directResult += NdotL * f * Li / pdf;
 	}
 
 	//// Light Sampling
@@ -144,8 +146,10 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		Vec3f wi;
 		float pdf;
 		material->Sample(hitinfo, wi,outputDirection, pdf);
-
-		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
+		
+		Vec3f shadingNormal;
+		auto f = material->EvalBrdf(hitinfo, wi, outputDirection, shadingNormal);
+		float NdotL = Max<float>(shadingNormal.Dot(wi), 0.0f);
 		
 		//if (isinf(throughput.Sum()))
 		//{
@@ -155,9 +159,8 @@ PixelContext RenderPixel(RayContext& rayContext, int x, int y)
 		//{
 		//	int a = 1;
 		//}
-
-		auto brdfResult = material->EvalBrdf(hitinfo, wi, outputDirection);
-		throughput = throughput * NdotL * brdfResult / pdf;
+		
+		throughput = throughput * NdotL * f / pdf;
 		
 		//if (isinf(throughput.Sum()))
 		//{

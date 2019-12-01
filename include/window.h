@@ -11,8 +11,8 @@ struct WindowProperties
     unsigned int Height;
 
     WindowProperties(const std::string &InTitle = "Ray Tracing",
-                    unsigned int InWidth = 800,
-                    unsigned int InHeight = 600) : Title(InTitle), Width(InWidth), Height(InHeight)
+                    unsigned int InWidth = 1900,
+                    unsigned int InHeight = 1000) : Title(InTitle), Width(InWidth), Height(InHeight)
     {
     }
 };

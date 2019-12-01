@@ -86,7 +86,7 @@ Window::Window(const WindowProperties& InProperties)
 #endif
 
     // Create window with graphics context
-    MGLFWWindow = glfwCreateWindow(1280, 720, "Ray Tracer", NULL, NULL);
+    MGLFWWindow = glfwCreateWindow(1900, 1050, "Ray Tracer", NULL, NULL);
     if (MGLFWWindow == NULL)
     {
         spdlog::debug("window is null, error");

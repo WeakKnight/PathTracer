@@ -20,7 +20,7 @@ public:
 		return 0.0f;
 	}
 
-	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo)
+	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo, Vec3f& shadingNormal)
 	{
 		return Color::Black();
 	}
