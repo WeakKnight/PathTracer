@@ -5,6 +5,7 @@
 #include <assert.h>
 #include "utils.h"
 #include "constants.h"
+#include "string_utils.h"
 
 using namespace cy;
 
@@ -195,4 +196,88 @@ float LightFallOffFactor(float distance)
 	float distanceSquare = distance * distance;
 	return 1.0f / distanceSquare;
 	// return 1.0f / (1.0f + 0.12f * distance + 0.032f * distanceSquare);
+}
+
+Vec2f UniformSampleTriangle()
+{
+	float u0 = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+	float u1 = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+	float su0 = std::sqrt(u0);
+	return Vec2f(1.0f - su0, u1 * su0);
+}
+
+CDF::CDF()
+	:total(0.0f)
+{
+	Init();
+}
+
+void CDF::Init()
+{
+	cd = std::vector<float>({0.0f});
+	total = (+0.0f);
+}
+
+// rand from 0 to tatal, return the correspond id
+int CDF::Sample() const
+{
+	if (cd.size() == 1)
+	{
+		return 0;
+	}
+
+	float random = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* total;
+	for (int i = 1; i < cd.size(); i++)
+	{
+		if (random <= cd[i] && random >= cd[i - (size_t)1])
+		{
+			return i - 1;
+		}
+	}
+
+	assert(false);
+	return 0;
+}
+
+void CDF::Add(float val)
+{
+	total += val;
+	cd.push_back(total);
+}
+
+Vec3f ParseVec3f(std::string& str)
+{
+	std::string currentLine = str;
+	
+	StringUtils::trim(currentLine);
+
+	std::vector<std::string> tokens;
+	std::string res = "";
+
+	for (size_t i = 0; i < currentLine.size(); i++)
+	{
+		if (currentLine[i] != ' ')
+		{
+			res += currentLine[i];
+		}
+		else
+		{
+			if (res.size() != 0)
+			{
+				tokens.push_back(res);
+			}
+			res = "";
+		}
+	}
+
+	if (res.size() != 0)
+	{
+		tokens.push_back(res);
+	}
+
+	float r = std::stof(tokens[0]);
+	float g = std::stof(tokens[1]);
+	float b = std::stof(tokens[2]);
+
+	return Vec3f(r, g, b);
 }

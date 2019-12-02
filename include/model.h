@@ -9,6 +9,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include "utils.h"
+
 class BVHNode;
 
 class Model : public Object
@@ -18,45 +20,16 @@ public:
 		:meshes(meshes),
 		meshesNum(meshesNum)
 	{
-		float minx = INFINITY;
-		float miny = INFINITY;
-		float minz = INFINITY;
-		float maxx = -INFINITY;
-		float maxy = -INFINITY;
-		float maxz = -INFINITY;
+		aabb.Init();
 
 		for (int i = 0; i < meshesNum; i++)
 		{
 			auto mesh = meshes[i];
 
-			if (mesh.aabb.pmin.x < minx)
-			{
-				minx = mesh.aabb.pmin.x;
-			}
-			if (mesh.aabb.pmin.y < miny)
-			{
-				miny = mesh.aabb.pmin.y;
-			}
-			if (mesh.aabb.pmin.z < minz)
-			{
-				minz = mesh.aabb.pmin.z;
-			}
-
-			if (mesh.aabb.pmax.x > maxx)
-			{
-				maxx = mesh.aabb.pmax.x;
-			}
-			if (mesh.aabb.pmax.y > maxy)
-			{
-				maxy = mesh.aabb.pmax.y;
-			}
-			if (mesh.aabb.pmax.z > maxz)
-			{
-				maxz = mesh.aabb.pmax.z;
-			}
+			aabb += mesh.aabb;
 		}
 
-		aabb = Box(minx, miny, minz, maxx, maxy, maxz);
+		cdf = new CDF();
 	}
 
 	~Model()
@@ -65,6 +38,41 @@ public:
 		{
 			delete meshes;
 		}
+
+		delete cdf;
+	}
+
+	CDF* cdf;
+
+	void BuildCDFAndArea()
+	{
+		for (int i = 0; i < meshesNum; i++)
+		{
+			auto mesh = meshes[i];
+			mesh.CalculateAreaAndCDF();
+			cdf->Add(mesh.area);
+		}
+	}
+
+	virtual float Area() const 
+	{
+
+		Vec3f zero = parent->TransformPointToWorld(Vec3f(0.0f, 0.0f, 0.0f));
+		Vec3f width = parent->TransformPointToWorld(Vec3f(1.0f, 0.0f, 0.0f));
+		Vec3f height = parent->TransformPointToWorld(Vec3f(0.0f, 1.0f, 0.0f));
+
+		float scaler = (width - zero).Length() * (height - zero).Length();
+
+		return scaler * cdf->total;
+	}
+
+	virtual Interaction Sample() const
+	{
+		int meshId = cdf->Sample();
+		auto mesh = meshes[meshId];
+		Interaction it = mesh.Sample();
+		TransformInteractionToWorld(it);
+		return it;
 	}
 
 	bool TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, Mesh& mesh, BVHNode* node) const;
@@ -76,7 +84,6 @@ public:
 
 	virtual Box  GetBoundBox() const
 	{
-
 		return aabb;
 	}
 

@@ -3,10 +3,11 @@
 <xml>
   <scene>
     <!-- Objects -->
+    <!-- <environment value="1.0" texture="assets/textures/fireplace_4k.hdr"/> -->
     <object name="box">
       <translate x="0" y="0" z="12"/>
       <object type="plane" name="WallBottom" material="wall">
-        <scale value="32"/>
+        <scale value="960"/>
         <translate z="-12"/>
       </object>
       <object type="plane" name="WallTop" material="wall">
@@ -35,11 +36,23 @@
         <translate x="15"/>
       </object>
     </object>
-    <object type="model" name="assets/teapot.obj" material="mtl1">
+     <!-- <object type="model" name="assets/Mesh000.obj" material="mtl1">
+      <scale value="2.35"/>
+      <rotate angle="90" x="1"/>
+      <rotate angle="-70" z="1"/>
+      <translate x="-4.5" y="-5" z="0"/>
+    </object>
+    <object type="model" name="assets/Mesh001.obj" material="mtl1">
+      <scale value="2.35"/>
+      <rotate angle="90" x="1"/>
+      <rotate angle="-70" z="1"/>
+      <translate x="-4.5" y="-5" z="0"/>
+    </object> -->
+    <!-- <object type="model" name="assets/teapot.obj" material="mtl4">
       <scale value="0.75"/>
       <rotate angle="30" z="1"/>
-      <translate x="-4.5" y="5" z="0"/>
-    </object>
+      <translate x="-4.5" y="5" z="7"/>
+    </object> -->
     <object type="sphere" name="sphere2" material="mtl2">
       <scale value="4.5"/>
       <rotate angle="30" y="1"/>
@@ -47,29 +60,60 @@
     </object>
  
     <!-- Materials -->
-    <material type="standard" name="wall">
+    <material type="disney" name="wall">
       <albedo  r="1" g="1" b="1"/>
-      <roughness value="0.9"/>
+      <roughness value="0.02"/>
+       <specular value="1.0"/>
     </material>
-    <material type="standard" name="wallRed">
+    <material type="disney" name="wallRed">
       <albedo  r="1.0" g="0.2" b="0.2"/>
-      <roughness value="0.9"/>
+      <roughness value="0.02"/>
     </material>
-    <material type="standard" name="wallBlue">
+    <material type="disney" name="wallBlue">
       <albedo  r="0.2" g="0.2" b="1.0"/>
-      <roughness value="0.9"/>
+      <roughness value="0.02"/>
     </material>
-    <material type="standard" name="light">
-      <emission  value="20"/>
+    <material type="disney" name="mtl1">
+      <albedo  r="0.99" g="0.99" b="0.99"/>
+      <roughness value="0.02"/>
     </material>
-    <material type="standard" name="mtl1">
-      <albedo  r="0.8" g="0.2" b="0.2"/>
-      <roughness value="0.7"/>
+    <material type="disney" name="mtl2">
+      <albedo  r="0.9" g="0.9" b="0.9"/>
+      <roughness value="0.01"/>
+      <metalness value="0.0"/>
+      <specular value="1.0"/>
     </material>
-    <material type="standard" name="mtl2">
-      <albedo  r="0.1" g="0.1" b="0.1"/>
-      <roughness value="0.05"/>
+    <material type="disney" name="mtl3">
+      <albedo  r="0.9" g="0.9" b="0.9"/>
+      <roughness value="0.3"/>
       <metalness value="1.0"/>
+      <sheen value="0.25"/>
+      <sheenTint value="1.0"/>
+      <specular value="1.0"/>
+      <subsurface value="0.5"/>
+    </material>
+    <material type="disney" name="mtl4">
+      <albedo  r="0.9" g="0.9" b="0.9"/>
+      <roughness value="0.3"/>
+      <metalness value="0.175"/>
+      <sheen value="0.35"/>
+      <sheenTint value="0.78"/>
+      <specular value="0.25"/>
+      <clearcoat value="1.0"/>
+      <!-- <subsurface value="0.5"/> -->
+    </material>
+    <material type="disney" name="wood">
+      <albedo  texture ="assets/textures/ticmabav_8K_Albedo.jpg">
+       <scale value="0.4"/>
+      </albedo>
+      <roughness texture = "assets/textures/ticmabav_8K_Roughness.jpg">
+      <scale value="0.4"/>
+      </roughness>
+      <normal texture="assets/textures/ticmabav_8K_Normal.jpg">
+      <scale value="0.4"/>
+      </normal>
+      <specular value="0.0"/>
+      <metalness value="0.0"/>
     </material>
   </scene>
  

@@ -4,19 +4,18 @@
 
 cy::Color LightComponent::Le()
 {
-	cy::Color result = cy::Color::White() * intensity;
-	return result;
+	return intensity;
 }
 
-float LightComponent::Pdf(const HitInfo& hitInfo, const Vec3f& samplePoint, float distance)
+float LightComponent::Pdf(const HitInfo& hitInfo, const Interaction& sampleInteraction, float distance)
 {
 	auto obj = parent->GetNodeObj();
 	float distanceSquare = distance * distance;
 	float area = obj->Area();
 
-	Vec3f neggativeWi = (hitInfo.p - samplePoint).GetNormalized();
+	Vec3f neggativeWi = (hitInfo.p - sampleInteraction.p).GetNormalized();
 
-	Vec3f normal = obj->Normal(samplePoint);
+	const Vec3f& normal = sampleInteraction.n;
 	float cosNormalDotNeggativeWi = Max(neggativeWi.Dot(normal), 0.0001f);
 
 	float pdf = distanceSquare / (area * cosNormalDotNeggativeWi);
@@ -33,20 +32,25 @@ float LightComponent::Pdf(const HitInfo& hitInfo, const Vec3f& wi)
 	}
 	else
 	{
-		return Pdf(hitInfo, lightHitInfo.p, (lightHitInfo.p - hitInfo.p).Length());
+		Interaction lightInter;
+		lightInter.n = lightHitInfo.N;
+		lightInter.p = lightHitInfo.p;
+
+		return Pdf(hitInfo, lightInter, (lightHitInfo.p - hitInfo.p).Length());
 	}
 }
 
 cy::Color LightComponent::SampleLi(const HitInfo& hitInfo, float& pdf, Vec3f& wi)
 {
 	auto obj = parent->GetNodeObj();
-	auto samplePoint = obj->Sample();
+	Interaction it = obj->Sample();
+	auto& samplePoint = it.p;
 
 	wi = (samplePoint - hitInfo.p).GetNormalized();
 
 	float distance = (hitInfo.p - samplePoint).Length();
 
-	pdf = Pdf(hitInfo, samplePoint, distance);
+	pdf = Pdf(hitInfo, it, distance);
 
 	HitInfo lightHitInfo;
 	// test visibility

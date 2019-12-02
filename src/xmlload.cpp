@@ -212,7 +212,11 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
 
 	char const* lightInfo = element->Attribute("light");
 	if (lightInfo) {
-		float lightIntensity = std::stof(lightInfo);
+		std::string str(lightInfo);
+		Vec3f lightIntensity = ParseVec3f(str);
+		
+		printf("light is %f %f %f", lightIntensity.x, lightIntensity.y, lightIntensity.z);
+
 		LightComponent* com = new LightComponent();
 		com->intensity = lightIntensity;
 
@@ -239,6 +243,12 @@ void LoadNode(Node *parent, TiXmlElement *element, int level)
 			node->AppendChild(model);
 
 			printf(" - Model");
+		}
+		else if (COMPARE(type, "textmodel")) {
+			Model* model = MeshBuilder::BuildTextModel(name);
+			node->SetNodeObj(model);
+
+			printf(" - Text Model");
 		}
 		else {
             printf(" - UNKNOWN TYPE");

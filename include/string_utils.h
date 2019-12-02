@@ -8,6 +8,15 @@
 
 namespace StringUtils
 {
+	std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
+
+
+	std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
+
+
+	std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
+
+
     static inline std::string Format(const std::string fmt_str, ...)
     {
         auto finaln = 0;

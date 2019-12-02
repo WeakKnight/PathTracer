@@ -15,6 +15,9 @@
 
 #include <spdlog/spdlog.h>
 
+#include "utils.h"
+#include "hitinfo.h"
+
 class MeshBVHNew;
 
 class Face
@@ -29,7 +32,57 @@ class Mesh
 public:
 	Mesh() 
 	{
+		area = 0.0f;
+		cdf.Init();
 	} 
+
+	Interaction SampleFace(int faceId)
+	{
+		Vec2f b = UniformSampleTriangle();
+
+		auto face = faces[faceId];
+		auto p0 = vertices[face.indices[0]];
+		auto p1 = vertices[face.indices[1]];
+		auto p2 = vertices[face.indices[2]];
+
+		Interaction it;
+		auto p = b[0] * p0 + b[1] * p1 + (1 - b[0] - b[1]) * p2;
+		it.p = Vec3f(p.x, p.y, p.z);
+		auto n = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+		it.n = Vec3f(n.x, n.y, n.z);
+
+		return it;
+	}
+
+	Interaction Sample()
+	{
+		int faceId = cdf.Sample();
+		return SampleFace(faceId);
+	}
+
+	float FaceArea(int faceId)
+	{
+		auto face = faces[faceId];
+		auto p0 = vertices[face.indices[0]];
+		auto p1 = vertices[face.indices[1]];
+		auto p2 = vertices[face.indices[2]];
+
+		return 0.5f * glm::length(glm::cross(p1 - p0, p2 - p0));
+	}
+
+	CDF cdf;
+
+	void CalculateAreaAndCDF()
+	{
+		for (int i = 0; i < faces.size(); i++)
+		{
+			float thisArea = FaceArea(i);
+			cdf.Add(thisArea);
+			area += thisArea;
+		}
+	}
+
+	float area;
 
 	void ProcessAssimpData(aiMesh* mesh)
 	{

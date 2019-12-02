@@ -9,6 +9,17 @@ using namespace cy;
 class Node;
 class Material;
 
+struct Interaction
+{
+	Interaction()
+	{
+		n = Vec3f(0.0f, 0.0f, 0.0f);
+		p = Vec3f(0.0f, 0.0f, 0.0f);
+	}
+	Vec3f n;
+	Vec3f p;
+};
+
 struct HitInfo
 {
 	float       z;      // the distance from the ray center to the hit point

@@ -471,12 +471,18 @@ Vec3f PlaneCalculatePlaneTexCoord(const Vec3f &p)
     return p * 0.5f + Vec3f(0.5f, 0.5f, 0.0f);
 };
 
-Vec3f Plane::Sample() const
+Interaction Plane::Sample() const
 {
+	Interaction result;
 	float x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* 2.0f - 1.0f;
 	float y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 2.0f - 1.0f;
 	
-	return parent->TransformPointToWorld(Vec3f(x, y, 0.0f));
+	result.p =Vec3f(x, y, 0.0f);
+	result.n = Vec3f(0.0f, 0.0f, 1.0f);
+
+	TransformInteractionToWorld(result);
+
+	return result;
 }
 
 Vec3f Plane::Normal(const Vec3f& p) const

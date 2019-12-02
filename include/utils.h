@@ -2,6 +2,8 @@
 
 #include <math.h>
 #include "cyVector.h"
+#include <vector>
+#include <string>
 
 using namespace cy;
 
@@ -28,3 +30,23 @@ int MIS3(float p1, float p2, float p3);
 
 float LightFallOffFactor(const Vec3f& p1, const Vec3f& p2);
 float LightFallOffFactor(float distance);
+
+Vec2f UniformSampleTriangle();
+
+class CDF 
+{
+public:
+	CDF();
+
+	void Init();
+
+	// rand from 0 to tatal, return the correspond id
+	int Sample() const;
+
+	void Add(float val);
+
+	float total;
+	std::vector<float> cd;
+};
+
+Vec3f ParseVec3f(std::string& str);

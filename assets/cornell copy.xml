@@ -1,0 +1,65 @@
+<xml>
+  <scene>
+  <!-- <environment value="0.0" texture="assets/textures/fireplace_4k.hdr"/> -->
+    <!-- Objects -->
+    <!-- <object type="plane" name="QuadLight" material="light" light="10.6">
+      <scale value="19.3"/>
+      <rotate angle="90" x="1"/>
+      <translate y="26" z="199"/>
+    </object> -->
+    <object type="plane" name="QuadLight" material="light" light="10.6">
+      <scale value="19.3"/>
+      <rotate angle="90" x="1"/>
+      <translate y="26" z="21"/>
+    </object>
+    <object type="plane" name="Floor" material="wood">
+      <scale value="960"/>
+      <rotate angle="90" z="1"/>
+    </object>
+    <object type="model" name="assets/Mesh000.obj" material="mtl1">
+      <scale value="2.75"/>
+      <rotate angle="90" x="1"/>
+      <rotate angle="-70" z="1"/>
+      <translate x="-1.5" y="-5" z="0"/>
+    </object>
+    <object type="model" name="assets/Mesh001.obj" material="mtl1">
+      <scale value="2.75"/>
+      <rotate angle="90" x="1"/>
+      <rotate angle="-70" z="1"/>
+      <translate x="-1.5" y="-5" z="0"/>
+    </object>
+    <!-- Materials -->
+    <material type="disney" name="light">
+      <diffuse  r="0.1" g="0.1" b="0.1"/>
+      <roughness value="1"/>
+    </material>
+    <material type="disney" name="mtl1">
+      <diffuse  r="0.95" g="0.95" b="0.95"/>
+      <metalness value="0.07"/>
+      <roughness value="0.07"/>
+      <specular value="0.75"/>
+    </material>
+    <material type="disney" name="wood">
+      <albedo  texture ="assets/textures/ticmabav_8K_Albedo.jpg">
+       <scale value="0.4"/>
+      </albedo>
+      <roughness texture = "assets/textures/ticmabav_8K_Roughness.jpg">
+      <scale value="0.4"/>
+      </roughness>
+      <normal texture="assets/textures/ticmabav_8K_Normal.jpg">
+      <scale value="0.4"/>
+      </normal>
+      <metalness value="0.13"/>
+      <specular value="0.92"/>
+      <clearcoat value="0.92"/>
+    </material>
+  </scene>
+  <camera>
+    <position x="12" y="-60" z="52"/>
+    <target x="0" y="10" z="4"/>
+    <up x="0" y="0" z="1"/>
+    <fov value="30"/>
+    <width value="800"/>
+    <height value="600"/>
+  </camera>
+</xml>

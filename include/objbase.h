@@ -12,7 +12,7 @@ class LightComponent;
 
 struct HitInfo;
 struct HitInfoContext;
-
+struct Interaction;
 class Node;
 
 //-------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ public:
 	{
 		return Vec3f(0.0f, 0.0f, 1.0f);
 	}
-	virtual Vec3f Sample() const;
+	virtual Interaction Sample() const;
 	virtual float Pdf() const
 	{
 		return 1.0f;
@@ -42,6 +42,8 @@ public:
 	{
 		parent = node;
 	}
+
+	void TransformInteractionToWorld(Interaction& it) const;
 
 	Node* parent = nullptr;
 };
