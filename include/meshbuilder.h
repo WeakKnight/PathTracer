@@ -183,6 +183,7 @@ public:
 		}
 
 		result->GenerateTangent();
+		result->path = path;
 		result->BuildBVH();
 
 		Model* modelResult = new Model(result, 1);
