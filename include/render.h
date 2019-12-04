@@ -86,17 +86,18 @@ Color SampleLights(LightComponent* hitLight, Material* material, HitInfo& hitinf
 	int numLights = lightList.size();
 	Color result = Color::Black();
 
-	for (int i = 0; i < numLights; i++)
-	{
-		auto light = lightList[i];
-		if (light == hitLight)
-		{
-			continue;
-		}
+	float selectLightPdf = 1.0f / numLights;
 
-		result = result + EstimateDirect(light, material, hitinfo, wo);
+	int lightIndex = RandomIndexElementInList(numLights);
+	
+	auto light = lightList[lightIndex];
+	if (light == hitLight)
+	{
+		return result;
 	}
 
+	result = result + (EstimateDirect(light, material, hitinfo, wo) / selectLightPdf);
+	
 	return result;
 }
 

@@ -206,6 +206,12 @@ Vec2f UniformSampleTriangle()
 	return Vec2f(1.0f - su0, u1 * su0);
 }
 
+int RandomIndexElementInList(int size)
+{
+	// 0 to size
+	return rand() % size;
+}
+
 CDF::CDF()
 	:total(0.0f)
 {

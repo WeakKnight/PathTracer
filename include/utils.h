@@ -33,6 +33,8 @@ float LightFallOffFactor(float distance);
 
 Vec2f UniformSampleTriangle();
 
+int RandomIndexElementInList(int size);
+
 class CDF 
 {
 public:

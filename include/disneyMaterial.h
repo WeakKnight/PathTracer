@@ -16,35 +16,35 @@ public:
 	{
 	}
 
-	void SetAlbedo(Color dif) 
-	{ 
-		albedo.SetColor(dif); 
+	void SetAlbedo(Color dif)
+	{
+		albedo.SetColor(dif);
 	}
 
-	void SetRoughness(Color _roughness) 
-	{ 
-		roughness.SetColor(_roughness); 
+	void SetRoughness(Color _roughness)
+	{
+		roughness.SetColor(_roughness);
 	}
-	void SetMetalness(Color _metalness) 
-	{ 
-		metalness.SetColor(_metalness); 
+	void SetMetalness(Color _metalness)
+	{
+		metalness.SetColor(_metalness);
 	}
 
-	void SetAlbedoTexture(TextureMap* map) 
-	{ 
-		albedo.SetTexture(map); 
+	void SetAlbedoTexture(TextureMap* map)
+	{
+		albedo.SetTexture(map);
 	}
-	void SetRoughnessTexture(TextureMap* _roughness) 
-	{ 
-		roughness.SetTexture(_roughness); 
+	void SetRoughnessTexture(TextureMap* _roughness)
+	{
+		roughness.SetTexture(_roughness);
 	}
-	void SetMetalnessTexture(TextureMap* _metalness) 
-	{ 
-		metalness.SetTexture(_metalness); 
+	void SetMetalnessTexture(TextureMap* _metalness)
+	{
+		metalness.SetTexture(_metalness);
 	}
-	void SetNormalTexture(TextureMap* map) 
-	{ 
-		normal = map; 
+	void SetNormalTexture(TextureMap* map)
+	{
+		normal = map;
 	}
 
 	void SetSpecular(float _specular)
@@ -82,6 +82,16 @@ public:
 		subsurface = _subsurface;
 	}
 
+	float InternalComputePdf(DisneyShadingInfo& shading, Vec3f& wi, const Vec3f& wo, Vec3f& brdfN)
+	{
+		Vec3f H = (wi + wo).GetNormalized();
+		float NDotH = brdfN.Dot(H);
+		float NDotL = brdfN.Dot(wi);
+		float HDotL = H.Dot(wi);
+
+		return brdf.DisneyPdf(shading, NDotH, NDotL, HDotL);
+	}
+
 	virtual void Sample(const HitInfo& hInfo, Vec3f& wi, const Vec3f& wo, float& probability)
 	{
 		DisneyShadingInfo shading;
@@ -112,29 +122,7 @@ public:
 
 		wi = brdf.DisneySample(shading, wo, brdfN);
 
-		Vec3f H = (wi + wo).GetNormalized();
-		float NDotH = brdfN.Dot(H);
-		float NDotL = brdfN.Dot(wi);
-		float HDotL = H.Dot(wi);
-
-		/*if (!H.IsUnit())
-		{
-			spdlog::info("H is not normalized");
-		}
-		if (!wi.IsUnit())
-		{
-			spdlog::info("wi is not normalized");
-		}
-		if (!wo.IsUnit())
-		{
-			spdlog::info("wo is not normalized");
-		}
-		if (!brdfN.IsUnit())
-		{
-			spdlog::info("brdfN is not normalized");
-		}*/
-
-		probability = brdf.DisneyPdf(shading, NDotH, NDotL, HDotL);
+		probability = InternalComputePdf(shading, wi, wo, brdfN);
 	}
 
 	virtual float ComputePdf(const HitInfo& hInfo, Vec3f& wi, const Vec3f& wo)
@@ -165,12 +153,7 @@ public:
 			brdfN.Normalize();
 		}
 
-		Vec3f H = (wi + wo).GetNormalized();
-		float NDotH = brdfN.Dot(H);
-		float NDotL = brdfN.Dot(wi);
-		float HDotL = H.Dot(wi);
-
-		return brdf.DisneyPdf(shading, NDotH, NDotL, HDotL);
+		return InternalComputePdf(shading, wi, wo, brdfN);
 	}
 
 	virtual Color EvalBrdf(const HitInfo& hInfo, const Vec3f& wi, const Vec3f& wo, Vec3f& shadingNormal)
