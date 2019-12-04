@@ -135,6 +135,7 @@ bool LightVisTest(Ray& ray, HitInfo& hitInfo,float t_max, Node* light)
 	HitInfo lightHitInfo;
 	if (InternalLightTest(&rootNode, lightHitInfo, ray, light))
 	{
+		hitInfo.Copy(lightHitInfo);
 		if (!lightHitInfo.front)
 		{
 			return true;

@@ -2,9 +2,19 @@
 #include "cyColor.h"
 #include "utils.h"
 
-cy::Color LightComponent::Le()
+cy::Color LightComponent::Le() const
 {
 	return intensity;
+}
+
+// 给MIS用的,已经确定击中的情况下,计算一下对应的Le
+cy::Color LightComponent::ComputeLe(const Vec3f& lightPos, const Vec3f& lightNormal , const Vec3f& objPos, const Vec3f& wi) const
+{
+	auto obj = parent->GetNodeObj();
+	float area = obj->Area();
+	float cosNormalDotNeggativeWi = Max(-wi.Dot(lightNormal), 0.0001f);
+	float pdf = (lightPos - objPos).LengthSquared() / (area * cosNormalDotNeggativeWi);
+	return Le() / pdf;
 }
 
 float LightComponent::Pdf(const HitInfo& hitInfo, const Interaction& sampleInteraction, float distance)

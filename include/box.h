@@ -12,6 +12,18 @@ class Box
 public:
 	Vec3f pmin, pmax;
 
+	Vec3f& operator[](int index)
+	{
+		if (index == 0)
+		{
+			return pmin;
+		}
+		else
+		{
+			return pmax;
+		}
+	}
+
 	// Constructors
 	Box() { Init(); }
 	Box(Vec3f const& _pmin, Vec3f const& _pmax) : pmin(_pmin), pmax(_pmax) {}

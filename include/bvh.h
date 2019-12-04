@@ -108,7 +108,7 @@ public:
             tx0 = (data[3] - r.p.x) * invertDir.x;
         }
         
-        assert(tx0 <= tx1);
+		// assert(tx0 <= tx1);
         
         float ty0;
         float ty1;

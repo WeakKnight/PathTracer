@@ -27,56 +27,59 @@ Color EstimateDirect(LightComponent* light, Material* material, HitInfo& hitinfo
 {
 	Color directResult = Color::Black();
 
-	float pdf;
-	Vec3f wi;
+	//float pdf;
+	//Vec3f wi;
 
-	Color Li = light->SampleLi(hitinfo, pdf, wi);
+	//Color Li = light->SampleLi(hitinfo, pdf, wi);
 
-	if (pdf > 0.0f && Li.Max() > 0.0f)
+	//if (pdf > 0.0f && Li.Max() > 0.0f)
+	//{
+	//	Vec3f shadingNormal;
+	//	auto f = material->EvalBrdf(hitinfo, wi, wo, shadingNormal);
+	//	float NdotL = Max<float>(shadingNormal.Dot(wi), 0.0f);
+	//	directResult += NdotL * f * Li / pdf;
+	//}
+
+	// Light Sampling
 	{
-		Vec3f shadingNormal;
-		auto f = material->EvalBrdf(hitinfo, wi, wo, shadingNormal);
-		float NdotL = Max<float>(shadingNormal.Dot(wi), 0.0f);
-		directResult += NdotL * f * Li / pdf;
+		float pdf;
+		Vec3f wi;
+
+		Color Li = light->SampleLi(hitinfo, pdf, wi);
+
+		if (pdf > 0.0f && Li.Max() > 0.0f)
+		{
+			Vec3f brdfN;
+			Color f = material->EvalBrdf(hitinfo, wi, wo, brdfN);
+			float NdotL = Max<float>(brdfN.Dot(wi), 0.0f);
+			float brdfPdf = material->ComputePdf(hitinfo, wi, wo);
+
+			if (brdfPdf > 0.0f)
+			{
+				float weight = PowerHeuristic(1.0f, pdf, 1.0f, brdfPdf);
+				directResult += NdotL * f * Li * weight / pdf;
+			}
+		}
 	}
-
-	//// Light Sampling
-	//{
-	//	float pdf;
-	//	Vec3f wi;
-
-	//	Color Li = light->SampleLi(hitinfo, pdf, wi);
-
-	//	if (pdf > 0.0f && Li.Max() > 0.0f)
-	//	{
-	//		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
-	//		float brdfPdf = material->ComputePdf(hitinfo, wi, wo);
-
-	//		if (brdfPdf > 0.0f)
-	//		{
-	//			float weight = PowerHeuristic(1.0f, pdf, 1.0f, brdfPdf);
-	//			directResult += NdotL * material->EvalBrdf(hitinfo, wi, wo) * Li * weight / pdf;
-	//		}
-	//	}
-	//}
-	//// Brdf Sampling
-	//{
-	//	float pdf;
-	//	Vec3f wi;
-	//	material->Sample(hitinfo, wi, wo, pdf);
-	//	Color f = material->EvalBrdf(hitinfo, wi, wo);
-	//	if (pdf > 0.0f && f.Sum() > 0.0f)
-	//	{
-	//		float lightPdf = light->Pdf(hitinfo, wi);
-	//		if (lightPdf <= 0.0f)
-	//		{
-	//			return directResult;
-	//		}
-	//		float weight = PowerHeuristic(1.0f, pdf, 1.0f, lightPdf);
-	//		float NdotL = Max<float>(hitinfo.N.Dot(wi), 0.0f);
-	//		directResult += NdotL * f * light->Le() * weight / pdf;
-	//	}
-	//}
+	// Brdf Sampling
+	{
+		float pdf;
+		Vec3f wi;
+		material->Sample(hitinfo, wi, wo, pdf);
+		Vec3f brdfN;
+		Color f = material->EvalBrdf(hitinfo, wi, wo, brdfN);
+		if (pdf > 0.0f && f.Sum() > 0.0f)
+		{
+			float lightPdf = light->Pdf(hitinfo, wi);
+			if (lightPdf <= 0.0f)
+			{
+				return directResult;
+			}
+			float weight = PowerHeuristic(1.0f, pdf, 1.0f, lightPdf);
+			float NdotL = Max<float>(brdfN.Dot(wi), 0.0f);
+			directResult += NdotL * f * light->Le() * weight / pdf;
+		}
+	}
 
 	return directResult;
 }
