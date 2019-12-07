@@ -91,115 +91,152 @@ public:
         assert(data[3] - data[0] >= 0.0f);
         assert(data[4] - data[1] >= 0.0f);
         assert(data[5] - data[2] >= 0.0f);
-        
-        Vec3f invertDir =  Vec3f(1.0f, 1.0f, 1.0f) / r.dir;
-        
-        float tx0;
-        float tx1;
-        
-        if(invertDir.x >= 0.0f)
-        {
-            tx0 = (data[0] - r.p.x) * invertDir.x;
-            tx1 = (data[3] - r.p.x) * invertDir.x;
-        }
-        else
-        {
-            tx1 = (data[0] - r.p.x) * invertDir.x;
-            tx0 = (data[3] - r.p.x) * invertDir.x;
-        }
-        
-		// assert(tx0 <= tx1);
-        
-        float ty0;
-        float ty1;
-        
-        if(invertDir.y >= 0.0f)
-        {
-            ty0 = (data[1] - r.p.y) * invertDir.y;
-            ty1 = (data[4] - r.p.y) * invertDir.y;
-        }
-        else
-        {
-            ty1 = (data[1] - r.p.y) * invertDir.y;
-            ty0 = (data[4] - r.p.y) * invertDir.y;
-        }
-        
-        assert(ty0 <= ty1);
-        
-        if(ty1 < tx0)
-        {
-            return false;
-        }
-        
-        if(tx1 < ty0)
-        {
-            return false;
-        }
-        
-        float t0 = Max(tx0, ty0);
-        float t1 = Min(tx1, ty1);
-        
-        float tz0;
-        float tz1;
-        if(invertDir.z >= 0.0f)
-        {
-            tz0 = (data[2] - r.p.z) * invertDir.z;
-            tz1 = (data[5] - r.p.z) * invertDir.z;
-        }
-        else
-        {
-            tz1 = (data[2] - r.p.z) * invertDir.z;
-            tz0 = (data[5] - r.p.z) * invertDir.z;
-        }
-        
-        if(t1 < tz0)
-        {
-            return false;
-        }
-        
-        if(tz1 < t0)
-        {
-            return false;
-        }
-        
-        t0 = Max(t0, tz0);
-        t1 = Min(t1, tz1);
-        
-        assert(t0 <= t1);
-        
-        if(t0 < 0.0f)
-        {
-            if(t1 < 0.0f)
-            {
-                return false;
-            }
-            else
-            {
-                if(t1 > t_max)
-                {
-                    return false;
-                }
-                else
-                {
-//                    t = t1;
-                    return true;
-                }
-            }
-        }
-        else
-        {
-            if(t0 > t_max)
-            {
-                return false;
-            }
-            else
-            {
-//                t = t0;
-                return true;
-            }
-        }
-        
-        return false;
+
+		Vec3f starThis[2] = {};
+		starThis[0] = Vec3f(data[0], data[1], data[2]);
+		starThis[1] = Vec3f(data[3], data[4], data[5]);
+
+		float tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+		Vec3f invertDir = Vec3f(1.0f, 1.0f, 1.0f) / r.dir;
+		int sign0 = (invertDir.x < 0);
+		int sign1 = (invertDir.y < 0);
+		int sign2 = (invertDir.z < 0);
+
+		tmin = (starThis[sign0].x - r.p.x) * invertDir.x;
+
+		tmax = (starThis[1 - sign0].x - r.p.x) * invertDir.x;
+		tymin = (starThis[sign1].y - r.p.y) * invertDir.y;
+		tymax = (starThis[1 - sign1].y - r.p.y) * invertDir.y;
+
+		if ((tmin > tymax) || (tymin > tmax))
+			return false;
+		if (tymin > tmin)
+			tmin = tymin;
+		if (tymax < tmax)
+			tmax = tymax;
+
+		tzmin = (starThis[sign2].z - r.p.z) * invertDir.z;
+		tzmax = (starThis[1 - sign2].z - r.p.z) * invertDir.z;
+
+		if ((tmin > tzmax) || (tzmin > tmax))
+			return false;
+		if (tzmin > tmin)
+			tmin = tzmin;
+		if (tzmax < tmax)
+			tmax = tzmax;
+
+		return true;
+
+//        
+//        Vec3f invertDir =  Vec3f(1.0f, 1.0f, 1.0f) / r.dir;
+//        
+//        float tx0;
+//        float tx1;
+//        
+//        if(invertDir.x >= 0.0f)
+//        {
+//            tx0 = (data[0] - r.p.x) * invertDir.x;
+//            tx1 = (data[3] - r.p.x) * invertDir.x;
+//        }
+//        else
+//        {
+//            tx1 = (data[0] - r.p.x) * invertDir.x;
+//            tx0 = (data[3] - r.p.x) * invertDir.x;
+//        }
+//        
+//		// assert(tx0 <= tx1);
+//        
+//        float ty0;
+//        float ty1;
+//        
+//        if(invertDir.y >= 0.0f)
+//        {
+//            ty0 = (data[1] - r.p.y) * invertDir.y;
+//            ty1 = (data[4] - r.p.y) * invertDir.y;
+//        }
+//        else
+//        {
+//            ty1 = (data[1] - r.p.y) * invertDir.y;
+//            ty0 = (data[4] - r.p.y) * invertDir.y;
+//        }
+//        
+//        assert(ty0 <= ty1);
+//        
+//        if(ty1 < tx0)
+//        {
+//            return false;
+//        }
+//        
+//        if(tx1 < ty0)
+//        {
+//            return false;
+//        }
+//        
+//        float t0 = Max(tx0, ty0);
+//        float t1 = Min(tx1, ty1);
+//        
+//        float tz0;
+//        float tz1;
+//        if(invertDir.z >= 0.0f)
+//        {
+//            tz0 = (data[2] - r.p.z) * invertDir.z;
+//            tz1 = (data[5] - r.p.z) * invertDir.z;
+//        }
+//        else
+//        {
+//            tz1 = (data[2] - r.p.z) * invertDir.z;
+//            tz0 = (data[5] - r.p.z) * invertDir.z;
+//        }
+//        
+//        if(t1 < tz0)
+//        {
+//            return false;
+//        }
+//        
+//        if(tz1 < t0)
+//        {
+//            return false;
+//        }
+//        
+//        t0 = Max(t0, tz0);
+//        t1 = Min(t1, tz1);
+//        
+//        assert(t0 <= t1);
+//        
+//        if(t0 < 0.0f)
+//        {
+//            if(t1 < 0.0f)
+//            {
+//                return false;
+//            }
+//            else
+//            {
+//                if(t1 > t_max)
+//                {
+//                    return false;
+//                }
+//                else
+//                {
+////                    t = t1;
+//                    return true;
+//                }
+//            }
+//        }
+//        else
+//        {
+//            if(t0 > t_max)
+//            {
+//                return false;
+//            }
+//            else
+//            {
+////                t = t0;
+//                return true;
+//            }
+//        }
+//        
+//        return false;
     }
 };
 

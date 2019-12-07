@@ -35,6 +35,8 @@ Vec2f UniformSampleTriangle();
 
 int RandomIndexElementInList(int size);
 
+float RandomRange(float left, float right);
+
 class CDF 
 {
 public:

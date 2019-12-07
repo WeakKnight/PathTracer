@@ -287,3 +287,12 @@ Vec3f ParseVec3f(std::string& str)
 
 	return Vec3f(r, g, b);
 }
+
+float RandomRange(float left, float right)
+{
+	assert(left < right);
+
+	float domainLength = right - left;
+	float random = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))* domainLength;
+	return left + domainLength;
+}
