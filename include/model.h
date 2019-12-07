@@ -314,15 +314,25 @@ public:
 		const glm::vec3& n2 = mesh.normals[face.indices[2]];
 
 		glm::vec3 normal = glm::normalize(beta0 * n0 + beta1 * n1 + beta2 * n2);
+		float normalSum = normal.x + normal.y + normal.z;
+		if (isnan(normalSum) || isinf(normalSum))
+		{
+			normal = glm::normalize(n);
+		}
 
 		const glm::vec3& t0 = mesh.textureCoords[face.indices[0]];
 		const glm::vec3& t1 = mesh.textureCoords[face.indices[1]];
 		const glm::vec3& t2 = mesh.textureCoords[face.indices[2]];
 
-		auto faceId = face.indices[3];
-		auto& tangent = mesh.tangents[faceId];
-		auto& biTangent = mesh.bitangents[faceId];
+		glm::vec3 tangent = glm::vec3(0.0f, 0.0f, 0.0f);
+		glm::vec3 biTangent = glm::vec3(0.0f, 0.0f, 0.0f);
 
+		if (face.indices.size() >= 4)
+		{
+			auto faceId = face.indices[3];
+			tangent = mesh.tangents[faceId];
+			biTangent = mesh.bitangents[faceId];
+		}
 		glm::vec3 tex = beta0 * t0 + beta1 * t1 + beta2 * t2;
 
 		hInfo.p = Vec3f(p.x, p.y, p.z);
