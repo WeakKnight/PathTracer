@@ -1,6 +1,6 @@
+![Image](https://github.com/WeakKnight/PathTracer/blob/master/imgs/readme/bullet.gif?raw=true)
 ![Image](https://github.com/WeakKnight/PathTracer/blob/master/imgs/readme/editor.gif?raw=true)
 ![Image](https://github.com/WeakKnight/PathTracer/blob/master/imgs/readme/whiteblack.png?raw=true)
-![Image](https://github.com/WeakKnight/PathTracer/blob/master/imgs/readme/bullet.gif?raw=true)
 
 # Feature
 1. Unidirectional PathTracer
