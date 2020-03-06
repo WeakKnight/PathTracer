@@ -1,11 +1,15 @@
-# Todo List
-1. Cache BVH With Same Path Or HashID.
-2. Make Node Part Of BVH.
-3. Optimazition For BVH Tmin1, Tmin2 Comparison.
-4. Eliminate Invert Matrix Calculation In Ray Triangle Computation.
-5. Blender Plugin(Output Scene File).
-6. Use Assimp To Load Mesh Data.
-7. Use Texture To parialy change material of meshes(For example, a sphere with a transparent part).
+![Image](https://github.com/WeakKnight/PathTracer/blob/master/imgs/readme/editor.gif?raw=true)
+![Image](https://github.com/WeakKnight/PathTracer/blob/master/imgs/readme/whiteblack.png?raw=true)
+![Image](https://github.com/WeakKnight/PathTracer/blob/master/imgs/readme/bullet.gif?raw=true)
+
+# Feature
+1. Unidirectional PathTracer
+2. Texture Mapping (Albedo, Metallic, Roughness, Normal maps)
+3. Rectangular Area Lights
+4. Progressive Renderer
+5. BVH Acceleration Structures
+6. Tone Mapping
+7. Debug GUI
 
 # Build Instruction
 ## macOS
@@ -15,7 +19,7 @@
 4. cd macos
 5. cmake -G  "Xcode" ../../
 
-## Windows(Not Tested)
+## Windows
 1. mkdir build
 2. cd build
 3. mkdir windows
@@ -29,20 +33,6 @@
 4. cd unix
 5. cmake ../../
 
-# Feature
 
-* multi threaded via std::future
-* realtime preview based on GL + GLFW
-* debug tool based on IMGUI
 
-# Structure
-
-Main Tracing Logic Located in 
-* src/raytracer.cpp
-* src/objects.cpp
-* src/materials.cpp
-* src/lights.cpp
-
-Program and ouput file will be generated in 
-* bin/ 
 
