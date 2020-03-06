@@ -33,6 +33,18 @@
 4. cd unix
 5. cmake ../../
 
+## Thirdparty Library
+
+Library                                     | Functionality         
+------------------------------------------  | -------------
+[assimp](https://github.com/assimp/assimp)  | Mesh Loading And Pre Processing
+[glfw](https://github.com/glfw/glfw)        | Windowing And Input Handling
+[glm](https://github.com/g-truc/glm)        | Mathematics
+[imgui](https://github.com/ocornut/imgui)    | GUI
+[spdlog](https://github.com/gabime/spdlog)   | Debug Logging
+[glad](https://github.com/Dav1dde/glad)   | OpenGL Loader
+
+
 
 
 
